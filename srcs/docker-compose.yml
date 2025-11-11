@@ -42,7 +42,7 @@ services:
     build:
       context: ./usersdb
       dockerfile: Dockerfile
-    container_name: user-management
+    container_name: users-management
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://redis-broker:6379

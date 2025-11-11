@@ -52,7 +52,7 @@ redisSub.on('message', async (channel, message) => {
   if (msg.action === 'health_check') {
     const health = {
       status: 'healthy',
-      service: 'user-management',
+      service: 'users-management',
       timestamp: new Date().toISOString()
     };
 

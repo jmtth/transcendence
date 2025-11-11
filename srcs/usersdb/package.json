@@ -1,5 +1,5 @@
 {
-  "name": "user-management",
+  "name": "users-management",
   "version": "1.0.0",
   "type": "module",
   "description": "User management Fastify service",
@@ -10,7 +10,7 @@
   },
   "keywords": [
     "fastify",
-    "user-management",
+    "users-management",
     "nodejs"
   ],
   "author": "",
