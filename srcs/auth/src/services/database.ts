@@ -50,7 +50,9 @@ export function findUserByUsername(username: string): DBUser | null {
     const user = findByUsernameStmt.get(username);
     return (user as DBUser) || null;
   } catch (err) {
-    throw new Error(`DB error (findUserByUsername): ${((err as any)?.message) || String(err)}`);
+    const error: any = new Error(`Error during user lookup by username: ${((err as any)?.message) || String(err)}`);
+    error.code = 'DB_FIND_USER_BY_USERNAME_ERROR';
+    throw error;
   }
 }
 
@@ -59,7 +61,9 @@ export function findUserByEmail(email: string): DBUser | null {
     const user = findByEmailStmt.get(email);
     return (user as DBUser) || null;
   } catch (err) {
-    throw new Error(`DB error (findUserByEmail): ${((err as any)?.message) || String(err)}`);
+    const error: any = new Error(`Error during user lookup by email: ${((err as any)?.message) || String(err)}`);
+    error.code = 'DB_FIND_USER_BY_EMAIL_ERROR';
+    throw error;
   }
 }
 
@@ -68,7 +72,9 @@ export function findUserByIdentifier(identifier: string): DBUser | null {
     const user = findByIdentifierStmt.get(identifier, identifier);
     return (user as DBUser) || null;
   } catch (err) {
-    throw new Error(`DB error (findUserByIdentifier): ${((err as any)?.message) || String(err)}`);
+    const error: any = new Error(`Error during user lookup by identifier: ${((err as any)?.message) || String(err)}`);
+    error.code = 'DB_FIND_USER_BY_IDENTIFIER_ERROR';
+    throw error;
   }
 }
 
@@ -80,16 +86,23 @@ export function createUser(user: { username: string; email?: string | null; pass
   } catch (err: any) {
     if (err && err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
       const msg = (err.message || '').toLowerCase();
-      const e: any = new Error('Unique constraint violated');
-      if (msg.includes('username'))
-        e.code = 'USER_EXISTS';
-      else if (msg.includes('email'))
-        e.code = 'EMAIL_EXISTS';
-      else
-        e.code = 'UNIQUE_VIOLATION';
-      throw e;
+      if (msg.includes('username')) {
+        const error: any = new Error(`Username '${user.username}' is already taken`);
+        error.code = 'USER_EXISTS';
+        throw error;
+      } else if (msg.includes('email')) {
+        const error: any = new Error(`Email address '${user.email}' is already in use`);
+        error.code = 'EMAIL_EXISTS';
+        throw error;
+      } else {
+        const error: any = new Error('Uniqueness constraint violated in database');
+        error.code = 'UNIQUE_VIOLATION';
+        throw error;
+      }
     }
-    throw new Error(`DB error (createUser): ${err?.message || err}`);
+    const error: any = new Error(`Error during user creation: ${err?.message || err}`);
+    error.code = 'DB_CREATE_USER_ERROR';
+    throw error;
   }
 }
 
@@ -97,7 +110,9 @@ export function closeDatabase() {
   try {
     db.close();
   } catch (err) {
-    throw new Error(`Failed to close DB: ${((err as any)?.message) || String(err)}`);
+    const error: any = new Error(`Unable to close database: ${((err as any)?.message) || String(err)}`);
+    error.code = 'DB_CLOSE_ERROR';
+    throw error;
   }
 }
 
