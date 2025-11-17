@@ -27,15 +27,14 @@ redis:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml up -d --build redis-broker
 api:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml up -d --build api-gateway
+game:
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml up -d --build game-service
 user:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml up -d --build users-management
-
 build:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml -f build
-
 stop :
 	docker compose -f srcs/docker-compose.yml stop 
-
 down :
 	docker compose -f srcs/docker-compose.yml down
 

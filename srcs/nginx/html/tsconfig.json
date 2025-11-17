@@ -2,12 +2,9 @@
   "compilerOptions": {
     "target": "ES2017",
     "lib": ["ES2017", "DOM"],
-    "module": "none",
+    "module": "ESNext",
     "strict": true,
-    "outFile": "app.js",
-    "removeComments": true,
-    "skipLibCheck": true
-  },
-  "include": ["index.ts"],
-  "exclude": ["node_modules"]
+    "skipLibCheck": true,
+    "esModuleInterop": true
+  }
 }

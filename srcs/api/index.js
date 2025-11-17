@@ -2,7 +2,8 @@ import Fastify from 'fastify';
 import PubSub from './pubSub.js';
 import Routes from './routes.js';
 // import Redis from 'ioredis';
-
+import fastifyHttpProxy from '@fastify/http-proxy'
+import websocketPlugin from '@fastify/websocket'
 // const routes = require('./routes');
 const fastify = Fastify({
   logger: true,
@@ -10,6 +11,29 @@ const fastify = Fastify({
 
 fastify.register(PubSub);
 fastify.register(Routes);
+
+// Register proxy for game service
+await fastify.register(fastifyHttpProxy, {
+  upstream: 'http://game-service:3003',
+  prefix: '/api/game',
+  rewritePrefix: '/',
+  websocket: true, // Enable WebSocket proxying
+});
+// // HTTP proxy to game-service
+// fastify.register(fastifyHttpProxy, {
+//   upstream: 'http://game-service:3003', // use Docker service name if in separate container
+//   prefix: '/api/game',
+//   rewritePrefix: '/api/game',
+// });
+
+// WebSocket proxy to game-service
+// fastify.register(fastifyHttpProxy, {
+//   upstream: 'http://game-service:3003', // use Docker service name
+//   prefix: '/ws/game',
+//   websocket: true,
+//   rewritePrefix: '/ws/game',
+// });
+
 
 // Start server
 const start = async () => {

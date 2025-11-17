@@ -27,6 +27,18 @@ export default async function routes(fastify) {
     };
   });
 
+	 // Health check of API
+	 fastify.get('/api/health', async () => ({
+	   status: 'healthy',
+	   service: 'api-gateway',
+	   redis: {
+	     publisher: redisPublisher.status,
+	     subscriber: redisSubscriber.status,
+	     connected: isRedisReady(redisPublisher) && isRedisReady(redisSubscriber),
+	   },
+	   timestamp: new Date().toISOString(),
+	 }));
+
  // Make a PING test -> seding ping -> reveive pong
   fastify.get('/api/redis', async (req, reply) => {
     try {
@@ -115,26 +127,59 @@ export default async function routes(fastify) {
     }
   });
 
+// fastify.all('/api/game*', async (req, reply) => {
+//   try {
+//     // Extract the path after /api/game
+//     const gamePath = req.url.replace(/^\/api\/game/, '') || '/';
+//     const url = `http://game-service:3003${gamePath}`;
+//
+//     fastify.log.info(`Proxying ${req.method} request to: ${url}`);
+//
+//     // Prepare fetch options
+//     const fetchOptions = {
+//       method: req.method,
+//       headers: {
+//         'Content-Type': req.headers['content-type'] || 'application/json',
+//       },
+//     };
+//
+//     // Add body for non-GET/HEAD requests
+//     if (!['GET', 'HEAD'].includes(req.method) && req.body) {
+//       fetchOptions.body = typeof req.body === 'string' 
+//         ? req.body 
+//         : JSON.stringify(req.body);
+//     }
+//
+//     const res = await fetch(url, fetchOptions);
+//     const body = await res.text();
+//
+//     // Forward the response
+//     reply
+//       .code(res.status)
+//       .header('Content-Type', res.headers.get('content-type') || 'application/json')
+//       .send(body);
+//
+//   } catch (err) {
+//     fastify.log.error('Game service proxy error:', err);
+//     reply.code(503).send({
+//       status: 'error',
+//       message: 'Failed to connect to game service',
+//       error: err.message,
+//     });
+//   }
+// });
 
-
-  // Health check of API
-  fastify.get('/api/health', async () => ({
-    status: 'healthy',
-    service: 'api-gateway',
-    redis: {
-      publisher: redisPublisher.status,
-      subscriber: redisSubscriber.status,
-      connected: isRedisReady(redisPublisher) && isRedisReady(redisSubscriber),
-    },
-    timestamp: new Date().toISOString(),
-  }));
-
-  // Placeholder game route
-  fastify.all('/api/game*', async (request, reply) => {
-    reply.code(200).send({
-      message: 'Game service not connected yet',
-      method: request.method,
-      path: request.url,
-    });
-  });
+	//
+	//
+	// fastify.get('/api/game', async (req, reply) => {
+	//   const url = 'http://game-service:3003' + req.url.replace('/api/game', '');
+	//   const res = await fetch(url, {
+	// 	method: req.method,
+	// 	headers: req.headers,
+	// 	body: ['GET','HEAD'].includes(req.method) ? undefined : await req.raw.text()
+	//   });
+	//
+	//   const body = await res.text();
+	//   reply.code(res.status).headers(res.headers.raw()).send(body);
+	// });
 }

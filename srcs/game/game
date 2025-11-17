@@ -1,0 +1,379 @@
+import Fastify from 'fastify';
+import { randomUUID } from 'crypto';
+import { PongGame } from './pong.js';
+
+const fastify = Fastify({ logger: true });
+import http from 'http';
+
+// Game state storage
+const gameSessions = new Map();
+
+// Health check
+fastify.get('/health', async (request, reply) => {
+  return {
+    status: 'healthy',
+    service: 'game-service',
+    activeSessions: gameSessions.size,
+    timestamp: new Date().toISOString()
+  };
+});
+
+fastify.get('/', async (request, reply) => {
+  return {
+    status: 'healthy',
+    service: 'game-service',
+    activeSessions: gameSessions.size,
+    timestamp: new Date().toISOString()
+  };
+});
+
+// Join game
+fastify.post('/join', async (request, reply) => {
+  const sessionId = randomUUID();
+  const game = new PongGame(sessionId);
+
+  gameSessions.set(sessionId, game);
+  request.log.info(`[${sessionId}] New game session created`);
+
+  return {
+    status: 'success',
+    message: 'Joined game session',
+    sessionId,
+    gameState: game.getState()
+  };
+});
+
+
+// Start game
+fastify.post('/start', async (request, reply) => {
+  const { sessionId } = request.body || {};
+
+  if (!sessionId) {
+    return reply.code(400).send({
+      status: 'error',
+      message: 'sessionId required'
+    });
+  }
+
+  const game = gameSessions.get(sessionId);
+  if (!game) {
+    return reply.code(404).send({
+      status: 'error',
+      message: 'Game session not found'
+    });
+  }
+
+  game.start();
+
+  return {
+    status: 'success',
+    message: 'Game started',
+    sessionId
+  };
+});
+
+
+// Get game state
+fastify.get('/state', async (request, reply) => {
+  const { sessionId } = request.query;
+
+  if (!sessionId) {
+    return reply.code(400).send({
+      status: 'error',
+      message: 'sessionId required'
+    });
+  }
+
+  const game = gameSessions.get(sessionId);
+  if (!game) {
+    return reply.code(404).send({
+      status: 'error',
+      message: 'Game session not found'
+    });
+  }
+
+  return {
+    status: 'success',
+    state: game.getState()
+  };
+});
+
+
+// Stop game
+fastify.post('/stop', async (request, reply) => {
+  const { sessionId } = request.body || {};
+
+  if (!sessionId) {
+    return reply.code(400).send({
+      status: 'error',
+      message: 'sessionId required'
+    });
+  }
+
+  const game = gameSessions.get(sessionId);
+  if (!game) {
+    return reply.code(404).send({
+      status: 'error',
+      message: 'Game session not found'
+    });
+  }
+
+  game.stop();
+  gameSessions.delete(sessionId);
+
+  return {
+    status: 'success',
+    message: 'Game stopped and session removed'
+  };
+});
+
+
+// Move paddle
+fastify.post('/paddle', async (request, reply) => {
+  const { sessionId, paddle, direction } = request.body || {};
+
+  if (!sessionId || !paddle || !direction) {
+    return reply.code(400).send({
+      status: 'error',
+      message: 'sessionId, paddle, and direction required'
+    });
+  }
+
+  const game = gameSessions.get(sessionId);
+  if (!game) {
+    return reply.code(404).send({
+      status: 'error',
+      message: 'Game session not found'
+    });
+  }
+
+  game.setPaddleDirection(paddle, direction);
+
+  return {
+    status: 'success',
+    message: 'Paddle direction updated'
+  };
+});
+
+// 404 handler
+fastify.setNotFoundHandler((request, reply) => {
+  reply.code(404).send({
+    status: 'error',
+    message: 'Endpoint not found',
+    method: request.method,
+    path: request.url
+  });
+});
+
+
+// Start server
+fastify.listen({ port: 3003, host: '0.0.0.0' }, (err, address) => {
+  if (err) throw err;
+  fastify.log.info(`Server running on ${address}`);
+});
+
+// Request router
+// function handleRequest(req, res) {
+//   let body = '';
+//
+//   req.on('data', chunk => {
+//     body += chunk;
+//   });
+//
+//   req.on('end', () => {
+//     let parsedBody = null;
+//     try {
+//       parsedBody = body ? JSON.parse(body) : null;
+//     } catch (err) {
+//       parsedBody = null;
+//     }
+//
+//     const url = new URL(req.url, `http://${req.headers.host}`);
+//     const path = url.pathname;
+//     const method = req.method;
+//
+//     console.log(`${method} ${path}`, parsedBody || '');
+//
+//     // Route: Health check
+//     if (path === '/health' || path === '/' && method === 'GET') {
+//       sendJSON(res, 200, {
+//         status: 'healthy',
+//         service: 'game-service',
+//         activeSessions: gameSessions.size,
+//         timestamp: new Date().toISOString()
+//       });
+//       return;
+//     }
+//
+//     // Route: Join game
+//     if (path === '/join' && method === 'POST') {
+//       const sessionId = randomUUID();
+//       const game = new PongGame(sessionId);
+//       gameSessions.set(sessionId, game);
+//
+//       console.log(`[${sessionId}] New game session created`);
+//
+//       sendJSON(res, 200, {
+//         status: 'success',
+//         message: 'Joined game session',
+//         sessionId: sessionId,
+//         gameState: game.getState()
+//       });
+//       return;
+//     }
+//
+//     // Route: Start game
+//     if (path === '/start' && method === 'POST') {
+//       const sessionId = parsedBody?.sessionId;
+//
+//       if (!sessionId) {
+//         sendJSON(res, 400, {
+//           status: 'error',
+//           message: 'sessionId required'
+//         });
+//         return;
+//       }
+//
+//       const game = gameSessions.get(sessionId);
+//       if (!game) {
+//         sendJSON(res, 404, {
+//           status: 'error',
+//           message: 'Game session not found'
+//         });
+//         return;
+//       }
+//
+//       game.start();
+//
+//       sendJSON(res, 200, {
+//         status: 'success',
+//         message: 'Game started',
+//         sessionId: sessionId
+//       });
+//       return;
+//     }
+//
+//     // Route: Get game state
+//     if (path === '/state' && method === 'GET') {
+//       const sessionId = url.searchParams.get('sessionId');
+//
+//       if (!sessionId) {
+//         sendJSON(res, 400, {
+//           status: 'error',
+//           message: 'sessionId required'
+//         });
+//         return;
+//       }
+//
+//       const game = gameSessions.get(sessionId);
+//       if (!game) {
+//         sendJSON(res, 404, {
+//           status: 'error',
+//           message: 'Game session not found'
+//         });
+//         return;
+//       }
+//
+//       sendJSON(res, 200, {
+//         status: 'success',
+//         state: game.getState()
+//       });
+//       return;
+//     }
+//
+//     // Route: Stop game
+//     if (path === '/stop' && method === 'POST') {
+//       const sessionId = parsedBody?.sessionId;
+//
+//       if (!sessionId) {
+//         sendJSON(res, 400, {
+//           status: 'error',
+//           message: 'sessionId required'
+//         });
+//         return;
+//       }
+//
+//       const game = gameSessions.get(sessionId);
+//       if (game) {
+//         game.stop();
+//         gameSessions.delete(sessionId);
+//
+//         sendJSON(res, 200, {
+//           status: 'success',
+//           message: 'Game stopped and session removed'
+//         });
+//       } else {
+//         sendJSON(res, 404, {
+//           status: 'error',
+//           message: 'Game session not found'
+//         });
+//       }
+//       return;
+//     }
+//
+//     // Route: Move paddle
+//     if (path === '/paddle' && method === 'POST') {
+//       const { sessionId, paddle, direction } = parsedBody || {};
+//
+//       if (!sessionId || !paddle || !direction) {
+//         sendJSON(res, 400, {
+//           status: 'error',
+//           message: 'sessionId, paddle, and direction required'
+//         });
+//         return;
+//       }
+//
+//       const game = gameSessions.get(sessionId);
+//       if (!game) {
+//         sendJSON(res, 404, {
+//           status: 'error',
+//           message: 'Game session not found'
+//         });
+//         return;
+//       }
+//
+//       game.setPaddleDirection(paddle, direction);
+//
+//       sendJSON(res, 200, {
+//         status: 'success',
+//         message: 'Paddle direction updated'
+//       });
+//       return;
+//     }
+//
+//     // 404 - Not Found
+//     sendJSON(res, 404, {
+//       status: 'error',
+//       message: 'Endpoint not found',
+//       method: method,
+//       path: path
+//     });
+//   });
+// }
+//
+// function sendJSON(res, statusCode, data) {
+//   res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+//   res.end(JSON.stringify(data));
+// }
+//
+// // Create and start server
+// const server = http.createServer(handleRequest);
+//
+// server.listen(3003, () => {
+//   console.log('🎮 Game service HTTP server listening on port 3003');
+//   console.log('Available endpoints:');
+//   console.log('  GET  /health       - Health check');
+//   console.log('  POST /join         - Join game session');
+//   console.log('  POST /start        - Start game (requires sessionId)');
+//   console.log('  GET  /state        - Get game state (requires sessionId)');
+//   console.log('  POST /paddle       - Move paddle (requires sessionId, paddle, direction)');
+//   console.log('  POST /stop         - Stop game (requires sessionId)');
+// });
+//
+// Cleanup on shutdown
+// process.on('SIGTERM', () => {
+//   console.log('Shutting down game service...');
+//   gameSessions.forEach(game => game.stop());
+//   gameSessions.clear();
+//   server.close();
+// });

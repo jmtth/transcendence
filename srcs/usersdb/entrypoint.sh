@@ -29,5 +29,7 @@ echo "📊 Database contains $USER_COUNT users"
 
 # Start Node.js app
 echo "🚀 Starting Node.js app..."
+
+# exec su-exec node "@"
 exec "$@"
 

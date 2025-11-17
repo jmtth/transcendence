@@ -130,7 +130,7 @@ async function redisPlugin(fastify, options) {
         if (redisRpcClient.status === 'ready') return resolve();
         redisRpcClient.once('ready', resolve);
         redisRpcClient.once('error', reject);
-        setTimeout(() => reject(new Error('RPC client connection timeout')), 10000);
+	        setTimeout(() => reject(new Error('RPC client connection timeout')), 10000);
       }),
     ]);
 
@@ -164,3 +164,7 @@ async function redisPlugin(fastify, options) {
 }
 
 export default fp(redisPlugin);
+
+
+
+
