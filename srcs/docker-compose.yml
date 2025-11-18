@@ -8,50 +8,89 @@ services:
       dockerfile: Dockerfile
     container_name: nginx-proxy
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "4430:443"
     networks:
       - app-network
     restart: unless-stopped
+    depends_on:
+      api-gateway:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   # Main Fastify API
   api-gateway:
     build:
-      context: ./api
+      context: ./gateway
       dockerfile: Dockerfile
     container_name: api-gateway
+    expose:
+      - "3000"
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379
-      - DB_PATH=/data/app.db
+      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     networks:
       - app-network
     restart: unless-stopped
+    depends_on:
+      auth-service:
+        condition: service_healthy
 
-  # Redis message broker
-  redis-broker:
+  # Auth service
+  auth-service:
     build:
-      context: ./redis
+      context: ./auth
       dockerfile: Dockerfile
-    container_name: redis-broker
-    networks:
-      - app-network
-    restart: unless-stopped
-
-  users-management:
-    build:
-      context: ./usersdb
-      dockerfile: Dockerfile
-    container_name: users-management
+    container_name: auth-service
+    expose:
+      - "3001"
     environment:
       - NODE_ENV=production
-      - REDIS_URL=redis://redis-broker:6379
-      - DB_PATH=/data/app.db
+      - AUTH_DB_PATH=/data/auth.db  # SQLite database path inside container
+      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - ${HOST_VOLUME_PATH}:/data
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Redis message broker
+  # redis-broker:
+  #   build:
+  #     context: ./redis
+  #     dockerfile: Dockerfile
+  #   container_name: redis-broker
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
+
+  # users-management:
+  #   build:
+  #     context: ./usersdb
+  #     dockerfile: Dockerfile
+  #   container_name: users-management
+  #   environment:
+  #     - NODE_ENV=production
+  #     - REDIS_URL=redis://redis-broker:6379
+  #     - DB_PATH=/data/app.db
+  #   volumes:
+  #     - ${HOST_VOLUME_PATH}:/data
+  #   networks:
+  #     - app-network
+  #   restart: unless-stopped
 
 networks:
   app-network:
