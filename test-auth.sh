@@ -7,7 +7,7 @@ set -e
 
 BASE_URL="http://localhost:8080"
 API_URL="$BASE_URL/api"
-GATEWAY_URL="$BASE_URL/gateway"
+GATEWAY_URL="$BASE_URL/public"
 
 echo "🧪 Tests des services Transcendance"
 echo "=================================="

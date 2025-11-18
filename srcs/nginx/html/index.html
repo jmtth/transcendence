@@ -169,7 +169,7 @@
 				container.textContent = 'Chargement...';
 				container.style.color = '';
 				try {
-					const res = await fetch('/gateway/healthAll', { credentials: 'include' });
+					const res = await fetch('/public/healthAll', { credentials: 'include' });
 					const text = await res.text();
 					let data;
 					try { data = JSON.parse(text); } catch { data = text; }
