@@ -16,8 +16,8 @@ FROM node:18-alpine AS builder
 WORKDIR /build
 COPY ./html ./
 # Use esbuild to bundle TypeScript for the browser
-# RUN npx esbuild index.ts --bundle --outfile=app.js --format=iife --target=es2017
-RUN npm install -g typescript && tsc index.ts --outFile app.js --target ES2017 --lib ES2017,DOM
+RUN npx esbuild index.ts --bundle --outfile=app.js --format=iife --target=es2017
+# RUN npm install -g typescript && tsc index.ts --outFile app.js --target ES2017 --lib ES2017,DOM
 
 FROM nginx:alpine
 RUN rm /etc/nginx/conf.d/default.conf
