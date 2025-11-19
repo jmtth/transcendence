@@ -1,8 +1,10 @@
 import { FastifyInstance } from "fastify";
-import { registerRoutes } from "../controllers/auth.controller.js";
+import { registerAuthRoutes } from "../controllers/auth.controller.js";
+import { registerGameRoutes } from "../controllers/game.controller.js";
 
 export async function gatewayRoutes(app: FastifyInstance) {
-  app.register(registerRoutes, { prefix: "/auth" });
+  app.register(registerAuthRoutes, { prefix: "/auth" });
+  app.register(registerGameRoutes, { prefix: "/game" });
 }
 
 export async function gatewayNonApiRoutes(app: FastifyInstance) {
@@ -53,7 +55,9 @@ export async function gatewayNonApiRoutes(app: FastifyInstance) {
   });
 
   app.get("/healthAll", async (request, reply) => {
-    const services = [{ name: "api-gateway", port: 3000 } , { name: "auth-service", port: 3001 }]; // Add other services as needed
+    const services = [{ name: "api-gateway", port: 3000 }, 
+                      { name: "auth-service", port: 3001 },
+                      { name: "game-service", port: 3003 }]; // Add other services as needed
     const results: Record<string, string> = {};
     await Promise.all(services.map(async (service) => {
       try {
