@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Résolution absolue du fichier
-const dbPath = join(__dirname, "../src/blockchain.db");
+const dbPath = join(__dirname, "../../src/blockchain.db");
 
 export const db = new Database(dbPath);
 
