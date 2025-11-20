@@ -57,7 +57,7 @@ export async function addRow(
   reply: FastifyReply
 ) {
   const data = request.body;
-  db.prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`).run(
+  const id = db.prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`).run(
     data.tx_id,
     data.match_id,
     data.player1_id,
@@ -66,6 +66,7 @@ export async function addRow(
     data.player2_score,
     data.winner_id
   );
+  this.log.info({ event: "register_success", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, id });
   return reply.redirect("/");
 }
 
@@ -88,12 +89,6 @@ export async function addRowJSON(
 ) {
   const { tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id } = request.body as Blockchain;
   this.log.info({ event: "register_attempt", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id });
-  if (!tx_id || !match_id || !player1_id || !player2_id || !player1_score || !player2_score || !winner_id) {
-    this.log.warn({ event: "register_failed", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id: "missing_fields" });
-    return reply
-      .code(400)
-      .send({ error: { message: "tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id required", code: "MISSING_FIELDS" } });
-  }
   try {
     const iddb = db
       .prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`)
@@ -101,6 +96,6 @@ export async function addRowJSON(
     this.log.info({ event: "register_success", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, iddb });
   } catch (err: any) {
     this.log.error({ event: "register_error", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, err: err?.message || err });
-    return reply.code(500).send({ error: { message: "Internal server error", code: "INTERNAL_SERVER_ERROR" } });
+    return reply.code(406).send({ error: { message: "Internal server error", code: "INSERT FAILED" } });
   }
 }
