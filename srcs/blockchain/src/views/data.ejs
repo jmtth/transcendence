@@ -3,9 +3,19 @@
 <div class="container">
   <h1><%= message %></h1>
       <p>
-        ID: <%= datadb.id %> —
-        Prénom: <%= datadb.first_name %> —
-        Nom: <%= datadb.last_name %>
+        tx_id: <%= datadb.tx_id %> - 
+        <% if (datadb.tx_hash) { %>
+        tx_hash: <%= datadb.tx_hash %> - 
+        <% } %>
+        <% if (datadb.date_confirmed) { %>
+        date_confirmed: <%= datadb.date_confirmed %> - 
+        <% } %>
+        match_id: <%= datadb.match_id %> - 
+        player1_id: <%= datadb.player1_id %> - 
+        player2_id: <%= datadb.player2_id %> - 
+        player1_score: <%= datadb.player1_score %> - 
+        player2_score: <%= datadb.player2_score %> - 
+        winner_id: <%= datadb.winner_id %> - 
       </p>
 </div>
 

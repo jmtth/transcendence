@@ -1,10 +1,11 @@
 import { FastifyInstance } from "fastify";
-import { rowIdSchema, bodySchema } from "./block.schema.js";
-import { addRow, listRows, listRowsJSON, showRow } from "./block.controller.js";
+import { blockIdSchema, blockSchema } from "./block.schema.js";
+import { addRow, addRowJSON, listRows, listRowsJSON, showRow } from "./block.controller.js";
 
 export async function blockRoutes(app: FastifyInstance) {
   app.get("/", listRows);
   app.get("/me", listRowsJSON);
-  app.post("/", { schema: { body: bodySchema } }, addRow);
-  app.get("/row/:id", { schema: { params: rowIdSchema } }, showRow);
+  app.post("/", { schema: { body: blockSchema } }, addRow);
+  app.post("/register", { schema: { body: blockSchema } }, addRowJSON);
+  app.get("/row/:id", { schema: { params: blockIdSchema } }, showRow);
 }

@@ -1,13 +1,25 @@
 import { db } from "../core/database.js";
 import { RecordNotFoundError } from "../core/error.js";
-import { FastifyReply, FastifyRequest } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+
+interface Blockchain {
+  tx_id: number;
+  tx_hash?: string;
+  date_confirmed?: string;
+  match_id: number;
+  player1_id: number;
+  player2_id: number;
+  player1_score: number;
+  player2_score: number;
+  winner_id: number;
+}
 
 export async function listRows(_request: FastifyRequest, reply: FastifyReply) {
   const datadb = db.prepare("SELECT * FROM snapshot").all();
   return reply.view("index", {
     title: "Blockchain Service",
     message: "Hello from Fastify + EJS + TypeScript",
-    datadb,
+    datadb
   });
 }
 
@@ -16,36 +28,79 @@ export async function listRowsJSON(_request: FastifyRequest, reply: FastifyReply
   return reply.code(200).send(datadb);
 }
 
-export async function showRow(
-  request: FastifyRequest<{ Params: { id: number } }>,
-  reply: FastifyReply,
-) {
-  const datadb = db
-    .prepare(`SELECT * FROM snapshot WHERE id = ?`)
-    .get(request.params.id);
+export async function showRow(request: FastifyRequest<{ Params: { tx_id: number } }>, reply: FastifyReply) {
+  const datadb = db.prepare(`SELECT * FROM snapshot WHERE tx_id = ?`).get(request.params.tx_id);
   if (datadb === undefined) {
-    throw new RecordNotFoundError(`No data with id ${request.params.id}`);
+    throw new RecordNotFoundError(`No data with id ${request.params.tx_id}`);
   }
   return reply.view("data", {
     title: "My data is",
     message: "My data is",
-    datadb,
+    datadb
   });
 }
 
 export async function addRow(
-  req: FastifyRequest<{
+  request: FastifyRequest<{
     Body: {
-      id: number;
-      first_name: string;
-      last_name: string;
+      tx_id: number;
+      tx_hash: string;
+      date_confirmed: string;
+      match_id: number;
+      player1_id: number;
+      player2_id: number;
+      player1_score: number;
+      player2_score: number;
+      winner_id: number;
     };
   }>,
-  res: FastifyReply,
+  reply: FastifyReply
 ) {
-  const data = req.body;
-  db.prepare(
-    `INSERT INTO snapshot(id,first_name,last_name) VALUES (?,?,?)`,
-  ).run(data.id, data.first_name, data.last_name);
-  return res.redirect("/");
+  const data = request.body;
+  db.prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`).run(
+    data.tx_id,
+    data.match_id,
+    data.player1_id,
+    data.player2_id,
+    data.player1_score,
+    data.player2_score,
+    data.winner_id
+  );
+  return reply.redirect("/");
+}
+
+export async function addRowJSON(
+  this: FastifyInstance,
+  request: FastifyRequest<{
+    Body: {
+      tx_id: number;
+      tx_hash: string;
+      date_confirmed: string;
+      match_id: number;
+      player1_id: number;
+      player2_id: number;
+      player1_score: number;
+      player2_score: number;
+      winner_id: number;
+    };
+  }>,
+  reply: FastifyReply
+) {
+  const { tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id } = request.body as Blockchain;
+  this.log.info({ event: "register_attempt", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id });
+  if (!tx_id || !match_id || !player1_id || !player2_id || !player1_score || !player2_score || !winner_id) {
+    this.log.warn({ event: "register_failed", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id: "missing_fields" });
+    return reply
+      .code(400)
+      .send({ error: { message: "tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id required", code: "MISSING_FIELDS" } });
+  }
+  try {
+    const iddb = db
+      .prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`)
+      .run(tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id);
+    this.log.info({ event: "register_success", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, iddb });
+  } catch (err: any) {
+    this.log.error({ event: "register_error", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, err: err?.message || err });
+    return reply.code(500).send({ error: { message: "Internal server error", code: "INTERNAL_SERVER_ERROR" } });
+  }
 }

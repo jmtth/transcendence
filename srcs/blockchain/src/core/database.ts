@@ -1,13 +1,46 @@
 import Database from "better-sqlite3";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
+// import { fileURLToPath } from "node:url";
+// import { dirname, join } from "node:path";
+import fs from "fs";
+import path from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = dirname(__filename);
 
 // Résolution absolue du fichier
-const dbPath = join(__dirname, "../../src/blockchain.db");
+// const dbPath = join(__dirname, "../../src/blockchain.db");
+// DB path
+const DEFAULT_DIR = path.join(process.cwd(), "data");
+const DB_PATH = process.env.AUTH_DB_PATH || path.join(DEFAULT_DIR, "blockchain.db");
 
-export const db = new Database(dbPath);
+// Check dir
+try {
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+} catch (err) {
+  const e: any = new Error(`Failed to ensure DB directory: ${(err as any)?.message || String(err)}`);
+  throw e;
+}
 
-console.log("Using SQLite file:", dbPath);
+export const db = new Database(DB_PATH);
+console.log("Using SQLite file:", DB_PATH);
+
+// Create table
+
+try {
+  db.exec(`
+CREATE TABLE IF NOT EXISTS snapshot(
+    tx_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tx_hash TEXT UNIQUE,
+    date_confirmed TEXT,
+    match_id INTEGER UNIQUE,
+    player1_id INTEGER,
+    player2_id INTEGER,
+    player1_score INTEGER,
+    player2_score INTEGER,
+    winner_id INTEGER
+    );
+  `);
+} catch (err) {
+  const e: any = new Error(`Failed to initialize DB schema: ${(err as any)?.message || String(err)}`);
+  throw e;
+}
