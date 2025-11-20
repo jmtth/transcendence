@@ -1,0 +1,71 @@
+import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
+import { logger } from "../utils/logger.js";
+
+const SERVICES: Record<string, { host: string; port: number }> = {
+  auth: { host: "auth-service", port: 3001 },
+};
+
+
+export async function healthHandler(request: FastifyRequest, reply: FastifyReply) {
+  return { status: "healthy" };
+}
+
+export async function healthByNameHandler(request: FastifyRequest, reply: FastifyReply) {
+  const { name } = request.params as { name: string };
+  const service = SERVICES[name];
+
+  if (!service) {
+    logger.warn({ event: 'health_check_service_not_found', serviceName: name });
+    return reply.code(404).send({
+      error: { message: "Service not found", code: "SERVICE_NOT_FOUND" }
+    });
+  }
+
+  try {
+    const res = await fetch(`http://${service.host}:${service.port}/health`);
+    const healthy = res.status === 200;
+
+    logger.info({
+      event: 'health_check_service',
+      serviceName: name,
+      healthy,
+      status: res.status
+    });
+
+    if (healthy) {
+      return { status: "healthy" };
+    }
+    return reply.code(500).send({ status: "unhealthy" });
+  } catch (error) {
+    logger.error({
+      event: 'health_check_service_error',
+      serviceName: name,
+      err: (error as Error).message
+    });
+    return reply.code(500).send({
+      status: `unhealthy (error: ${(error as Error).message})`
+    });
+  }
+}
+
+export async function healthAllHandler(request: FastifyRequest, reply: FastifyReply) {
+  const services = [
+    { name: "api-gateway", port: 3000 },
+    { name: "auth-service", port: 3001 }
+  ];
+
+  const results: Record<string, string> = {};
+
+  await Promise.all(services.map(async (service) => {
+    const serviceKey = `${service.name}:${service.port}`;
+    try {
+      const res = await fetch(`http://${service.name}:${service.port}/health`);
+      results[serviceKey] = res.status === 200 ? "healthy" : "unhealthy";
+    } catch (error) {
+      results[serviceKey] = `unhealthy (error: ${(error as Error).message})`;
+    }
+  }));
+
+  logger.info({ event: 'health_check_all', services: results });
+  return results;
+}
