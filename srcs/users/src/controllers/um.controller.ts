@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyReply } from "fastify";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 
 interface User {
     username: string;

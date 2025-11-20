@@ -1,0 +1,4 @@
+model UserProfile {
+    id  String @id @default(uuid())
+    
+}

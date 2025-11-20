@@ -1,21 +1,17 @@
-import { cleanEnv, num, str } from "envalid";
 import fastify from "fastify";
 import { umRoutes as userRoutes } from "routes/um.routes.js";
+import { env } from "config.js";
 
-const env = cleanEnv(process.env, {
-  LOG_LEVEL: str({choices: ['debug', 'info', 'warn', 'error'], default: 'info'}),
-  PORT: num( {default: 3003} ),
-  NODE_ENV: str({ choices: ['development', 'test', 'production', 'staging'] }),
-});
+const app = fastify({ logger: env.LOG_ENABLED });
 
-const app = fastify({ logger: env.LOG_LEVEL });
+export const logger = app.log;
 
 app.register(userRoutes, { prefix: '/'});
 
-app.listen({ host: '0.0.0.0', port: env.PORT }, (err, address) => {
+app.listen({ host: '0.0.0.0', port: env.PORT }, (err: Error | null, address: string) => {
     if (err) {
-        console.error(err);
+        app.log.error({ message: err.message });
         process.exit(1);
     }
-    console.log(`User Management service listening at ${address}`);
+    app.log.info({ message: `User Management service listening at ${address}`});
 });
