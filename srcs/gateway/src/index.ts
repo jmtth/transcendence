@@ -5,7 +5,7 @@ import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
 import websocketPlugin from "@fastify/websocket";
 
-const PUBLIC_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/auth/health", "/api/game/sessions"];
+const PUBLIC_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/auth/health", "/api/game/health"];
 
 const app = fastify({ logger: { level: process.env.LOG_LEVEL || "info" } });
 

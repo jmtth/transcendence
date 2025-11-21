@@ -1,5 +1,5 @@
 # Use official Node.js LTS
-FROM node:18-alpine
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
@@ -14,9 +14,8 @@ COPY package*.json ./
 RUN npm install
 
 # Copy app source code
-COPY server.ts ./
-COPY pong.ts ./
-COPY tsconfig.json ./
+COPY ./src/ ./src/
+COPY tsconfig.json .
 
 RUN npm run build
 
@@ -33,4 +32,4 @@ EXPOSE 3003
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Default command (your file is game.js, not index.js)
-CMD ["node", "server.js"]
+CMD ["node", "dist/server.js"]

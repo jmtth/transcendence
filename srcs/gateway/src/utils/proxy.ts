@@ -186,6 +186,7 @@ export function webSocketProxyRequest(
     connection.close();
   });
 }
+
 export async function proxyRequest(
   app: FastifyInstance,
   request: FastifyRequest,
