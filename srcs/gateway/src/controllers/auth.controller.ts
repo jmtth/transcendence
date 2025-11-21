@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { proxyRequest } from "../utils/proxy.js";
 
-export function registerRoutes(app: FastifyInstance) {
+export function registerAuthRoutes(app: FastifyInstance) {
   app.get("/", async (request, reply) => {
     app.log.info({ event: 'auth_root', remote: 'auth', url: '/'});
     const res = await proxyRequest(app, request, reply, "http://auth-service:3001/");
