@@ -3,7 +3,9 @@ import { logger } from "../utils/logger.js";
 
 const SERVICES: Record<string, { host: string; port: number }> = {
   auth: { host: "auth-service", port: 3001 },
-  game: { host: "game-service", port: 3003 }
+  user: { host: "user-service", port: 3002 },
+  game: { host: "game-service", port: 3003 },
+  blockchain: { host: "blockchain-service", port: 3004 }
 };
 
 
