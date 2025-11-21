@@ -9,5 +9,5 @@ export async function umRoutes(app: FastifyInstance) {
         return { message: "Service healthy"};
     });
 
-    app.get("/users/:id", getUserbyId);
+    // app.get("/users/:id", getUserbyId);
 }
