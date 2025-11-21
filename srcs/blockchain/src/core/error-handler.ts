@@ -9,8 +9,9 @@ export function registerErrorHandler(app: FastifyInstance) {
     }
     console.error(error);
     res.statusCode = 500;
+    const err = error as Error;
     return {
-      error: "Error of server",
+      error: err.message
     };
   });
 }

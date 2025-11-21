@@ -1,18 +1,7 @@
 import { db } from "../core/database.js";
 import { RecordNotFoundError } from "../core/error.js";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-
-interface Blockchain {
-  tx_id: number;
-  tx_hash?: string;
-  date_confirmed?: string;
-  match_id: number;
-  player1_id: number;
-  player2_id: number;
-  player1_score: number;
-  player2_score: number;
-  winner_id: number;
-}
+import { Blockchain } from "./block.schema.js";
 
 export async function listRows(_request: FastifyRequest, reply: FastifyReply) {
   const datadb = db.prepare("SELECT * FROM snapshot").all();
@@ -40,53 +29,16 @@ export async function showRow(request: FastifyRequest<{ Params: { tx_id: number 
   });
 }
 
-export async function addRow(
-  request: FastifyRequest<{
-    Body: {
-      tx_id: number;
-      tx_hash: string;
-      date_confirmed: string;
-      match_id: number;
-      player1_id: number;
-      player2_id: number;
-      player1_score: number;
-      player2_score: number;
-      winner_id: number;
-    };
-  }>,
-  reply: FastifyReply
-) {
-  const data = request.body;
-  const id = db.prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`).run(
-    data.tx_id,
-    data.match_id,
-    data.player1_id,
-    data.player2_id,
-    data.player1_score,
-    data.player2_score,
-    data.winner_id
-  );
-  this.log.info({ event: "register_success", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, id });
+export async function addRow(request: FastifyRequest, reply: FastifyReply) {
+  const { tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id } = request.body as Blockchain;
+  const id = db
+    .prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`)
+    .run(tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id);
+  // this.log.info({ event: "register_success", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, id });
   return reply.redirect("/");
 }
 
-export async function addRowJSON(
-  this: FastifyInstance,
-  request: FastifyRequest<{
-    Body: {
-      tx_id: number;
-      tx_hash: string;
-      date_confirmed: string;
-      match_id: number;
-      player1_id: number;
-      player2_id: number;
-      player1_score: number;
-      player2_score: number;
-      winner_id: number;
-    };
-  }>,
-  reply: FastifyReply
-) {
+export async function addRowJSON(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
   const { tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id } = request.body as Blockchain;
   this.log.info({ event: "register_attempt", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id });
   try {

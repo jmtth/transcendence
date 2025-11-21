@@ -1,17 +1,10 @@
 import Database from "better-sqlite3";
-// import { fileURLToPath } from "node:url";
-// import { dirname, join } from "node:path";
 import fs from "fs";
 import path from "path";
 
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = dirname(__filename);
-
-// Résolution absolue du fichier
-// const dbPath = join(__dirname, "../../src/blockchain.db");
 // DB path
 const DEFAULT_DIR = path.join(process.cwd(), "data");
-const DB_PATH = process.env.AUTH_DB_PATH || path.join(DEFAULT_DIR, "blockchain.db");
+const DB_PATH = process.env.BLOCK_DB_PATH || path.join(DEFAULT_DIR, "blockchain.db");
 
 // Check dir
 try {
@@ -25,7 +18,6 @@ export const db = new Database(DB_PATH);
 console.log("Using SQLite file:", DB_PATH);
 
 // Create table
-
 try {
   db.exec(`
 CREATE TABLE IF NOT EXISTS snapshot(

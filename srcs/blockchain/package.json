@@ -13,8 +13,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "tsc -w & node --watch dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+     "dev": "concurrently \"tsc -p tsconfig.json -w\" \"nodemon --watch dist --exec node dist/server.js\"",
+    "build": "tsc -p tsconfig.json",
+    "start": "tsc -p tsconfig.json && node dist/server.js"
   },
   "keywords": [],
   "author": "",

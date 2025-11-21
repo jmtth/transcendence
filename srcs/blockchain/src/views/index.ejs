@@ -87,15 +87,15 @@
             regMsg.textContent = "";
             regMsg.className = "msg";
             regBtn.disabled = true;
-            const txid = document.getElementById("regtxId").value;
-            const mid = document.getElementById("regmId").value;
-            const p1id = document.getElementById("regp1Id").value;
-            const p2id = document.getElementById("regp2Id").value;
-            const p1S = document.getElementById("regp1S").value;
-            const p2S = document.getElementById("regp2S").value;
-            const wid = document.getElementById("regwId").value;
+            const tx_id = document.getElementById("regtxId").value;
+            const match_id = document.getElementById("regmId").value;
+            const player1_id = document.getElementById("regp1Id").value;
+            const player2_id = document.getElementById("regp2Id").value;
+            const player1_score = document.getElementById("regp1S").value;
+            const player2_score = document.getElementById("regp2S").value;
+            const winner_id = document.getElementById("regwId").value;
             try {
-                const result = await postJson("/register", { txid, mid, p1id, p2id, p1S, p2S, wid });
+                const result = await postJson("/register", { tx_id, match_id, player1_id, player2_id,player1_score,player2_score,winner_id  });
                 if (result.ok) {
                     regMsg.textContent = "Inscription réussie";
                     regMsg.classList.add("success");
@@ -176,7 +176,7 @@
             meBtn.disabled = true;
 
             try {
-                const res = await fetch("/me", {
+                const res = await fetch("/list", {
                     method: "GET",
                     credentials: "include"
                 });
@@ -199,7 +199,7 @@
                             const li = document.createElement("li");
                             li.className = "list-group-item d-flex justify-content-between align-items-center";
                             li.innerHTML = `
-							<span><strong>ID:</strong> ${item.id} — ${item.first_name} ${item.last_name}</span>
+							<span><strong>ID:</strong> ${item.tx_id} winner is => ${item.winner_id}</span>
 						`;
                             ul.appendChild(li);
                         });
