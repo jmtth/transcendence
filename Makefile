@@ -27,7 +27,6 @@ volumes:
 colima:
 	@echo "system is : $(OS)"
 ifeq ($(OS), Darwin)
-	#@mkdir -p $(VOLUMES_PATH)/
 	colima start --mount $(VOLUMES_PATH):w --vm-type vz
 endif
 
@@ -41,6 +40,8 @@ auth:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml up -d --build auth-service
 user:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml up -d --build users-management
+game:
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml up -d --build game-service
 
 build:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) docker compose -f srcs/docker-compose.yml build

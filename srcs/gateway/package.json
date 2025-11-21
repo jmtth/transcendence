@@ -9,16 +9,19 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "fastify": "^5.6.2",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.1.0",
-    "@fastify/jwt": "^10.0.0"
+    "@fastify/http-proxy": "^10.0.0",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/websocket": "^11.0.0",
+    "fastify": "^5.6.2"
   },
   "devDependencies": {
-    "typescript": "^5.9.3",
     "@types/node": "^24.10.1",
-    "nodemon": "^3.1.11",
+    "@types/ws": "^8.18.1",
     "concurrently": "^9.2.1",
-    "ts-node": "^10.9.2"
+    "nodemon": "^3.1.11",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

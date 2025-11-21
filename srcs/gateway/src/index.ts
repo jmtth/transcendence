@@ -3,8 +3,9 @@ import fastifyCors from "@fastify/cors";
 import { gatewayNonApiRoutes, gatewayRoutes } from "./routes/gateway.routes.js";
 import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
+import websocketPlugin from "@fastify/websocket";
 
-const PUBLIC_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/auth/health"];
+const PUBLIC_ROUTES = ["/api/auth/login", "/api/auth/register", "/api/auth/health", "/api/game/sessions"];
 
 const app = fastify({ logger: { level: process.env.LOG_LEVEL || "info" } });
 
@@ -16,6 +17,8 @@ app.register(fastifyJwt, {
   secret: process.env.JWT_SECRET || "supersecretkey",  // USE Hashicorp Vault ------------------------------------
 });
 
+console.log("register");
+app.register(websocketPlugin);
 // Hook verify JWT routes `/api` sauf les routes PUBLIC_ROUTES
 app.addHook("onRequest", async (request: any, reply: any) => {
   const url = request.url || request.raw?.url || "";
