@@ -1,0 +1,227 @@
+<%- include('header.ejs', {title}) %>
+<div class="text-center my-4">
+    <h1 class="fw-bold"><%= message %></h1>
+</div>
+<div class="container">
+    <div class="card">
+        <h2>Enregistrement par formulaire</h2>
+        <form action="" method="post">
+            <div class="mb-2">
+                <label for="tx_id">tx_id</label>
+                <input type="number" class="form-control" id="tx_id" name="tx_id" />
+            </div>
+            <div class="mb-2">
+                <label for="match_id">match_id</label>
+                <input type="number" class="form-control" id="match_id" name="match_id" />
+            </div>
+            <div class="mb-2">
+                <label for="player1_id">player1_id</label>
+                <input type="number" class="form-control" id="player1_id" name="player1_id" />
+            </div>
+            <div class="mb-2">
+                <label for="player2_id">player2_id</label>
+                <input type="number" class="form-control" id="player2_id" name="player2_id" />
+            </div>
+            <div class="mb-2">
+                <label for="player1_score">player1_score</label>
+                <input type="number" class="form-control" id="player1_score" name="player1_score" />
+            </div>
+            <div class="mb-2">
+                <label for="player2_score">player2_score</label>
+                <input type="number" class="form-control" id="player2_score" name="player2_score" />
+            </div>
+            <div class="mb-2">
+                <label for="winner_id">winner_id</label>
+                <input type="number" class="form-control" id="winner_id" name="winner_id" />
+            </div>
+            <button class="btn btn-primary">New data</button>
+        </form>
+    </div>
+
+    <!-- Carte d'enregistrement snapshot blockchain -->
+    <div class="card" id="registerCard">
+        <h2>Enregistrement par JSON SPA</h2>
+        <form id="registerForm">
+            <label for="regtxId">tx_id</label>
+            <input id="regtxId" name="tx_id" type="text" />
+            <label for="regmId">match_id</label>
+            <input id="regmId" name="match_id" type="text" />
+            <label for="regp1Id">player1_id</label>
+            <input id="regp1Id" name="player1_id" type="text" />
+            <label for="regp2Id">player2_id</label>
+            <input id="regp2Id" name="player2_id" type="text" />
+            <label for="regp1S">player1_score</label>
+            <input id="regp1S" name="player1_score" type="text" />
+            <label for="regp2S">player2_score</label>
+            <input id="regp2S" name="player2_score" type="text" />
+            <label for="regwId">winner_id</label>
+            <input id="regwId" name="winner_id" type="text" />
+            <button class="btn btn-primary mt-3" type="submit" id="regBtn">S'inscrire</button>
+            <div class="msg" id="regMsg"></div>
+            <div class="small">Envoi POST vers: <code>/register</code></div>
+        </form>
+    </div>
+    <script>
+        // Code de la carte d'enregistrement snapshot blockchain
+        const registerForm = document.getElementById("registerForm");
+        const regMsg = document.getElementById("regMsg");
+        const regBtn = document.getElementById("regBtn");
+
+        async function postJson(url, body) {
+            const res = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify(body)
+            });
+            const text = await res.text();
+            try {
+                return { ok: res.ok, status: res.status, data: JSON.parse(text) };
+            } catch {
+                return { ok: res.ok, status: res.status, data: text };
+            }
+        }
+
+        registerForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            regMsg.textContent = "";
+            regMsg.className = "msg";
+            regBtn.disabled = true;
+            const tx_id = document.getElementById("regtxId").value;
+            const match_id = document.getElementById("regmId").value;
+            const player1_id = document.getElementById("regp1Id").value;
+            const player2_id = document.getElementById("regp2Id").value;
+            const player1_score = document.getElementById("regp1S").value;
+            const player2_score = document.getElementById("regp2S").value;
+            const winner_id = document.getElementById("regwId").value;
+            try {
+                const result = await postJson("/register", { tx_id, match_id, player1_id, player2_id,player1_score,player2_score,winner_id  });
+                if (result.ok) {
+                    regMsg.textContent = "Inscription réussie";
+                    regMsg.classList.add("success");
+                    console.log("Données reçues:", result.data);
+                } else {
+                    regMsg.textContent = `Erreur (${result.status}): ${JSON.stringify(result.data)}`;
+                    regMsg.classList.add("error");
+                }
+            } catch (err) {
+                regMsg.textContent = "Requête impossible: " + err.message;
+                regMsg.classList.add("error");
+            } finally {
+                regBtn.disabled = false;
+            }
+        });
+    </script>
+
+    <div class="card">
+        <table class="tabletable-striped">
+            <thead>
+                <tr>
+                    <th scope="col">tx_id</th>
+                    <th scope="col">tx_hash</th>
+                    <th scope="col">date_confirmed</th>
+                    <th scope="col">m_id</th>
+                    <th scope="col">p1_id</th>
+                    <th scope="col">p2_id</th>
+                    <th scope="col">p1_score</th>
+                    <th scope="col">p2_score</th>
+                    <th scope="col">winner</th>
+                </tr>
+            </thead>
+            <% for (const row of datadb) { %>
+            <tr>
+                <td><%= row.tx_id %></td>
+                <td><%= row.tx_hash %></td>
+                <td><%= row.date_confirmed %></td>
+                <td><%= row.match_id %></td>
+                <td><%= row.player1_id %></td>
+                <td><%= row.player2_id %></td>
+                <td><%= row.player1_score %></td>
+                <td><%= row.player2_score %></td>
+                <td><%= row.winner_id %></td>
+            </tr>
+            <% } %>
+        </table>
+    </div>
+
+    <!-- Carte Me -->
+    <div class="card" id="me">
+        <div class="card-body">
+            <h2 class="card-title">Liste des Users</h2>
+
+            <div class="d-flex gap-2 mb-3">
+                <button id="meBtn" class="btn btn-primary">Obtenir les informations</button>
+                <button id="clearBtn" class="btn btn-secondary">Clear</button>
+            </div>
+
+            <div id="meMsg"></div>
+        </div>
+    </div>
+
+    <script>
+        const meBtn = document.getElementById("meBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        const meMsg = document.getElementById("meMsg");
+
+        // Action : Clear
+        clearBtn.addEventListener("click", () => {
+            meMsg.innerHTML = "";
+            meMsg.className = "";
+        });
+
+        // Action : Obtenir les données
+        meBtn.addEventListener("click", async () => {
+            meMsg.innerHTML = "";
+            meMsg.className = "";
+            meBtn.disabled = true;
+
+            try {
+                const res = await fetch("/list", {
+                    method: "GET",
+                    credentials: "include"
+                });
+
+                const text = await res.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch {
+                    data = text;
+                }
+
+                if (res.ok) {
+                    if (Array.isArray(data)) {
+                        // Construction de la liste Bootstrap
+                        const ul = document.createElement("ul");
+                        ul.className = "list-group";
+
+                        data.forEach((item) => {
+                            const li = document.createElement("li");
+                            li.className = "list-group-item d-flex justify-content-between align-items-center";
+                            li.innerHTML = `
+							<span><strong>ID:</strong> ${item.tx_id} winner is => ${item.winner_id}</span>
+						`;
+                            ul.appendChild(li);
+                        });
+
+                        meMsg.appendChild(ul);
+                        meMsg.classList.add("mt-3");
+                    } else {
+                        meMsg.innerHTML = `<div class="alert alert-success">Données: ${JSON.stringify(data)}</div>`;
+                    }
+                } else {
+                    meMsg.innerHTML = `
+					<div class="alert alert-danger">
+						Erreur (${res.status}): ${JSON.stringify(data)}
+					</div>`;
+                }
+            } catch (err) {
+                meMsg.innerHTML = `<div class="alert alert-danger">Requête impossible: ${err.message}</div>`;
+            } finally {
+                meBtn.disabled = false;
+            }
+        });
+    </script>
+</div>
+
+<%- include('footer.ejs') %>

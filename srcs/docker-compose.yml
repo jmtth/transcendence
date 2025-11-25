@@ -56,12 +56,38 @@ services:
       - JWT_SECRET=${JWT_SECRET:-supersecretkey}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
-      - ${HOST_VOLUME_PATH}:/data
+      - data:/data
     networks:
       - app-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # Blockchain service
+  blockchain-service:
+    build:
+      context: ./blockchain
+      dockerfile: Dockerfile
+    container_name: blockchain-service
+    expose:
+      - "3005"
+    environment:
+      - NODE_ENV=production
+      - BLOCK_DB_PATH=/data/blockchain.db  # SQLite database path inside container
+      - REDIS_URL=redis://redis-broker:6379
+      # - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      - data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3005/health"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -86,7 +112,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-
+  
   # Redis message broker
   # redis-broker:
   #   build:
@@ -115,3 +141,11 @@ services:
 networks:
   app-network:
     driver: bridge
+
+volumes:
+  data:
+    driver: local
+    driver_opts:
+      device: ${HOST_VOLUME_PATH}
+      o: bind
+      type: none
