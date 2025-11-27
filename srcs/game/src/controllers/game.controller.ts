@@ -38,7 +38,6 @@ function broadcastToSession(sessionId: string, message: ServerMessage) {
       console.error('Failed to send to client:', err);
     }
   });
-
 }
 
 
@@ -56,46 +55,25 @@ export async function listGameSessions(request: FastifyRequest, reply: FastifyRe
     };
 }
 
-export async function webSocketConnection(this: FastifyInstance, socket: any, req: FastifyRequest) {
-      console.log("get to the sessions id by WS");
-      const params = req.params as { sessionId: string };
-      const sessionId = params.sessionId;
-      const ws = socket;
-      
-      // Get or create game session
-      let game = gameSessions.get(sessionId);
-      if (!game) {
-        game = new PongGame(sessionId);
-        gameSessions.set(sessionId, game);
-        playerConnections.set(sessionId, new Set());
-        this.log.info(`[${sessionId}] Game session created via WebSocket`);
-      }
-      
-      // Add connection to session
-      const connections = playerConnections.get(sessionId);
-      if (connections) {
-        connections.add(ws);
-      }
-      this.log.info(`[${sessionId}] Player connected (${connections?.size} total)`);
-      
-      // Send initial connection confirmation
-      ws.send(JSON.stringify({
-        type: 'connected',
-        sessionId,
-        message: 'Connected to game session',
-        data: game.getState()
-      } as ServerMessage));
-      
-      // Set up game state broadcasting
+
+function handleIncomingMessage(this: FastifyInstance, ws: any, game: PongGame, sessionId: any)
+{
+      // broadcast gameState at 60FPS to very client in the session
       const stateInterval = setInterval(() => {
-        if (game && game.getState().status === 'playing') {
-          broadcastToSession(sessionId, {
-            type: 'state',
-            data: game.getState()
-          });
-        }
+        if (!game) return;
+
+        var status = game.getState().status;
+
+        // if (status === 'playing') {
+        //   broadcastToSession(sessionId, {type: 'gameOver', data: game.getState()});
+        // } else {
+
+          broadcastToSession(sessionId, {type: 'state', data: game.getState()})
+        // }
+        // if (game) {
+        // }
       }, 16); // ~60 FPS
-      
+
       // Handle incoming messages
       ws.on('message', (data: Buffer) => {
         try {
@@ -159,6 +137,42 @@ export async function webSocketConnection(this: FastifyInstance, socket: any, re
         clearInterval(stateInterval);
         cleanupConnection(this, sessionId, ws);
       });
+}
+
+
+export async function webSocketConnection(this: FastifyInstance, socket: any, req: FastifyRequest) {
+      console.log("get to the sessions id by WS");
+      const params = req.params as { sessionId: string };
+      const sessionId = params.sessionId;
+      const ws = socket;
+      
+      // Get or create game session
+      let game = gameSessions.get(sessionId);
+      if (!game) {
+        game = new PongGame(sessionId);
+        gameSessions.set(sessionId, game);
+        playerConnections.set(sessionId, new Set());
+        this.log.info(`[${sessionId}] Game session created via WebSocket`);
+      }
+      
+      // Add connection to session
+      const connections = playerConnections.get(sessionId);
+      if (connections) {
+        connections.add(ws);
+      }
+      this.log.info(`[${sessionId}] Player connected (${connections?.size} total)`);
+      
+      // Send initial connection confirmation
+      ws.send(JSON.stringify({
+        type: 'connected',
+        sessionId,
+        message: 'Connected to game session',
+        data: game.getState()
+      } as ServerMessage));
+      
+      // Set up game state broadcasting
+      handleIncomingMessage.call(this, ws, game, sessionId);
+      
   };
   
   export async function newGameSession(request: FastifyRequest, reply: FastifyReply) {

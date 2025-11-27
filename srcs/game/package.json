@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"tsc -p tsconfig.json -w\" \"nodemon --watch dist --exec node dist/server.js\"",
+    "dev": "tsc -p tsconfig.json -w",
     "build": "tsc -p tsconfig.json",
     "start": "tsc -p tsconfig.json && node dist/server.js"
   },

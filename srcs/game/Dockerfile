@@ -8,13 +8,13 @@ WORKDIR /app
 # RUN apk add --no-cache sqlite sqlite-dev bash su-exec
 
 # Copy package.json files first to benefit from Docker cache
-COPY package*.json ./
+COPY package*.json .
 
 # Install production dependencies
 RUN npm install
 
 # Copy app source code
-COPY ./src/ ./src/
+COPY src ./src
 COPY tsconfig.json .
 
 RUN npm run build
@@ -29,7 +29,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 EXPOSE 3003
 
 # Use entrypoint
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Default command (your file is game.js, not index.js)
 CMD ["node", "dist/server.js"]

@@ -205,78 +205,147 @@ class TranscendenceApp {
         // setInterval(() => this.healthChecker.checkHealth(), 1000);
         // this.healthChecker.checkHealth();
     }
-
-    private createGameContainer(): void {
-        this.gameContainer = document.createElement('div');
-        this.gameContainer.id = 'game-container';
-        this.gameContainer.className = 'hidden fixed inset-0 z-50 bg-black';
-        this.gameContainer.innerHTML = `
-            <div class="relative w-full h-full flex flex-col">
-                <!-- Game Header -->
-                <div class="bg-gradient-to-r from-purple-900 to-blue-900 p-4 flex justify-between items-center">
-                    <div class="flex items-center space-x-4">
-                        <h2 class="text-2xl font-bold text-white">Transcendence - Pong</h2>
-                        <div class="flex items-center space-x-2">
-                            <div id="game-connection-status" class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                            <span id="game-connection-text" class="text-yellow-400 text-sm">Connecting...</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <button id="start-game-btn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                            START GAME
-                        </button>
-                        <button id="exit-game-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all">
-                            Exit
-                        </button>
+private createGameContainer(): void {
+    this.gameContainer = document.createElement('div');
+    this.gameContainer.id = 'game-container';
+    this.gameContainer.className = 'hidden fixed inset-0 z-50 bg-black overflow-y-auto'; // overflow-y-auto added
+    this.gameContainer.innerHTML = `
+        <div class="relative w-full flex flex-col"> <!-- Removed h-full -->
+            <!-- Game Header -->
+            <div class="bg-gradient-to-r from-purple-900 to-blue-900 p-4 flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <h2 class="text-2xl font-bold text-white">Transcendence - Pong</h2>
+                    <div class="flex items-center space-x-2">
+                        <div id="game-connection-status" class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <span id="game-connection-text" class="text-yellow-400 text-sm">Connecting...</span>
                     </div>
                 </div>
+                <div class="flex items-center space-x-4">
+                    <button id="start-game-btn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                        START GAME
+                    </button>
+                    <button id="exit-game-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all">
+                        Exit
+                    </button>
+                </div>
+            </div>
 
-                <!-- Game Canvas Area -->
-                <div class="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
-                    <div class="text-center space-y-6">
-                        <div class="relative">
-                            <canvas id="game-canvas" width="800" height="600" class="border-4 border-purple-500 rounded-lg shadow-2xl bg-black"></canvas>
-                        </div>
-                        
-                        <!-- Game Info -->
-                        <div class="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
-                            <div class="flex justify-around text-white">
-                                <div class="text-center">
-                                    <p class="text-sm text-purple-300">Player 1</p>
-                                    <p id="player1-score" class="text-3xl font-bold">0</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-sm text-purple-300">Game Status</p>
-                                    <p id="game-status-text" class="text-xl font-semibold text-yellow-400">Ready</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-sm text-purple-300">Player 2</p>
-                                    <p id="player2-score" class="text-3xl font-bold">0</p>
-                                </div>
+            <!-- Game Canvas Area -->
+            <div class="flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900 py-8"> <!-- Removed flex-1, added py-8 -->
+                <div class="text-center space-y-6">
+                    <div class="relative">
+                        <canvas id="game-canvas" width="800" height="600" class="border-4 border-purple-500 rounded-lg shadow-2xl bg-black"></canvas>
+                    </div>
+                    
+                    <!-- Game Info -->
+                    <div class="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
+                        <div class="flex justify-around text-white">
+                            <div class="text-center">
+                                <p class="text-sm text-purple-300">Player 1</p>
+                                <p id="player1-score" class="text-3xl font-bold">0</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-purple-300">Game Status</p>
+                                <p id="game-status-text" class="text-xl font-semibold text-yellow-400">Ready</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-purple-300">Player 2</p>
+                                <p id="player2-score" class="text-3xl font-bold">0</p>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Controls Info -->
-                        <div class="bg-white/5 backdrop-blur rounded-lg p-3 max-w-2xl mx-auto">
-                            <p class="text-gray-300 text-sm">
-                                Controls: <span class="text-purple-300 font-mono">W/S</span> for left paddle, 
-                                <span class="text-purple-300 font-mono">↑/↓</span> for right paddle
-                            </p>
-                        </div>
+                    <!-- Controls Info -->
+                    <div class="bg-white/5 backdrop-blur rounded-lg p-3 max-w-2xl mx-auto">
+                        <p class="text-gray-300 text-sm">
+                            Controls: <span class="text-purple-300 font-mono">W/S</span> for left paddle, 
+                            <span class="text-purple-300 font-mono">↑/↓</span> for right paddle
+                        </p>
+                    </div>
 
-                        <!-- Game Log -->
-                        <div class="bg-white/5 backdrop-blur rounded-lg p-4 max-w-2xl mx-auto">
-                            <h3 class="text-sm font-semibold text-purple-300 mb-2">Game Log</h3>
-                            <div id="game-log" class="h-24 overflow-y-auto space-y-1 text-left text-sm font-mono text-gray-300">
-                            </div>
+                    <!-- Game Log -->
+                    <div class="bg-white/5 backdrop-blur rounded-lg p-4 max-w-2xl mx-auto">
+                        <h3 class="text-sm font-semibold text-purple-300 mb-2">Game Log</h3>
+                        <div id="game-log" class="h-24 overflow-y-auto space-y-1 text-left text-sm font-mono text-gray-300">
                         </div>
                     </div>
                 </div>
             </div>
-        `;
-        document.body.appendChild(this.gameContainer);
-    }
-
+        </div>
+    `;
+    document.body.appendChild(this.gameContainer);
+}
+    // private createGameContainer(): void {
+    //     this.gameContainer = document.createElement('div');
+    //     this.gameContainer.id = 'game-container';
+    //     this.gameContainer.className = 'hidden fixed inset-0 z-50 bg-black';
+    //     this.gameContainer.innerHTML = `
+    //         <div class="relative w-full min-h-full flex flex-col">
+    //             <!-- Game Header -->
+    //             <div class="bg-gradient-to-r from-purple-900 to-blue-900 p-4 flex justify-between items-center">
+    //                 <div class="flex items-center space-x-4">
+    //                     <h2 class="text-2xl font-bold text-white">Transcendence - Pong</h2>
+    //                     <div class="flex items-center space-x-2">
+    //                         <div id="game-connection-status" class="w-3 h-3 rounded-full bg-yellow-500"></div>
+    //                         <span id="game-connection-text" class="text-yellow-400 text-sm">Connecting...</span>
+    //                     </div>
+    //                 </div>
+    //                 <div class="flex items-center space-x-4">
+    //                     <button id="start-game-btn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+    //                         START GAME
+    //                     </button>
+    //                     <button id="exit-game-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-all">
+    //                         Exit
+    //                     </button>
+    //                 </div>
+    //             </div>
+    //
+    //             <!-- Game Canvas Area -->
+    //             <div class="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-900 via-purple-900 to-blue-900">
+    //                 <div class="text-center space-y-6">
+    //                     <div class="relative">
+    //                         <canvas id="game-canvas" width="800" height="600" class="border-4 border-purple-500 rounded-lg shadow-2xl bg-black"></canvas>
+    //                     </div>
+    //
+    //                     <!-- Game Info -->
+    //                     <div class="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
+    //                         <div class="flex justify-around text-white">
+    //                             <div class="text-center">
+    //                                 <p class="text-sm text-purple-300">Player 1</p>
+    //                                 <p id="player1-score" class="text-3xl font-bold">0</p>
+    //                             </div>
+    //                             <div class="text-center">
+    //                                 <p class="text-sm text-purple-300">Game Status</p>
+    //                                 <p id="game-status-text" class="text-xl font-semibold text-yellow-400">Ready</p>
+    //                             </div>
+    //                             <div class="text-center">
+    //                                 <p class="text-sm text-purple-300">Player 2</p>
+    //                                 <p id="player2-score" class="text-3xl font-bold">0</p>
+    //                             </div>
+    //                         </div>
+    //                     </div>
+    //
+    //                     <!-- Controls Info -->
+    //                     <div class="bg-white/5 backdrop-blur rounded-lg p-3 max-w-2xl mx-auto">
+    //                         <p class="text-gray-300 text-sm">
+    //                             Controls: <span class="text-purple-300 font-mono">W/S</span> for left paddle, 
+    //                             <span class="text-purple-300 font-mono">↑/↓</span> for right paddle
+    //                         </p>
+    //                     </div>
+    //
+    //                     <!-- Game Log -->
+    //                     <div class="bg-white/5 backdrop-blur rounded-lg p-4 max-w-2xl mx-auto">
+    //                         <h3 class="text-sm font-semibold text-purple-300 mb-2">Game Log</h3>
+    //                         <div id="game-log" class="h-24 overflow-y-auto space-y-1 text-left text-sm font-mono text-gray-300">
+    //                         </div>
+    //                     </div>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     `;
+    //     document.body.appendChild(this.gameContainer);
+    // }
+    //
     private addGameLog(message: string, type: 'info' | 'success' | 'error' | 'warning' = 'info'): void {
         const logContainer = document.getElementById('game-log');
         if (!logContainer) return;
@@ -496,7 +565,7 @@ class TranscendenceApp {
             // console.log(data);
             const startBtn = document.getElementById('gameBtn');
             if (startBtn) {
-                startBtn.textContent = 'test';
+                startBtn.textContent = 'start again';
                 startBtn.classList.remove('opacity-50');
             }
         }

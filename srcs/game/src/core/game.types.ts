@@ -12,14 +12,14 @@ export interface ServerMessage {
   message?: string;
 }
 
-export interface Ball {
-  x: number;
-  y: number;
-  radius: number;
-  velocityX: number;
-  velocityY: number;
-  speed: number;
-}
+// export interface Ball {
+//   x: number;
+//   y: number;
+//   radius: number;
+//   velocityX: number;
+//   velocityY: number;
+//   speed: number;
+// }
 
 export interface Paddle {
   y: number;
