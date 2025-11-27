@@ -1,4 +1,5 @@
 import { UserProfile, UserProfileDB } from "types/user-profile.db.js";
+import * as db from "data/database.js";
 
 // export function toUserProfile(dbProfile: UserProfileDB): UserProfile {
 //     return {
@@ -7,3 +8,7 @@ import { UserProfile, UserProfileDB } from "types/user-profile.db.js";
 //         avatarUrl: dbProfile.avatarUrl
 //     }
 // }
+
+export function findByUsername(username: string) {
+    return db.findProfileByUsername(username);
+}

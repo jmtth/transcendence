@@ -27,7 +27,7 @@
     },
     "include": [
         "src/**/*"
-    ],
+, "prisma.config.ts", "prisma.config.ts"    ],
     "exclude": [
         "src/**/*.spec.ts"
     ]
