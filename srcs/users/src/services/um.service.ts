@@ -1,14 +1,13 @@
-import { UserProfile, UserProfileDB } from "types/user-profile.db.js";
-import * as db from "data/database.js";
+import * as data from 'data/um.data.js'
 
-// export function toUserProfile(dbProfile: UserProfileDB): UserProfile {
-//     return {
-//         id: dbProfile.id,
-//         username: dbProfile.username,
-//         avatarUrl: dbProfile.avatarUrl
-//     }
-// }
+export async function findByUsername(username: string) {
+  return await data.findProfileByUsername(username)
+}
 
-export function findByUsername(username: string) {
-    return db.findProfileByUsername(username);
+export async function createProfile(
+  authId: number,
+  email: string,
+  username: string
+) {
+  return await data.createProfile({ authId, email, username })
 }
