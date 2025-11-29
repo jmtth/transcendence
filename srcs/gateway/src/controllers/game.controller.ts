@@ -9,6 +9,12 @@ export function registerGameRoutes(app: FastifyInstance) {
     return res;
   });
 
+  app.get("/sessions", async (request, reply) => {
+    app.log.info({ event: 'game_sessions', remote: 'game', url: '/sessions' });
+    const res = await proxyRequest(app, request, reply, "http://game-service:3003/sessions");
+    return res;
+  });
+
   // WebSocket proxy route for /api/game/ws
   app.get("/ws", { websocket: true }, (connection: any, request: FastifyRequest) => {
     webSocketProxyRequest(app, connection, request, "/ws");
@@ -19,8 +25,6 @@ export function registerGameRoutes(app: FastifyInstance) {
     const { sessionId } = request.params as { sessionId: string };
     webSocketProxyRequest(app, connection, request, `/${sessionId}`);
   });
-
-
 
   app.all("/*", async (request, reply) => {
     const rawPath = (request.params as any)['*'];
