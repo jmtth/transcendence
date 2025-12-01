@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import * as umService from '../services/um.service.js'
-import { ValidationSchemas } from 'validation/validation.js'
+import { ValidationSchemas } from '../validation/validation.js'
 import z from 'zod'
 
 function handleInvalidRequest<T>(
@@ -31,6 +31,8 @@ export async function getProfileByUsername(
   if (!profile) {
     return reply.status(404).send({ message: 'User not found' })
   }
+
+  return reply.status(200).send({profile: profile});
 }
 
 export async function createProfile(

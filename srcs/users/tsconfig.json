@@ -4,13 +4,17 @@
     "types": ["node", "jest", "better-sqlite3"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "outDir": "dist",
-    "rootDir": "src",
-    "baseUrl": "./src",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": "./",
+    "paths": {
+        "*": ["src/"]
+    },
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
+    "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "noImplicitAny": true,
@@ -25,6 +29,6 @@
     "sourceMap": true, // debug
     "inlineSources": true
   },
-  "include": ["src/**/*", "prisma.config.ts", "prisma.config.ts"],
-  "exclude": ["src/**/*.spec.ts"]
+  "include": ["src/**/*", "test/**/*", "prisma.config.ts"],
+  "exclude": ["node_modules"]
 }

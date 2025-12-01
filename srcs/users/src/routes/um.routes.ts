@@ -1,4 +1,4 @@
-import { getProfileByUsername } from 'controllers/um.controller.js'
+import { getProfileByUsername } from '../controllers/um.controller.js'
 import { FastifyInstance } from 'fastify'
 
 export async function umRoutes(app: FastifyInstance) {

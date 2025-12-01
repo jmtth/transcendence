@@ -1,6 +1,6 @@
 import fastify from 'fastify'
-import { umRoutes as userRoutes } from 'routes/um.routes.js'
-import { appenv } from 'config.js'
+import { umRoutes as userRoutes } from './routes/um.routes.js'
+import { appenv } from './config.js'
 
 const app = fastify({ logger: appenv.LOG_ENABLED })
 

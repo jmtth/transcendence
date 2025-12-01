@@ -1,4 +1,4 @@
-import * as data from 'data/um.data.js'
+import * as data from '../data/um.data.js'
 
 export async function findByUsername(username: string) {
   return await data.findProfileByUsername(username)
