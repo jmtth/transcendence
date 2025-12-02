@@ -132,38 +132,84 @@ export function getPerlinNoiseOctave(
   return perlin.octaveNoise(x, y, z, octaves);
 }
 
-// Generate a 2D force field grid
+export function getNoiseField(
+  width: number,
+  height: number,
+  scale: number = 0.05,
+  size: number = 10,
+  time: number = 0
+): number[][] {
+  const field: number[][] = [];
+
+  for (let x = 0; x < width; x += size) {
+    const column: number[] = [];
+
+    for (let y = 0; y < height; y += size) {
+
+      const noiseValue = perlin.octaveNoise(x * scale, y * scale, time, 8);
+      // const noiseValue = perlin.noise01(x * scale, y * scale, time);
+      column.push(noiseValue);
+    }
+
+    field.push(column);
+  }
+  return field;
+}
+
 export function generateForceField2D(
   width: number,
   height: number,
-  resolution: number = 20,
   scale: number = 0.05,
   strength: number = 1,
   time: number = 0
-): Vector2[] {
-  const vectors: Vector2[] = [];
-  
-  for (let y = 0; y < height; y += resolution) {
-    for (let x = 0; x < width; x += resolution) {
-      // Use Perlin noise to generate force direction
-      const angle = perlin.octaveNoise(
-        x * scale, 
-        y * scale, 
-        time, 
-        3
-      ) * Math.PI * 2; // Convert noise to angle (0 to 2π)
-      
-      vectors.push(new Vector2(
-          Math.cos(angle) * strength,
-          Math.sin(angle) * strength
-        )
-      );
-      time += 0.1;
+): Vector2[][] {
+  const field: Vector2[][] = [];
+
+  for (let x = 0; x < width; x++) {
+    const column: Vector2[] = [];
+
+    for (let y = 0; y < height; y++) {
+      column.push(getForceAt2D(x, y, scale, strength, time));
     }
+
+    field.push(column);
   }
-  
-  return vectors;
+
+  return field;
 }
+
+// // Generate a 2D force field grid
+// export function generateForceField2D(
+//   width: number,
+//   height: number,
+//   resolution: number = 20,
+//   scale: number = 0.05,
+//   strength: number = 1,
+//   time: number = 0
+// ): Vector2[] {
+//   const vectors: Vector2[] = [];
+//
+//   for (let y = 0; y < height; y += resolution) {
+//     for (let x = 0; x < width; x += resolution) {
+//       // Use Perlin noise to generate force direction
+//       const angle = perlin.octaveNoise(
+//         x * scale, 
+//         y * scale, 
+//         time, 
+//         3
+//       ) * Math.PI * 2; // Convert noise to angle (0 to 2π)
+//
+//       vectors.push(new Vector2(
+//           Math.cos(angle) * strength,
+//           Math.sin(angle) * strength
+//         )
+//       );
+//       time += 0.1;
+//     }
+//   }
+//
+//   return vectors;
+// }
 
 // Get force at a specific 2D point
 export function getForceAt2D(

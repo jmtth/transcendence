@@ -5,7 +5,8 @@ import {
   Paddles
 } from "./game.types.js";
 import { Vector2 } from "./game.vector.js";
-import { getForceAt2D } from "./game.perlin.js";
+// import { getForceAt2D, getNoiseField} from "./game.perlin.js";
+import { CosmicMicroWaveNoise } from './game.noise.js';
 
 class Ball {
   pos: Vector2;
@@ -55,20 +56,22 @@ export class PongGame {
   status: GameStatus;
   gameLoopInterval: NodeJS.Timeout | null;
   time: number;
-  serve: boolean;
+  serve: number;
+  cosmicBackground: CosmicMicroWaveNoise;
 
   constructor(sessionId: string) {
     this.sessionId = sessionId;
     this.width = 800;
     this.height = 600;
     this.time = 0;
-    this.serve = true;
+    this.serve = 1;
+    this.cosmicBackground = new CosmicMicroWaveNoise(this.width, this.height, 10);
     this.ball = new Ball(
-      new Vector2(this.width / 2, this.height / 2),
-      new Vector2(5, 5),
+      new Vector2(this.width / 2, this.height / 2), // position
+      new Vector2(5, 5),  // velocity (direction + vitesse)
       10, // size of the ball
       5, // speed limit
-      9, // mass -> more the mass is, less it is affected by other forces
+      5, // mass -> more the mass is, less it is affected by other forces
     );
 
     // Paddle state
@@ -123,7 +126,7 @@ export class PongGame {
       this.gameLoopInterval = null;
     }
     this.status = "finished";
-    console.log(`[${this.sessionId}] Game stopped`);
+    console.log(`[${this.sessionId}] Game Over`);
   }
 
   paddleMove() {
@@ -142,19 +145,23 @@ export class PongGame {
   }
 
   update(): void {
-    // get the force from the forcefield, multiply it to give it strongness
-    const force = getForceAt2D(
+    // Get force from noise field
+    // const force = this.cosmicBackground.getForceAt2D(
+    //   this.ball.pos.x,
+    //   this.ball.pos.y,
+    //   0.01,  // Small scale = smooth forces
+    //   0.5,   // Moderate strength
+    //   this.time
+    // );
+
+    this.cosmicBackground.update(this.time);
+    const force = this.cosmicBackground.getVectorAt(
       this.ball.pos.x,
       this.ball.pos.y,
-      0.1,
-      1,
       this.time,
-    ).mult(4);
-
+    )
     // inverse the forcefield each time the ball hit a paddle
-    if (this.serve) {
-      force.mult(-1);
-    }
+    force.mult(this.serve);
     this.ball.apply(force);
     this.ball.update();
 
@@ -177,7 +184,7 @@ export class PongGame {
         this.ball.vel.x = -this.ball.vel.x;
         // this.ball.vel.mult(-1);
         this.ball.acc.add(new Vector2(5, 0));
-        this.serve = !this.serve;
+        this.serve *= -1;
 
         // Add spin based on where ball hits paddle
         // const hitPos = (this.ball.pos.y - this.paddles.left.y) / this.paddles.left.height;
@@ -197,7 +204,7 @@ export class PongGame {
         this.ball.vel.x = -this.ball.vel.x;
         // this.ball.vel.mult(-1);
         this.ball.acc.add(new Vector2(-5, 0));
-        this.serve = !this.serve;
+        this.serve *= -1;
 
         // const hitPos = (this.ball.pos.y - this.paddles.right.y) / this.paddles.right.height;
         // this.ball.vel.y = (hitPos - 0.5) * 10;
@@ -238,11 +245,12 @@ export class PongGame {
       console.log(
         `[${this.sessionId}] Game finished! Final score: ${this.scores.left} - ${this.scores.right}`,
       );
-      // send to
+      // send to blockchain
+      // -->
     }
 
     // update time to animate forcefield
-    this.time += 0.1;
+    this.time += 0.01;
   }
 
   resetBall(): void {
@@ -250,10 +258,7 @@ export class PongGame {
     this.ball.pos.y = this.height / 2;
     // this.ball.vel.x = -this.ball.vel.x;
 
-    var velX = 5;
-    if (this.serve) {
-      velX *= -1;
-    }
+    var velX = 5 * this.serve;
     this.ball.vel.x = velX;
     this.ball.vel.y = (Math.random() - 0.5) * 10;
   }
@@ -277,6 +282,8 @@ export class PongGame {
       },
       scores: this.scores,
       status: this.status,
+      // cosmicBackground: this.cosmicBackground.getField(this.width, this.height, 10, this.time)
+      cosmicBackground: this.cosmicBackground.forceField
     };
   }
 }

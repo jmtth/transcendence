@@ -1,3 +1,4 @@
+import { Vector2 } from './game.vector.js';
 // Message types
 export interface ClientMessage {
   type: 'paddle' | 'start' | 'stop' | 'ping';
@@ -8,7 +9,7 @@ export interface ClientMessage {
 export interface ServerMessage {
   type: 'newSession' | 'state' | 'gameOver' | 'error' | 'pong';
   sessionId?: string;
-  data?: any;
+  data?: GameState;
   message?: string;
 }
 
@@ -59,4 +60,5 @@ export interface GameState {
   };
   scores: Scores;
   status: GameStatus;
+  cosmicBackground: number[][] | null;
 }

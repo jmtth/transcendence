@@ -171,6 +171,10 @@ class HealthChecker {
 }
 
 // Game state interface matching server updates
+export interface Vector2D {
+    x: number;
+    y: number;
+}
 
 interface GameState {
     ball: { x: number; y: number; radius: number };
@@ -180,6 +184,7 @@ interface GameState {
     };
     scores: { left: number; right: number };
     status: 'waiting' | 'playing' | 'paused' | 'finished';
+    cosmicBackground: number[][] | null;
 }
 
 // WebSocket message types
@@ -227,6 +232,7 @@ class TranscendenceApp {
         // setInterval(() => this.healthChecker.checkHealth(), 1000);
         // this.healthChecker.checkHealth();
     }
+
 private createGameContainer(): void {
     this.gameContainer = document.createElement('div');
     this.gameContainer.id = 'game-container';
@@ -672,13 +678,41 @@ private createGameContainer(): void {
         this.ctx.textAlign = 'center';
         this.ctx.fillText('Press START GAME to begin', this.canvas.width / 2, this.canvas.height / 2);
     }
+private renderNoiseField(
+  cnv: HTMLCanvasElement, 
+  ctx: CanvasRenderingContext2D,
+  noiseField: number[][] | null,
+  pixelSize = 2 // scale up pixels visually
+) {
+  if (!noiseField) {
+    ctx.fillRect(0, 0, cnv.width, cnv.height);
+    return;
+  }
+  
+  const height = noiseField.length;      // Number of rows (y)
+  const width = noiseField[0].length;    // Number of columns (x)
+  
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const value = noiseField[y][x];
+      
+      // const brightness = Math.floor(value * 255);
+      // ctx.fillStyle = `rgb(${brightness}, ${brightness}, ${brightness})`;
+      const hue = value * 360;
+      ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
 
+      ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+    }
+  }
+}
     private renderGame(): void {
         if (!this.ctx || !this.canvas || !this.gameState) return;
 
+
         // Clear canvas
         this.ctx.fillStyle = '#000000';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.renderNoiseField(this.canvas, this.ctx, this.gameState.cosmicBackground, 10)
+        // this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Draw center line
         this.ctx.strokeStyle = '#444444';
