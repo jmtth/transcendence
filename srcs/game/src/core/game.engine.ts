@@ -155,7 +155,7 @@ export class PongGame {
     // );
 
     this.cosmicBackground.update(this.time);
-    this.cosmicBackground.affectedFrom(this.ball.pos, 2, 1);
+    this.cosmicBackground.affectedFrom(this.ball.pos, 5, 1);
 
     const force = this.cosmicBackground.getVectorAt(
       this.ball.pos.x,
