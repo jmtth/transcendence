@@ -1,0 +1,1 @@
+cd srcs/users && npm run test

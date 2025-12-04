@@ -1,0 +1,33 @@
+{
+  "name": "transcendence",
+  "version": "1.0.0",
+  "description": "School 42 Transcendence project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codastream/transcendence.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/codastream/transcendence/issues"
+  },
+  "homepage": "https://github.com/codastream/transcendence#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  },
+  "lint-staged": {
+    "**/*.{ts,js,json,md}": [
+      "prettier --write"
+    ]
+  }
+}
