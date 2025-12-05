@@ -1,5 +1,13 @@
 import { Vector2 } from './game.vector.js'
 // Message types
+export interface GameSettings {
+  ballRadius: number
+  ballSpeed: number;
+  ballMass: number;
+  paddleSpeed: number;
+  microWaveSize: number;
+}
+
 export interface ClientMessage {
   type: 'paddle' | 'start' | 'stop' | 'ping'
   paddle?: 'left' | 'right'

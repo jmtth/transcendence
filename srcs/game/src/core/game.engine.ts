@@ -1,4 +1,4 @@
-import { GameState, Scores, GameStatus, Paddles } from './game.types.js'
+import { GameSettings, GameState, Scores, GameStatus, Paddles } from './game.types.js'
 import { Vector2 } from './game.vector.js'
 // import { getForceAt2D, getNoiseField} from "./game.perlin.js";
 import { CosmicMicroWaveNoise } from './game.noise.js'
@@ -36,6 +36,13 @@ class Ball {
 }
 
 export class PongGame {
+  settings: GameSettings = {
+    ballRadius: 5,
+    ballSpeed: 5,
+    ballMass: 1,
+    paddleSpeed: 8,
+    microWaveSize: 10,
+  }
   sessionId: string
   width: number
   height: number
@@ -46,7 +53,7 @@ export class PongGame {
   gameLoopInterval: NodeJS.Timeout | null
   time: number
   serve: number
-  cosmicBackground: CosmicMicroWaveNoise
+  cosmicBackground: CosmicMicroWaveNoise | null
 
   constructor(sessionId: string) {
     this.sessionId = sessionId
@@ -54,13 +61,14 @@ export class PongGame {
     this.height = 600
     this.time = 0
     this.serve = 1
-    this.cosmicBackground = new CosmicMicroWaveNoise(this.width, this.height, 10)
+    // this.cosmicBackground = new CosmicMicroWaveNoise(this.width, this.height, 10)
+    this.cosmicBackground = null;
     this.ball = new Ball(
       new Vector2(this.width / 2, this.height / 2), // position
       new Vector2(0, 0), // velocity (direction + vitesse)
-      10, // size of the ball
-      5, // speed limit
-      1, // mass -> more the mass is, less it is affected by other forces
+      this.settings.ballRadius, // size of the ball
+      this.settings.ballSpeed, // speed limit
+      this.settings.ballMass, // mass -> more the mass is, less it is affected by other forces
     )
 
     // Paddle state
@@ -85,6 +93,45 @@ export class PongGame {
     this.scores = { left: 0, right: 0 }
     this.status = 'waiting'
     this.gameLoopInterval = null
+  }
+
+  getSettings() {
+    return {...this.settings}
+  }
+
+  applySettings(newSettings: Partial<GameSettings>): void {
+    // Validate and apply each setting
+    if (newSettings.ballSpeed !== undefined) {
+      const speed =  parseInt(String(newSettings.ballSpeed));
+
+      this.ball.speedLimit = speed
+      this.settings.ballSpeed = speed
+    }
+    
+    if (newSettings.ballRadius !== undefined) {
+      const radius = parseFloat(String(newSettings.ballRadius));
+      this.ball.radius = radius
+      this.settings.ballRadius = radius 
+    }
+
+    if (newSettings.ballMass !== undefined) {
+      const mass = parseFloat(String(newSettings.ballMass));
+      this.ball.mass = mass;
+      this.settings.ballMass = mass
+    }
+    if (newSettings.paddleSpeed !== undefined) {
+      const speed =  parseFloat(String(newSettings.paddleSpeed));
+      this.paddles.right.speed = speed
+      this.paddles.left.speed = speed
+      this.settings.paddleSpeed = speed;
+    }
+    if (newSettings.microWaveSize !== undefined) {
+      const size = parseInt(String(newSettings.microWaveSize));
+      this.settings.microWaveSize = size
+      this.cosmicBackground = new CosmicMicroWaveNoise(this.width, this.height, size)
+    }
+    // Log settings change
+    console.log(`[${this.sessionId}] Settings updated:`, this.settings);
   }
 
   setPaddleDirection(paddle: 'left' | 'right', direction: 'up' | 'down' | 'stop'): void {
@@ -189,19 +236,17 @@ export class PongGame {
     //   this.time
     // );
 
-    this.cosmicBackground.update(this.time)
+    if (this.cosmicBackground) {
+      this.cosmicBackground.update(this.time)
+      this.cosmicBackground.affectedFrom(this.ball.pos, this.ball.radius, 1.8)
+      const force = this.cosmicBackground.getVectorAt(this.ball.pos.x, this.ball.pos.y, this.time)
+      force.mult(this.serve)
+      this.ball.apply(force)
+    } else {
+      this.ball.apply(new Vector2(Math.random() * 5, Math.random() * 5));
+    }
 
-    this.cosmicBackground.affectedFrom(this.ball.pos, 5, 1.8)
-
-    const force = this.cosmicBackground.getVectorAt(this.ball.pos.x, this.ball.pos.y, this.time)
-
-    // const noiseAtPosition = this.cosmicBackground.getNoiseFrom(this.ball.pos);
-
-    // inverse the forcefield each time the ball hit a paddle
-    force.mult(this.serve)
-    this.ball.apply(force)
     this.ball.update()
-
     this.paddleMove()
     this.collision()
 
@@ -249,6 +294,12 @@ export class PongGame {
   }
 
   getState(): GameState {
+
+    let field: number[][] | null = null;
+
+    if (this.cosmicBackground) {
+      field = this.cosmicBackground.forceField;
+    }
     return {
       ball: {
         x: this.ball.pos.x,
@@ -267,7 +318,8 @@ export class PongGame {
       },
       scores: this.scores,
       status: this.status,
-      cosmicBackground: this.cosmicBackground.forceField,
+      // cosmicBackground: this.cosmicBackground.forceField,
+      cosmicBackground: field,
     }
   }
 }

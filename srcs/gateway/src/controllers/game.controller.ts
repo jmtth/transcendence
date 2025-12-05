@@ -9,6 +9,16 @@ export function registerGameRoutes(app: FastifyInstance) {
     return res
   })
 
+  app.post('/settings', async (request, reply) => {
+    app.log.info({ event: 'game_settings', remote: 'game', url: '/settings' })
+    const res = await proxyRequest(app, request, reply, 'http://game-service:3003/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(request.body),
+    });
+    return res
+  })
+
   app.get('/sessions', async (request, reply) => {
     app.log.info({ event: 'game_sessions', remote: 'game', url: '/sessions' })
     const res = await proxyRequest(app, request, reply, 'http://game-service:3003/sessions')

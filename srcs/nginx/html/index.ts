@@ -214,6 +214,7 @@ class TranscendenceApp {
   private startTime: number
   private healthChecker: HealthChecker
   private gameContainer: HTMLElement | null = null
+  private sessionsListContainer: HTMLElement | null = null;
   private canvas: HTMLCanvasElement | null = null
   private ctx: CanvasRenderingContext2D | null = null
   private gameState: GameState | null = null
@@ -235,6 +236,7 @@ class TranscendenceApp {
     this.createParticles()
     this.setupEventListeners()
     this.createGameContainer()
+    this.createSessionsList()
 
     // setInterval(() => this.updateTime(), 1000);
     // setInterval(() => this.updateUptime(), 1000);
@@ -299,20 +301,24 @@ class TranscendenceApp {
           <h3 class="text-xl font-semibold text-purple-300">Game Settings</h3>
           <form id="settings-form" class="space-y-4">
             <div>
-              <label class="flex justify-between items-center">Ball Max Speed <span id="val-ballMaxSpeed">10</span></label>
-              <input type="range" name="ballMaxSpeed" value="10" min="0" max="100" step="1" class="w-full" />
+              <label class="flex justify-between items-center">Ball Max Speed<span id="val-ballSpeed">10</span></label>
+              <input type="range" name="ballSpeed" value="10" min="1" max="50" step="1" class="w-full" />
             </div>
             <div>
-              <label class="flex justify-between items-center">Ball Radius <span id="val-ballRadius">5</span></label>
+              <label class="flex justify-between items-center">Ball Radius<span id="val-ballRadius">5</span></label>
               <input type="range" name="ballRadius" value="5" min="1" max="50" step="1" class="w-full" />
             </div>
             <div>
-              <label class="flex justify-between items-center">Ball Mass <span id="val-ballMass">1</span></label>
+              <label class="flex justify-between items-center">Ball Mass<span id="val-ballMass">1</span></label>
               <input type="range" name="ballMass" value="1" min="0.1" max="10" step="0.1" class="w-full" />
             </div>
             <div>
-              <label class="flex justify-between items-center">Field Scale <span id="val-fieldScale">100</span></label>
-              <input type="range" name="fieldScale" value="100" min="10" max="500" step="1" class="w-full" />
+              <label class="flex justify-between items-center">MicroWave Size<span id="val-microWaveSize">100</span></label>
+              <input type="range" name="microWaveSize" value="10" min="4" max="50" step="1" class="w-full" />
+            </div>
+            <div>
+              <label class="flex justify-between items-center">Paddle Speed <span id="val-paddleSpeed">100</span></label>
+              <input type="range" name="paddleSpeed" value="8" min="4" max="30" step="1" class="w-full" />
             </div>
           </form>
         </div>
@@ -356,23 +362,67 @@ class TranscendenceApp {
         </div>
       </div>`
     document.body.appendChild(this.gameContainer)
-  }
+    // Select the form
+    const form = document.getElementById('settings-form') as HTMLFormElement | null;
+    if (!form) console.error("no form button")
+    if (form) {
 
-  private gameSetting(form: any) {
-    const gameSessionId = this.sessionId
+      form.querySelectorAll('input[type="range"]').forEach(inputEl => {
+        const slider = inputEl as HTMLInputElement; // Cast to access .value
+        const valueSpan = document.getElementById(`val-${slider.name}`);
+        if (!valueSpan) return;
 
-    const data = {
-      gameSessionId,
-      settings: Object.fromEntries(new FormData(form).entries()),
+        // Initialize span
+        valueSpan.textContent = slider.name === 'ballMass'
+          ? parseFloat(slider.value).toFixed(1)
+          : slider.value;
+
+        // Listen for changes
+        slider.addEventListener('input', () => {
+          valueSpan.textContent = slider.name === 'ballMass'
+            ? parseFloat(slider.value).toFixed(1)
+            : slider.value;
+        });
+      });
+
     }
-
-    // const res = await fetch('http://localhost:8080/api/game-settings', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(data),
-    // })
   }
 
+  private async gameSetting(form: HTMLFormElement) {
+    const sessionId = this.sessionId;
+    const formData = new FormData(form);
+    const settings = Object.fromEntries(formData.entries());
+    
+    // ✅ This format matches what game-service expects
+    const data = {
+      sessionId: sessionId,  // ← Must match
+      settings: settings              // ← Must match
+    };
+    
+    console.log('Sending settings:', data); // Debug
+    
+    try {
+      const res = await fetch('http://localhost:8080/api/game/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(`Failed to save settings: ${res.status} - ${errorText}`);
+      }
+      
+      const result = await res.json();
+      console.log('Settings saved:', result);
+      return result;
+      
+    } catch (error) {
+      console.error('Error saving game settings:', error);
+      throw error;
+    }
+  }
   private showGameOverDialog(gameData: GameState) {
     const dialog = document.getElementById('game-over-dialog')
     const scoreP1 = document.getElementById('final-score-p1')
@@ -673,13 +723,23 @@ class TranscendenceApp {
   }
 
   private async startGameSession(): Promise<void> {
-    try {
-      const startBtn = document.getElementById('start-game-btn')
-      if (startBtn) {
+    const form = document.getElementById('settings-form') as HTMLFormElement;
+    const startBtn = document.getElementById('start-game-btn')
+    if (startBtn) {
         startBtn.textContent = 'Starting...'
         ;(startBtn as HTMLButtonElement).disabled = true
-      }
+    }
 
+    try {
+      if (form) {
+        await this.gameSetting(form);
+        this.addGameLog('Settings saved', 'success');
+      }
+    } catch (error) {
+      console.error('Failed to save settings:', error)
+    }
+
+    try {
       // Send start command via WebSocket
       this.sendWebSocketMessage({ type: 'start' })
       this.addGameLog('Game started!', 'success')
@@ -741,6 +801,7 @@ class TranscendenceApp {
     const width = noiseField[0].length // Number of columns (x)
 
     const pixelSize = cnv.height / height// scale up pixels visually
+    console.log("pixel size: ", pixelSize, "noise height: ", height)
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const value = noiseField[y][x]
@@ -878,39 +939,67 @@ class TranscendenceApp {
       container.appendChild(particle)
     }
   }
+  private createSessionsList(): void {
+    this.sessionsListContainer = document.createElement('div')
+    this.sessionsListContainer.id = 'game-container'
+    this.sessionsListContainer.className = 'hidden fixed inset-0 z-50 bg-black overflow-y-auto' // overflow-y-auto added
+    this.sessionsListContainer.innerHTML = `
+    <div id="waiting-sessions-container" class="max-w-3xl mx-auto p-4">
+  <div class="flex items-center justify-between mb-3">
+    <h3 class="text-lg font-semibold text-white">Waiting Game Sessions</h3>
+    <div class="flex items-center gap-2">
+      <button id="refresh-sessions-btn" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded">Refresh</button>
+      <label class="inline-flex items-center gap-2 text-sm text-gray-300">
+        <input id="auto-refresh-toggle" type="checkbox" class="rounded text-green-500" />
+        Auto-refresh
+      </label>
+    </div>
+  </div>
+
+  <div id="sessions-list" class="space-y-3">
+    <!-- session rows get injected here -->
+    <div id="sessions-empty" class="text-center text-sm text-gray-400 py-6">
+      Loading sessions...
+    </div>
+  </div>
+
+  <div id="sessions-error" class="hidden mt-4 text-sm text-red-400"></div>
+</div>
+
+    `
+  }
+
+  private displaySessionsList(): void {
+    console.log("create session list")
+    if (this.sessionsListContainer) {
+      this.sessionsListContainer.classList.remove('hidden');
+      this.sessionsListContainer.classList.add('fixed', 'inset-0', 'bg-black/60', 'z-50');
+    }
+  }
 
   private setupEventListeners(): void {
-    const form = document.getElementById('settings-form')
-    if (form) {
-      form.addEventListener('input', (e) => {
-        const target = e.target as HTMLInputElement
-        const label = document.getElementById(`val-${target.name}`)
-        if (label) label.textContent = target.value
-        this.gameSetting(form)
-      })
-    }
-
-    const gameBtn = document.getElementById('gameBtn')
+    // Game button
+    const gameBtn = document.getElementById('gameBtn');
     if (gameBtn) {
-      gameBtn.addEventListener('click', () => this.loadGame(true))
+      gameBtn.addEventListener('click', () => this.loadGame(true));
     }
-
+    const sessionsListBtn = document.getElementById('sessionsListBtn');
+    if (sessionsListBtn) {
+      sessionsListBtn.addEventListener('click', () => this.displaySessionsList());
+    }
+    // Click events
     document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement
-      if (target.id === 'exit-game-btn') {
-        this.exitGame()
-      }
+      const target = e.target as HTMLElement;
+      if (target.id === 'exit-game-btn') this.exitGame();
       if (target.id === 'start-game-btn') {
-        if (this.sessionId) {
-          this.startGameSession()
-        }
-        console.log('start game')
+        if (this.sessionId) this.startGameSession();
+        console.log('start game');
       }
-    })
+    });
 
-    // Keyboard controls for paddles
-    document.addEventListener('keydown', (e) => this.handleKeyDown(e))
-    document.addEventListener('keyup', (e) => this.handleKeyUp(e))
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => this.handleKeyDown(e));
+    document.addEventListener('keyup', (e) => this.handleKeyUp(e));
   }
 
   private handleKeyDown(e: KeyboardEvent): void {
