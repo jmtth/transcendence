@@ -76,11 +76,14 @@ export class GameDisplay {
     this.panel.innerHTML = `
       <!-- Buttons -->
       <div class="flex gap-4">
-         <button id="create-session-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
+         <button id="create-game-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
              Create simple game !!
          </button>
-         <button id="exit-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition">
+         <button id="create-tournament-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition">
              Create Tournament
+         </button>
+         <button id="exit-btn" class="flex-1 bg-red-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition">
+            Exit to main page
          </button>
       </div>
       `
@@ -112,7 +115,7 @@ export class GameDisplay {
 
       </form>
       <button id="start-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
-             Create simple game
+          Play NOW
       </button>`
   }
 
@@ -172,6 +175,7 @@ export class GameDisplay {
   }
 
   async askForGameSession(): Promise<void> {
+    if (this.sessionId) return
     try {
       const response = await fetch('/api/game/create-session', {
         method: 'POST',
@@ -262,7 +266,7 @@ export class GameDisplay {
     }
   }
 
-  async display() {
+  display() {
     const btn = document.getElementById('gameBtn')
     if (btn) {
       btn.textContent = 'Connecting...'
@@ -297,12 +301,6 @@ export class GameDisplay {
       this.context = this.canvas?.getContext('2d') || null
 
       this.drawWaitingScreen()
-
-      // Update button
-      if (btn) {
-        btn.textContent = 'Connected'
-        btn.classList.remove('opacity-50')
-      }
     } catch (error) {
       console.error('Failed to create game session in display():', error)
       // Reset button on failure
@@ -326,10 +324,11 @@ export class GameDisplay {
     // Click events
     document.addEventListener('click', (e) => {
       const target = e.target as HTMLElement
-      if (target.id === 'create-tournament-btn') this.exitGame()
+      if (target.id === 'create-game-btn') this.askForGameSession()
+      if (target.id === 'exit-btn') this.exitGame()
       if (target.id === 'start-btn') {
-        if (this.sessionId) this.startGameSession()
-        console.log('start game')
+        if (this.sessionId) this.startGame()
+          console.log('start game')
       }
     })
 
@@ -340,11 +339,7 @@ export class GameDisplay {
 
   private exitGame(): void {
     // Send stop command
-    const dialog = document.getElementById('game-over-dialog')
-    if (dialog) {
-      dialog.classList.add('hidden')
-    }
-
+    document.getElementById('first-screen')?.classList.remove('hidden')
     if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
       this.sendWebSocketMessage({ type: 'stop' })
     }
@@ -356,15 +351,7 @@ export class GameDisplay {
       this.websocket = null
     }
 
-    if (this.screen) {
-      this.screen.classList.add('hidden')
-    }
-
-    const mainContent = document.querySelector('.relative.z-10') as HTMLElement
-    if (mainContent) {
-      mainContent.classList.remove('hidden')
-    }
-
+    this.screen.classList.add('hidden')
     this.addGameLog('Disconnected from game', 'warning')
     this.updateConnectionStatus(false, 'Disconnected')
     this.sessionId = undefined
@@ -405,7 +392,7 @@ export class GameDisplay {
     }
   }
 
-  private async startGameSession(): Promise<void> {
+  private async startGame(): Promise<void> {
     try {
       // Send start command via WebSocket
       this.settings.classList.add('hidden')
