@@ -106,5 +106,5 @@ export function defineCommunicationInterval(sessionId: string): any {
       cleanupConnection(null, sessionId)
     }
   }, 16)
-  return (interval)
+  return interval
 }

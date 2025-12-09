@@ -40,24 +40,20 @@ export async function registerHandler(
   } catch (err: any) {
     logger.error({ event: 'register_validation_error', username, email, err: err?.message || err })
     if (err && err.code === 'DB_FIND_USER_BY_USERNAME_ERROR') {
-      return reply
-        .code(500)
-        .send({
-          error: {
-            message: 'Database error during username verification',
-            code: 'DB_FIND_USER_BY_USERNAME_ERROR',
-          },
-        })
+      return reply.code(500).send({
+        error: {
+          message: 'Database error during username verification',
+          code: 'DB_FIND_USER_BY_USERNAME_ERROR',
+        },
+      })
     }
     if (err && err.code === 'DB_FIND_USER_BY_EMAIL_ERROR') {
-      return reply
-        .code(500)
-        .send({
-          error: {
-            message: 'Database error during email verification',
-            code: 'DB_FIND_USER_BY_EMAIL_ERROR',
-          },
-        })
+      return reply.code(500).send({
+        error: {
+          message: 'Database error during email verification',
+          code: 'DB_FIND_USER_BY_EMAIL_ERROR',
+        },
+      })
     }
     return reply
       .code(500)
@@ -82,21 +78,17 @@ export async function registerHandler(
         .send({ error: { message: err.message || 'Email already in use', code: 'EMAIL_EXISTS' } })
     }
     if (err && err.code === 'DB_CREATE_USER_ERROR') {
-      return reply
-        .code(500)
-        .send({
-          error: { message: 'Internal error during user creation', code: 'DB_CREATE_USER_ERROR' },
-        })
+      return reply.code(500).send({
+        error: { message: 'Internal error during user creation', code: 'DB_CREATE_USER_ERROR' },
+      })
     }
     if (err && err.code === 'UNIQUE_VIOLATION') {
-      return reply
-        .code(400)
-        .send({
-          error: {
-            message: 'Data conflicts with uniqueness constraints',
-            code: 'UNIQUE_VIOLATION',
-          },
-        })
+      return reply.code(400).send({
+        error: {
+          message: 'Data conflicts with uniqueness constraints',
+          code: 'UNIQUE_VIOLATION',
+        },
+      })
     }
 
     // Else internal server error
@@ -167,14 +159,12 @@ export async function loginHandler(
   } catch (err: any) {
     logger.error({ event: 'login_error', identifier, err: err?.message || err })
     if (err && err.code === 'DB_FIND_USER_BY_IDENTIFIER_ERROR') {
-      return reply
-        .code(500)
-        .send({
-          error: {
-            message: 'Database error during user lookup',
-            code: 'DB_FIND_USER_BY_IDENTIFIER_ERROR',
-          },
-        })
+      return reply.code(500).send({
+        error: {
+          message: 'Database error during user lookup',
+          code: 'DB_FIND_USER_BY_IDENTIFIER_ERROR',
+        },
+      })
     }
     return reply
       .code(500)

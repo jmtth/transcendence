@@ -8,7 +8,7 @@ export function cleanupConnection(socket: any | null, sessionId: string) {
   if (socket) {
     currentSession.players.delete(socket)
   } else {
-    currentSession.players.forEach(socket => socket.close())
+    currentSession.players.forEach((socket) => socket.close())
     currentSession.players.clear()
   }
   if (currentSession.players.size === 0) {

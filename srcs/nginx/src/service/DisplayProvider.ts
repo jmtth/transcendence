@@ -1,6 +1,6 @@
 import { HealthChecker } from './HealthChecker.js'
 import { GameState, ServerMessage, ClientMessage, Vector2D } from '../core/types.js'
-import {GameDisplay} from './GameDisplay.js'
+import { GameDisplay } from './GameDisplay.js'
 
 export class DisplayProvider {
   private gameScreen: GameDisplay
@@ -18,7 +18,7 @@ export class DisplayProvider {
   private maxReconnectAttempts: number = 5
 
   constructor() {
-    console.log("init")
+    console.log('init')
     this.startTime = Date.now()
     this.healthChecker = new HealthChecker()
     this.init()
@@ -163,9 +163,9 @@ export class DisplayProvider {
 
   private setupEventListeners(): void {
     // Game button
-    const gameBtn = document.getElementById('gameBtn');
+    const gameBtn = document.getElementById('gameBtn')
     if (gameBtn) {
-      gameBtn.addEventListener('click', () => this.gameScreen.display());
+      gameBtn.addEventListener('click', () => this.gameScreen.display())
     }
     // const sessionsListBtn = document.getElementById('sessionsListBtn');
     // if (sessionsListBtn) {
@@ -241,4 +241,3 @@ export class DisplayProvider {
   //   }
   // }
 }
-

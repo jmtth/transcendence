@@ -2,12 +2,11 @@ import { Scores, GameState, ServerMessage, ClientMessage, Vector2D } from '../co
 
 export interface GameSettings {
   ballRadius: number
-  ballSpeed: number;
-  ballMass: number;
-  paddleSpeed: number;
-  microWaveSize: number;
+  ballSpeed: number
+  ballMass: number
+  paddleSpeed: number
+  microWaveSize: number
 }
-
 
 export class GameDisplay {
   screen: HTMLElement
@@ -20,7 +19,7 @@ export class GameDisplay {
   settings: HTMLElement
   gameArena: HTMLElement
   sessionId: string | undefined = undefined
-  canvas: HTMLCanvasElement | null = null;
+  canvas: HTMLCanvasElement | null = null
   context: CanvasRenderingContext2D | null = null
   reconnectAttempts: number = 0
   maxReconnectAttempts: number = 5
@@ -28,29 +27,31 @@ export class GameDisplay {
   pingInterval: number | null = null
 
   constructor() {
-    this.screen = document.createElement('div'); 
-    this.sessions = document.createElement('div'); 
-    this.settings = document.createElement('div'); 
-    this.main = document.createElement('div');
+    this.screen = document.createElement('div')
+    this.sessions = document.createElement('div')
+    this.settings = document.createElement('div')
+    this.main = document.createElement('div')
     this.gameArena = document.createElement('div')
     this.panel = document.createElement('div')
     this.resultDialog = document.createElement('div')
 
     this.sessions.id = 'sessions'
     // this.screen.id = game-container'
-    this.main.id = 'main';
+    this.main.id = 'main'
     this.resultDialog.id = 'game-over-dialog'
 
-    this.settings.className = 'hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50'
-    this.screen.className = 'hidden fixed inset-0 z-50 bg-black overflow-y-auto' 
-    this.main.className = 'w-full h-full flex flex-row';  // ← HORIZONTAL layout!
+    this.settings.className =
+      'hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50'
+    this.screen.className = 'hidden fixed inset-0 z-50 bg-black overflow-y-auto'
+    this.main.className = 'w-full h-full flex flex-row' // ← HORIZONTAL layout!
     this.panel.className = 'w-1/3 bg-gray-800'
     this.gameArena.className = 'hidden w-2/3 items-center'
-    this.resultDialog.className = 'class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50'
+    this.resultDialog.className =
+      'class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50'
 
     this.buildElements()
   }
-  
+
   makeResultDialog() {
     this.resultDialog.innerHTML = `
              <h2 class="text-3xl font-bold text-center mb-6 text-white">Game Over!</h2>
@@ -72,7 +73,7 @@ export class GameDisplay {
   }
 
   makePanel() {
-    this.panel.innerHTML =  `
+    this.panel.innerHTML = `
       <!-- Buttons -->
       <div class="flex gap-4">
          <button id="create-session-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
@@ -86,7 +87,7 @@ export class GameDisplay {
   }
 
   makeSettings() {
-    this.settings.innerHTML= `
+    this.settings.innerHTML = `
       <form id="settings-form" class="space-y-4">
         <div>
           <label class="flex justify-between items-center">Ball Max Speed<span id="val-ballSpeed">10</span></label>
@@ -154,115 +155,111 @@ export class GameDisplay {
             </div>
 
           </div>`
+  }
+
+  buildElements() {
+    this.makeResultDialog()
+    this.makeSettings()
+    this.makeGameArena()
+    this.makePanel()
+    this.panel.appendChild(this.sessions)
+    this.main.appendChild(this.panel)
+    this.main.appendChild(this.gameArena)
+    this.main.appendChild(this.settings)
+    this.screen.appendChild(this.main)
+    document.body.appendChild(this.screen)
+    this.setupEventListeners()
+  }
+
+  async askForGameSession(): Promise<void> {
+    try {
+      const response = await fetch('/api/game/create-session', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const data = await response.json()
+      if (response.ok && data.sessionId) {
+        this.gameArena.classList.remove('hidden')
+        this.sessionId = data.sessionId
+        console.log('Created game session:', this.sessionId)
+
+        console.log('game session result:', data)
+        await this.openWebSocket(this.sessionId)
+
+        this.settings.classList.remove('hidden')
+      } else {
+        throw new Error(data.message || 'Failed to create game session')
       }
-
-        buildElements() {
-          this.makeResultDialog();
-          this.makeSettings();
-          this.makeGameArena();
-          this.makePanel();
-          this.panel.appendChild(this.sessions);
-          this.main.appendChild(this.panel);
-          this.main.appendChild(this.gameArena);
-          this.main.appendChild(this.settings)
-          this.screen.appendChild(this.main);
-          document.body.appendChild(this.screen);
-          this.setupEventListeners();
-      }
-
-      async askForGameSession(): Promise<void> {
-        try {
-          const response = await fetch('/api/game/create-session', {
-            method: 'POST',
-            credentials: 'include',
-          })
-          const data = await response.json()
-          if (response.ok && data.sessionId) {
-            this.gameArena.classList.remove('hidden')
-            this.sessionId = data.sessionId
-            console.log('Created game session:', this.sessionId)
-  
-
-            console.log("game session result:", data)
-            await this.openWebSocket(this.sessionId)
-
-            this.settings.classList.remove('hidden')
-          } else {
-            throw new Error(data.message || 'Failed to create game session')
-          }
-        } catch (error) {
-          console.error('Connection error:', error)
-          alert('Failed to connect to game service. Please try again.')
-          throw error // Re-throw so display() knows it failed
-        }
-      }
+    } catch (error) {
+      console.error('Connection error:', error)
+      alert('Failed to connect to game service. Please try again.')
+      throw error // Re-throw so display() knows it failed
+    }
+  }
 
   async joinSession(sessionId: string) {
-      try {
-          const response = await fetch(`/api/game/${sessionId}`, {
-              method: 'POST',
-              credentials: 'include',
-              headers: {
-                  'Content-Type': 'application/json',
-              },
-          });
+    try {
+      const response = await fetch(`/api/game/${sessionId}`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
 
-          if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          this.sessionId = sessionId
-          await this.openWebSocket(this.sessionId)
-          this.sessions.classList.add('hidden')
-          this.gameArena.classList.remove('hidden')
-          const data = await response.json();
-          return data;
-      } catch (error) {
-          console.error('Failed to join session:', error);
-          throw error;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
+      this.sessionId = sessionId
+      await this.openWebSocket(this.sessionId)
+      this.sessions.classList.add('hidden')
+      this.gameArena.classList.remove('hidden')
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Failed to join session:', error)
+      throw error
+    }
   }
 
   async loadSessions() {
-      try {
-          const res = await fetch('/api/game/sessions');
-          const data = await res.json(); // parse JSON
+    try {
+      const res = await fetch('/api/game/sessions')
+      const data = await res.json() // parse JSON
 
-          // Clear existing children
-          this.sessions.innerHTML = '';
+      // Clear existing children
+      this.sessions.innerHTML = ''
 
-          if (!data.sessions || data.sessions.length === 0) {
-              this.sessions.innerHTML = `
+      if (!data.sessions || data.sessions.length === 0) {
+        this.sessions.innerHTML = `
                   <div class="text-gray-400 p-2">No active sessions</div>
-              `;
-              return;
-          }
+              `
+        return
+      }
 
-          // Create a card for each session
-          data.sessions.forEach(session => {
-              const div = document.createElement('div');
-              
-              div.className =
-                  'p-4 mb-2 bg-gray-800 text-white rounded shadow cursor-pointer hover:bg-gray-700';
+      // Create a card for each session
+      data.sessions.forEach((session) => {
+        const div = document.createElement('div')
 
-              div.innerHTML = `
+        div.className =
+          'p-4 mb-2 bg-gray-800 text-white rounded shadow cursor-pointer hover:bg-gray-700'
+
+        div.innerHTML = `
                   <div class="font-bold text-lg">Session ${session.sessionId}</div>
                   <div class="text-sm text-gray-300">State: ${session.state}</div>
                   <div class="text-sm text-gray-300">Players: ${session.playerCount}</div>
                   <div class="text-sm text-gray-300">Interval running: ${session.hasInterval}</div>
-              `;
+              `
 
-              // Optional: Click to join a session
-              div.onclick = () => this.joinSession(session.sessionId);
+        // Optional: Click to join a session
+        div.onclick = () => this.joinSession(session.sessionId)
 
-              this.sessions.appendChild(div);
-          });
-
-      } catch (err) {
-          console.error('Failed to load sessions:', err);
-          this.sessions.innerHTML =
-              `<div class="text-red-500 p-2">Error loading sessions.</div>`;
-      }
+        this.sessions.appendChild(div)
+      })
+    } catch (err) {
+      console.error('Failed to load sessions:', err)
+      this.sessions.innerHTML = `<div class="text-red-500 p-2">Error loading sessions.</div>`
+    }
   }
 
   async display() {
@@ -271,34 +268,34 @@ export class GameDisplay {
       btn.textContent = 'Connecting...'
       btn.classList.add('opacity-50')
     }
-    
+
     try {
       // await this.askForGameSession(); // Wait for it to complete
-      
+
       // Only proceed if connection was successful
-      console.log("game display: showing game UI")
-      
+      console.log('game display: showing game UI')
+
       // Hide main content
       // const mainContent = document.querySelector('.relative.z-10') as HTMLElement
       // if (mainContent) {
       //   mainContent.classList.add('hidden')
       //   console.log("hide everything")
       // }
-      
+
       // Show game container
       // this.screen.querySelectorAll('*').forEach(elem => elem.classList.remove('hidden'))
       // this.resultDialog.classList.add('hidden')
       this.screen.classList.remove('hidden')
       this.main.classList.remove('hidden')
       // this.gameArena.classList.remove('hidden')
-      this.loadSessions();
-      this.sessionsInterval = setInterval(() => this.loadSessions(), 2000);
+      this.loadSessions()
+      this.sessionsInterval = setInterval(() => this.loadSessions(), 2000)
 
-      document.getElementById('first-screen')?.classList.add('hidden');
+      document.getElementById('first-screen')?.classList.add('hidden')
       // Initialize canvas
-      this.canvas = this.gameArena.querySelector('#game-canvas') as HTMLCanvasElement;
+      this.canvas = this.gameArena.querySelector('#game-canvas') as HTMLCanvasElement
       this.context = this.canvas?.getContext('2d') || null
-      
+
       this.drawWaitingScreen()
 
       // Update button
@@ -307,7 +304,7 @@ export class GameDisplay {
         btn.classList.remove('opacity-50')
       }
     } catch (error) {
-      console.error("Failed to create game session in display():", error)
+      console.error('Failed to create game session in display():', error)
       // Reset button on failure
       if (btn) {
         btn.textContent = 'Start Again'
@@ -318,9 +315,9 @@ export class GameDisplay {
 
   private setupEventListeners(): void {
     // Game button
-    const gameBtn = document.getElementById('create-session-btn');
+    const gameBtn = document.getElementById('create-session-btn')
     if (gameBtn) {
-      gameBtn.addEventListener('click', () => this.askForGameSession());
+      gameBtn.addEventListener('click', () => this.askForGameSession())
     }
     // const sessionsListBtn = document.getElementById('sessionsListBtn');
     // if (sessionsListBtn) {
@@ -328,17 +325,17 @@ export class GameDisplay {
     // }
     // Click events
     document.addEventListener('click', (e) => {
-      const target = e.target as HTMLElement;
-      if (target.id === 'create-tournament-btn') this.exitGame();
+      const target = e.target as HTMLElement
+      if (target.id === 'create-tournament-btn') this.exitGame()
       if (target.id === 'start-btn') {
-        if (this.sessionId) this.startGameSession();
-        console.log('start game');
+        if (this.sessionId) this.startGameSession()
+        console.log('start game')
       }
-    });
+    })
 
     // Keyboard controls
-    document.addEventListener('keydown', (e) => this.handleKeyDown(e));
-    document.addEventListener('keyup', (e) => this.handleKeyUp(e));
+    document.addEventListener('keydown', (e) => this.handleKeyDown(e))
+    document.addEventListener('keyup', (e) => this.handleKeyUp(e))
   }
 
   private exitGame(): void {
@@ -368,8 +365,6 @@ export class GameDisplay {
       mainContent.classList.remove('hidden')
     }
 
-
-
     this.addGameLog('Disconnected from game', 'warning')
     this.updateConnectionStatus(false, 'Disconnected')
     this.sessionId = undefined
@@ -378,18 +373,18 @@ export class GameDisplay {
   }
 
   private async submitSettings() {
-    const form = document.getElementById('settings-form') as HTMLFormElement;
+    const form = document.getElementById('settings-form') as HTMLFormElement
     try {
       if (form) {
-        const formData = new FormData();
-          // Convert FormData to GameSettings
+        const formData = new FormData()
+        // Convert FormData to GameSettings
         const settings: GameSettings = {
           ballRadius: Number(formData.get('ballRadius')),
           ballSpeed: Number(formData.get('ballSpeed')),
           ballMass: Number(formData.get('ballMass')),
           paddleSpeed: Number(formData.get('paddleSpeed')),
           microWaveSize: Number(formData.get('microWaveSize')),
-        };
+        }
 
         await fetch('/api/game/settings', {
           method: 'POST',
@@ -401,18 +396,16 @@ export class GameDisplay {
             sessionId: this.sessionId,
             settings: settings,
           }),
-        });
-        console.log("settings saved !")
+        })
+        console.log('settings saved !')
       }
     } catch (error) {
       console.error('Failed to save settings:', error)
       throw error
     }
-
   }
 
   private async startGameSession(): Promise<void> {
-
     try {
       // Send start command via WebSocket
       this.settings.classList.add('hidden')
@@ -453,7 +446,7 @@ export class GameDisplay {
     logContainer.scrollTop = logContainer.scrollHeight
   }
 
- private sendWebSocketMessage(message: ClientMessage): void {
+  private sendWebSocketMessage(message: ClientMessage): void {
     if (this.websocket && this.websocket.readyState === WebSocket.OPEN) {
       this.websocket.send(JSON.stringify(message))
     } else {
@@ -551,9 +544,7 @@ export class GameDisplay {
     }
   }
 
-  private renderNoiseField(
-    noiseField: number[][] | null,
-  ) {
+  private renderNoiseField(noiseField: number[][] | null) {
     if (!this.context || !this.canvas) return
 
     if (!noiseField) {
@@ -564,8 +555,8 @@ export class GameDisplay {
     const height = noiseField.length // Number of rows (y)
     const width = noiseField[0].length // Number of columns (x)
 
-    const pixelSize = this.canvas.height / height// scale up pixels visually
-    console.log("pixel size: ", pixelSize, "noise height: ", height)
+    const pixelSize = this.canvas.height / height // scale up pixels visually
+    console.log('pixel size: ', pixelSize, 'noise height: ', height)
     for (let y = 0; y < height; y++) {
       for (let x = 0; x < width; x++) {
         const value = noiseField[y][x]
@@ -610,14 +601,14 @@ export class GameDisplay {
     )
 
     // Draw ball
-    this.context.beginPath();
+    this.context.beginPath()
     this.context.arc(
-        this.gameState.ball.x,
-        this.gameState.ball.y,
-        this.gameState.ball.radius,
-        0,
-        Math.PI * 2
-    );
+      this.gameState.ball.x,
+      this.gameState.ball.y,
+      this.gameState.ball.radius,
+      0,
+      Math.PI * 2,
+    )
     this.context.fill()
   }
 
@@ -707,7 +698,7 @@ export class GameDisplay {
     }
   }
 
- private drawWaitingScreen(): void {
+  private drawWaitingScreen(): void {
     if (!this.context || !this.canvas) return
 
     this.context.fillStyle = '#000000'
@@ -725,10 +716,14 @@ export class GameDisplay {
     this.context.fillStyle = '#ffffff'
     this.context.font = '24px Arial'
     this.context.textAlign = 'center'
-    this.context.fillText('Press START GAME to begin', this.canvas.width / 2, this.canvas.height / 2)
+    this.context.fillText(
+      'Press START GAME to begin',
+      this.canvas.width / 2,
+      this.canvas.height / 2,
+    )
   }
 
- private handleKeyDown(e: KeyboardEvent): void {
+  private handleKeyDown(e: KeyboardEvent): void {
     if (!this.sessionId || this.gameState?.status !== 'playing') return
 
     let paddle: 'left' | 'right' | null = null
@@ -782,5 +777,4 @@ export class GameDisplay {
       })
     }
   }
-
 }

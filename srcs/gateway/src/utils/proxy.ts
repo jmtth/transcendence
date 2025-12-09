@@ -18,8 +18,8 @@ interface ServerMessage {
 
 function forwardWsMsgFromTo<
   DownstreamMsg extends { type: string; message?: string },
-  UpstreamMsg extends { type: string }
-  >(app: FastifyInstance, downstreamWs: WebSocket, upstreamWs: WebSocket) {
+  UpstreamMsg extends { type: string },
+>(app: FastifyInstance, downstreamWs: WebSocket, upstreamWs: WebSocket) {
   // Forward messages from Downstream to Upstream
   downstreamWs.on('message', (data: Buffer) => {
     if (upstreamWs.readyState === WebSocket.OPEN) {
@@ -33,27 +33,35 @@ function forwardWsMsgFromTo<
         }
         upstreamWs.send(JSON.stringify(parsedMessage))
         app.log.debug({
-          event: 'forward message', type: parsedMessage.type, messageSize: messageStr.length,
+          event: 'forward message',
+          type: parsedMessage.type,
+          messageSize: messageStr.length,
         })
       } catch (error) {
         // Properly handle unknown type
         const errorMessage = error instanceof Error ? error.message : 'Unknown error'
 
         app.log.error({
-          event: 'invalid_message', error: errorMessage, rawData: data.toString(),
+          event: 'invalid_message',
+          error: errorMessage,
+          rawData: data.toString(),
         })
         // Send error back
         const errorResponse: DownstreamMsg = {
           type: 'error',
           message: 'Invalid message format',
-        } as DownstreamMsg;
+        } as DownstreamMsg
         downstreamWs.send(JSON.stringify(errorResponse))
       }
     }
   })
 }
 
-function handleErrorAndDisconnection(app: FastifyInstance, downstreamWs: WebSocket, upstreamWs: WebSocket) {
+function handleErrorAndDisconnection(
+  app: FastifyInstance,
+  downstreamWs: WebSocket,
+  upstreamWs: WebSocket,
+) {
   // Handle errors
   downstreamWs.on('error', (error: Error) => {
     app.log.error({
@@ -71,7 +79,7 @@ function handleErrorAndDisconnection(app: FastifyInstance, downstreamWs: WebSock
     })
     upstreamWs.close()
   })
-};
+}
 
 export function webSocketProxyRequest(
   app: FastifyInstance,
@@ -108,11 +116,11 @@ export function webSocketProxyRequest(
     })
   })
 
-  forwardWsMsgFromTo<ClientMessage, ServerMessage>(app, downstreamWs, upstreamWs);
-  forwardWsMsgFromTo<ServerMessage, ClientMessage>(app, upstreamWs, downstreamWs);
+  forwardWsMsgFromTo<ClientMessage, ServerMessage>(app, downstreamWs, upstreamWs)
+  forwardWsMsgFromTo<ServerMessage, ClientMessage>(app, upstreamWs, downstreamWs)
 
-  handleErrorAndDisconnection(app, downstreamWs, upstreamWs);
-  handleErrorAndDisconnection(app, upstreamWs, downstreamWs);
+  handleErrorAndDisconnection(app, downstreamWs, upstreamWs)
+  handleErrorAndDisconnection(app, upstreamWs, downstreamWs)
 }
 
 export async function proxyRequest(

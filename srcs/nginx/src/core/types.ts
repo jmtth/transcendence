@@ -4,7 +4,10 @@ export interface Vector2D {
   y: number
 }
 
-export interface Scores { left: number; right: number }
+export interface Scores {
+  left: number
+  right: number
+}
 export interface GameState {
   ball: { x: number; y: number; radius: number }
   paddles: {
@@ -29,4 +32,3 @@ export interface ClientMessage {
   paddle?: 'left' | 'right'
   direction?: 'up' | 'down' | 'stop'
 }
-

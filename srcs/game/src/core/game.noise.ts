@@ -81,11 +81,11 @@ export class CosmicMicroWaveNoise {
 
   addNoiseTo(coord: Coordinate, delta: number) {
     // Get fractional part of delta
-    const fractionalDelta = ((delta % 1) + 1) % 1;
-    
+    const fractionalDelta = ((delta % 1) + 1) % 1
+
     // Add and wrap result to [0, 1]
-    this.forceField[coord.y][coord.x] = 
-      ((this.forceField[coord.y][coord.x] + fractionalDelta) % 1 + 1) % 1;
+    this.forceField[coord.y][coord.x] =
+      (((this.forceField[coord.y][coord.x] + fractionalDelta) % 1) + 1) % 1
   }
 
   distance(a: Coordinate, b: Coordinate): number {

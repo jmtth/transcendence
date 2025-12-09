@@ -96,42 +96,42 @@ export class PongGame {
   }
 
   getSettings() {
-    return {...this.settings}
+    return { ...this.settings }
   }
 
   applySettings(newSettings: Partial<GameSettings>): void {
     // Validate and apply each setting
     if (newSettings.ballSpeed !== undefined) {
-      const speed =  parseInt(String(newSettings.ballSpeed));
+      const speed = parseInt(String(newSettings.ballSpeed))
 
       this.ball.speedLimit = speed
       this.settings.ballSpeed = speed
     }
-    
+
     if (newSettings.ballRadius !== undefined) {
-      const radius = parseFloat(String(newSettings.ballRadius));
+      const radius = parseFloat(String(newSettings.ballRadius))
       this.ball.radius = radius
-      this.settings.ballRadius = radius 
+      this.settings.ballRadius = radius
     }
 
     if (newSettings.ballMass !== undefined) {
-      const mass = parseFloat(String(newSettings.ballMass));
-      this.ball.mass = mass;
+      const mass = parseFloat(String(newSettings.ballMass))
+      this.ball.mass = mass
       this.settings.ballMass = mass
     }
     if (newSettings.paddleSpeed !== undefined) {
-      const speed =  parseFloat(String(newSettings.paddleSpeed));
+      const speed = parseFloat(String(newSettings.paddleSpeed))
       this.paddles.right.speed = speed
       this.paddles.left.speed = speed
-      this.settings.paddleSpeed = speed;
+      this.settings.paddleSpeed = speed
     }
     if (newSettings.microWaveSize !== undefined) {
-      const size = parseInt(String(newSettings.microWaveSize));
+      const size = parseInt(String(newSettings.microWaveSize))
       this.settings.microWaveSize = size
       this.cosmicBackground = new CosmicMicroWaveNoise(this.width, this.height, size)
     }
     // Log settings change
-    console.log(`[${this.sessionId}] Settings updated:`, this.settings);
+    console.log(`[${this.sessionId}] Settings updated:`, this.settings)
   }
 
   setPaddleDirection(paddle: 'left' | 'right', direction: 'up' | 'down' | 'stop'): void {
@@ -245,7 +245,6 @@ export class PongGame {
   }
 
   update(): void {
-
     if (this.cosmicBackground) {
       this.cosmicBackground.update(this.time)
       this.cosmicBackground.affectedFrom(this.ball.pos, this.ball.radius, 1.8)
@@ -288,11 +287,10 @@ export class PongGame {
   }
 
   getState(): GameState {
-
-    let field: number[][] | null = null;
+    let field: number[][] | null = null
 
     if (this.cosmicBackground) {
-      field = this.cosmicBackground.forceField;
+      field = this.cosmicBackground.forceField
     }
     return {
       ball: {

@@ -121,4 +121,3 @@ networks:
 
 volumes:
   data:
-
