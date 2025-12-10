@@ -52,21 +52,21 @@ else
 	@chmod -R 777 $(VOLUMES_PATH)
 endif
 
-dev:
-	docker-compose -f srcs/dev-docker-compose.yml up --build -d
-# volumes:
-# 	@echo "Create volumes folder at $(VOLUMES_PATH)"
-# 	@mkdir -p $(VOLUMES_PATH)/
-# 	@chmod -R 777 $(VOLUMES_PATH)
-# 	@echo "Volume path configured: $(VOLUMES_PATH)"
+dev: colima-dev
+	$(COMPOSE_CMD) -f srcs/dev-docker-compose.yml up --build -d
 
 colima-dev:
-	colima start --mount $(PROJECT_PATH):w --vm-type vz
+ifeq ($(OS),Darwin)
+	@echo "Checking Colima status and mounts..."
+	@colima status --verbose | grep -q "$(PROJECT_PATH)" || \
+	( echo "Starting Colima with mount $(PROJECT_PATH)..." && \
+	  colima start --mount "$(PROJECT_PATH):w" --vm-type vz )
+endif
+
 
 colima:
 	@echo "system is : $(OS)"
 ifeq ($(OS), Darwin)
-	#@mkdir -p $(VOLUMES_PATH)/
 	colima start --mount $(VOLUMES_PATH):w --vm-type vz
 endif
 

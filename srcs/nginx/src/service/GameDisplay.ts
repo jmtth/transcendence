@@ -41,7 +41,7 @@ export class GameDisplay {
     this.resultDialog.id = 'game-over-dialog'
 
     this.settings.className =
-      'hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50'
+      'hidden fixed inset-0 bg-black bg-opacity-75 flex flex-col items-center gap-4 p-4 justify-center z-50'
     this.screen.className = 'hidden fixed inset-0 z-50 bg-black overflow-y-auto'
     this.main.className = 'w-full h-full flex flex-row' // ← HORIZONTAL layout!
     this.panel.className = 'w-1/3 bg-gray-800'
@@ -112,11 +112,33 @@ export class GameDisplay {
           <label class="flex justify-between items-center">Paddle Speed <span id="val-paddleSpeed">100</span></label>
           <input type="range" name="paddleSpeed" value="8" min="4" max="30" step="1" class="w-full" />
         </div>
-
       </form>
-      <button id="start-btn" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
+      <button id="start-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
           Play NOW
-      </button>`
+      </button>
+      <button id="wait-opponent-btn" class="striped-disabled bg-orange-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition">
+          wait for player
+      </button>
+    <button id="invite-btn" class="striped-disabled bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded transition">
+    Invite Player
+    </button>
+    <div id="invite-input-container" class="hidden w-full">
+        <input 
+            id="invite-input" 
+            type="text" 
+            placeholder="Enter player username..." 
+            class="w-full px-4 py-3 rounded border-2 border-blue-500 focus:outline-none focus:border-blue-600"
+        />
+        <div class="flex gap-2 mt-2">
+            <button id="send-invite-btn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition">
+                Send Invite
+            </button>
+            <button id="cancel-invite-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded transition">
+                Cancel
+            </button>
+        </div>
+    </div>
+      `
   }
 
   makeGameArena() {
@@ -203,25 +225,12 @@ export class GameDisplay {
 
   async joinSession(sessionId: string) {
     try {
-      const response = await fetch(`/api/game/${sessionId}`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
       this.sessionId = sessionId
       await this.openWebSocket(this.sessionId)
-      this.sessions.classList.add('hidden')
       this.gameArena.classList.remove('hidden')
-      const data = await response.json()
-      return data
     } catch (error) {
       console.error('Failed to join session:', error)
+      this.sessionId = undefined
       throw error
     }
   }
@@ -267,31 +276,11 @@ export class GameDisplay {
   }
 
   display() {
-    const btn = document.getElementById('gameBtn')
-    if (btn) {
-      btn.textContent = 'Connecting...'
-      btn.classList.add('opacity-50')
-    }
-
     try {
-      // await this.askForGameSession(); // Wait for it to complete
-
-      // Only proceed if connection was successful
       console.log('game display: showing game UI')
 
-      // Hide main content
-      // const mainContent = document.querySelector('.relative.z-10') as HTMLElement
-      // if (mainContent) {
-      //   mainContent.classList.add('hidden')
-      //   console.log("hide everything")
-      // }
-
-      // Show game container
-      // this.screen.querySelectorAll('*').forEach(elem => elem.classList.remove('hidden'))
-      // this.resultDialog.classList.add('hidden')
       this.screen.classList.remove('hidden')
       this.main.classList.remove('hidden')
-      // this.gameArena.classList.remove('hidden')
       this.loadSessions()
       this.sessionsInterval = setInterval(() => this.loadSessions(), 2000)
 
@@ -303,11 +292,6 @@ export class GameDisplay {
       this.drawWaitingScreen()
     } catch (error) {
       console.error('Failed to create game session in display():', error)
-      // Reset button on failure
-      if (btn) {
-        btn.textContent = 'Start Again'
-        btn.classList.remove('opacity-50')
-      }
     }
   }
 
@@ -328,7 +312,7 @@ export class GameDisplay {
       if (target.id === 'exit-btn') this.exitGame()
       if (target.id === 'start-btn') {
         if (this.sessionId) this.startGame()
-          console.log('start game')
+        console.log('start game')
       }
     })
 
