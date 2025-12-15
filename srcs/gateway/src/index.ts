@@ -33,7 +33,7 @@ app.register(fastifyCookie);
 
 // Rate limiting global
 app.register(fastifyRateLimit, {
-  max: 200,  // Plus permissif car c'est un gateway (aggrege plusieurs services)
+  max: 400,  // Plus permissif car c'est un gateway (aggrege plusieurs services)
   timeWindow: '1 minute',
   keyGenerator: (request) => {
     // Rate limit par IP

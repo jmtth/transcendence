@@ -1,6 +1,6 @@
-import { logger } from "./logger.js";
-import * as authService from "../services/auth.service.js";
-import { UserRole } from "./constants.js";
+import { logger } from './logger.js'
+import * as authService from '../services/auth.service.js'
+import { UserRole } from './constants.js'
 
 /**
  * Initialise l'utilisateur admin au démarrage du service
@@ -33,7 +33,7 @@ export async function initAdminUser(): Promise<void> {
     })
 
     // Assigner le rôle admin
-    authService.updateUserRole(adminId, UserRole.ADMIN);
+    authService.updateUserRole(adminId, UserRole.ADMIN)
 
     logger.info({
       event: 'admin_user_created',
@@ -41,8 +41,8 @@ export async function initAdminUser(): Promise<void> {
       email: ADMIN_EMAIL,
       id: adminId,
       role: UserRole.ADMIN,
-      message: "Admin user created successfully",
-    });
+      message: 'Admin user created successfully',
+    })
 
     // Avertissement sécurité si credentials par défaut
     if (ADMIN_PASSWORD === 'Admin123!') {

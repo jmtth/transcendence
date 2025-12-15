@@ -1,29 +1,29 @@
-import fastify from 'fastify';
-import fastifyCookie from '@fastify/cookie';
-import fastifyJwt from '@fastify/jwt';
-import fastifyRateLimit from '@fastify/rate-limit';
-import { authRoutes } from './routes/auth.routes.js';
-import { initAdminUser, initInviteUser } from './utils/init-users.js';
-import { logger } from './utils/logger.js';
-import { AUTH_CONFIG, ERROR_CODES } from './utils/constants.js';
-import * as totpService from './services/totp.service.js';
+import fastify from 'fastify'
+import fastifyCookie from '@fastify/cookie'
+import fastifyJwt from '@fastify/jwt'
+import fastifyRateLimit from '@fastify/rate-limit'
+import { authRoutes } from './routes/auth.routes.js'
+import { initAdminUser, initInviteUser } from './utils/init-users.js'
+import { logger } from './utils/logger.js'
+import { AUTH_CONFIG, ERROR_CODES } from './utils/constants.js'
+import * as totpService from './services/totp.service.js'
 
-const env = (globalThis as any).process?.env || {};
+const env = (globalThis as any).process?.env || {}
 
 // Validation du JWT_SECRET au démarrage (CRITIQUE)
-const JWT_SECRET = env.JWT_SECRET;
+const JWT_SECRET = env.JWT_SECRET
 if (!JWT_SECRET || JWT_SECRET === 'supersecretkey') {
-  console.error('❌ CRITICAL: JWT_SECRET must be defined and cannot be the default value');
-  console.error('   Set a secure JWT_SECRET in environment variables');
-  (globalThis as any).process?.exit?.(1);
-  throw new Error('JWT_SECRET not configured');
+  console.error('❌ CRITICAL: JWT_SECRET must be defined and cannot be the default value')
+  console.error('   Set a secure JWT_SECRET in environment variables')
+  ;(globalThis as any).process?.exit?.(1)
+  throw new Error('JWT_SECRET not configured')
 }
 
-const app = fastify({ logger: { level: env.LOG_LEVEL || 'info'} });
+const app = fastify({ logger: { level: env.LOG_LEVEL || 'info' } })
 
 // Register shared plugins once
-app.register(fastifyCookie);
-app.register(fastifyJwt, { secret: JWT_SECRET });
+app.register(fastifyCookie)
+app.register(fastifyJwt, { secret: JWT_SECRET })
 
 // Rate limiting global
 app.register(fastifyRateLimit, {
@@ -33,38 +33,37 @@ app.register(fastifyRateLimit, {
     error: {
       message: 'Too many requests, please try again later',
       code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
-      retryAfter: context.after
-    }
-  })
-});
+      retryAfter: context.after,
+    },
+  }),
+})
 
-app.register(authRoutes, { prefix: '/' });
-
-(async () => {
+app.register(authRoutes, { prefix: '/' })
+;(async () => {
   try {
-    const address = await app.listen({ host: '0.0.0.0', port: 3001 });
-    console.log(`Auth service listening at ${address}`);
+    const address = await app.listen({ host: '0.0.0.0', port: 3001 })
+    console.log(`Auth service listening at ${address}`)
 
-    await initAdminUser();
-    await initInviteUser();
+    await initAdminUser()
+    await initInviteUser()
 
     // Nettoyer les sessions expirées au démarrage
-    totpService.cleanupExpiredSessions();
+    totpService.cleanupExpiredSessions()
 
     // Maintenance automatique toutes les 5 minutes
-    const CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
+    const CLEANUP_INTERVAL = 5 * 60 * 1000 // 5 minutes
     setInterval(() => {
-      totpService.cleanupExpiredSessions();
-    }, CLEANUP_INTERVAL);
+      totpService.cleanupExpiredSessions()
+    }, CLEANUP_INTERVAL)
 
     logger.info({
       event: 'service_ready',
       message: 'Auth service is ready',
-      cleanupInterval: `${CLEANUP_INTERVAL / 1000}s`
-    });
+      cleanupInterval: `${CLEANUP_INTERVAL / 1000}s`,
+    })
   } catch (error: any) {
-    logger.error({ event: 'service_startup_failed', err: error?.message || error });
-    console.error(error);
-    (globalThis as any).process?.exit?.(1);
+    logger.error({ event: 'service_startup_failed', err: error?.message || error })
+    console.error(error)
+    ;(globalThis as any).process?.exit?.(1)
   }
-})();
+})()

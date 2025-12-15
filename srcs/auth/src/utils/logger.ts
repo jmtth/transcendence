@@ -26,7 +26,7 @@ export interface Logger {
  * Remplace les champs sensibles par '[REDACTED]'
  */
 function sanitizeForLog(data: any): any {
-  if (!data || typeof data !== 'object') return data;
+  if (!data || typeof data !== 'object') return data
 
   const SENSITIVE_FIELDS = [
     'password',
@@ -40,21 +40,21 @@ function sanitizeForLog(data: any): any {
     '2fa_login_token',
     '2fa_setup_token',
     'access_token',
-    'refresh_token'
-  ];
+    'refresh_token',
+  ]
 
-  const sanitized = Array.isArray(data) ? [...data] : { ...data };
+  const sanitized = Array.isArray(data) ? [...data] : { ...data }
 
   for (const key of Object.keys(sanitized)) {
-    const lowerKey = key.toLowerCase();
-    if (SENSITIVE_FIELDS.some(field => lowerKey.includes(field))) {
-      sanitized[key] = '[REDACTED]';
+    const lowerKey = key.toLowerCase()
+    if (SENSITIVE_FIELDS.some((field) => lowerKey.includes(field))) {
+      sanitized[key] = '[REDACTED]'
     } else if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
-      sanitized[key] = sanitizeForLog(sanitized[key]);
+      sanitized[key] = sanitizeForLog(sanitized[key])
     }
   }
 
-  return sanitized;
+  return sanitized
 }
 
 class AuthLogger implements Logger {
@@ -69,14 +69,14 @@ class AuthLogger implements Logger {
   }
 
   private formatLog(level: string, context: LogContext): object {
-    const timestamp = new Date().toISOString();
-    const sanitizedContext = sanitizeForLog(context);
+    const timestamp = new Date().toISOString()
+    const sanitizedContext = sanitizeForLog(context)
     return {
       timestamp,
       level,
       service: this.serviceName,
-      ...sanitizedContext
-    };
+      ...sanitizedContext,
+    }
   }
 
   debug(context: LogContext): void {

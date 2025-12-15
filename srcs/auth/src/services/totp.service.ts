@@ -9,11 +9,11 @@
  * - Nettoyage automatique des sessions expirées
  */
 
-import { authenticator } from 'otplib';
-import QRCode from 'qrcode';
-import * as db from './database.js';
-import { AUTH_CONFIG } from '../utils/constants.js';
-import { logger } from '../utils/logger.js';
+import { authenticator } from 'otplib'
+import QRCode from 'qrcode'
+import * as db from './database.js'
+import { AUTH_CONFIG } from '../utils/constants.js'
+import { logger } from '../utils/logger.js'
 
 // ============================================
 // Configuration TOTP
@@ -27,26 +27,26 @@ function configureTOTP() {
     window: AUTH_CONFIG.TOTP_WINDOW, // Fenêtre de validation (±30s)
     step: 30, // Période de rotation (30 secondes standard)
     digits: 6, // Code à 6 chiffres
-  };
+  }
 }
 
 // Initialiser la configuration au chargement du module
-configureTOTP();
+configureTOTP()
 
 // ============================================
 // Types
 // ============================================
 
 export interface TOTPSetupData {
-  secret: string;
-  otpauthUrl: string;
-  qrCodeDataUrl: string;
+  secret: string
+  otpauthUrl: string
+  qrCodeDataUrl: string
 }
 
 export interface TOTPSessionData {
-  setupToken: string;
-  userId: number;
-  expiresAt: Date;
+  setupToken: string
+  userId: number
+  expiresAt: Date
 }
 
 // ============================================
@@ -61,11 +61,11 @@ export interface TOTPSessionData {
 export async function generateTOTPSetup(username: string): Promise<TOTPSetupData> {
   try {
     // Générer un secret aléatoire sécurisé (32 caractères base32)
-    const secret = authenticator.generateSecret();
+    const secret = authenticator.generateSecret()
 
     // Créer l'URL otpauth:// pour Google Authenticator
-    const issuer = AUTH_CONFIG.TOTP_ISSUER;
-    const otpauthUrl = authenticator.keyuri(username, issuer, secret);
+    const issuer = AUTH_CONFIG.TOTP_ISSUER
+    const otpauthUrl = authenticator.keyuri(username, issuer, secret)
 
     // Générer le QR code en data URL (base64)
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl, {
@@ -74,31 +74,31 @@ export async function generateTOTPSetup(username: string): Promise<TOTPSetupData
       width: 300,
       color: {
         dark: '#000000',
-        light: '#FFFFFF'
-      }
-    });
+        light: '#FFFFFF',
+      },
+    })
 
     logger.info({
       event: 'totp_secret_generated',
       username,
-      issuer
-    });
+      issuer,
+    })
 
     return {
       secret,
       otpauthUrl,
-      qrCodeDataUrl
-    };
+      qrCodeDataUrl,
+    }
   } catch (err: any) {
     logger.error({
       event: 'totp_generation_error',
       username,
-      error: err?.message
-    });
+      error: err?.message,
+    })
 
-    const error: any = new Error(`Failed to generate TOTP setup: ${err?.message || String(err)}`);
-    error.code = 'TOTP_GENERATION_ERROR';
-    throw error;
+    const error: any = new Error(`Failed to generate TOTP setup: ${err?.message || String(err)}`)
+    error.code = 'TOTP_GENERATION_ERROR'
+    throw error
   }
 }
 
@@ -116,26 +116,26 @@ export async function generateTOTPSetup(username: string): Promise<TOTPSetupData
  */
 export function createSetupSession(userId: number, secret: string): string {
   try {
-    const setupToken = db.createLoginToken(userId, AUTH_CONFIG.LOGIN_TOKEN_EXPIRATION_SECONDS);
-    db.storeTotpSetupSecret(setupToken, userId, secret);
+    const setupToken = db.createLoginToken(userId, AUTH_CONFIG.LOGIN_TOKEN_EXPIRATION_SECONDS)
+    db.storeTotpSetupSecret(setupToken, userId, secret)
 
     logger.info({
       event: 'totp_setup_session_created',
       userId,
-      expiresIn: AUTH_CONFIG.LOGIN_TOKEN_EXPIRATION_SECONDS
-    });
+      expiresIn: AUTH_CONFIG.LOGIN_TOKEN_EXPIRATION_SECONDS,
+    })
 
-    return setupToken;
+    return setupToken
   } catch (err: any) {
     logger.error({
       event: 'totp_setup_session_error',
       userId,
-      error: err?.message
-    });
+      error: err?.message,
+    })
 
-    const error: any = new Error(`Failed to create setup session: ${err?.message || String(err)}`);
-    error.code = 'SETUP_SESSION_ERROR';
-    throw error;
+    const error: any = new Error(`Failed to create setup session: ${err?.message || String(err)}`)
+    error.code = 'SETUP_SESSION_ERROR'
+    throw error
   }
 }
 
@@ -146,24 +146,26 @@ export function createSetupSession(userId: number, secret: string): string {
  * @param setupToken Token de session
  * @returns Données de session si valide, null sinon
  */
-export function getSetupSession(setupToken: string): { userId: number; secret: string; attempts: number } | null {
+export function getSetupSession(
+  setupToken: string,
+): { userId: number; secret: string; attempts: number } | null {
   try {
     // Valider le token
-    const tokenData = db.validateLoginToken(setupToken);
+    const tokenData = db.validateLoginToken(setupToken)
     if (!tokenData) {
-      logger.warn({ event: 'totp_setup_session_invalid', reason: 'token_invalid' });
-      return null;
+      logger.warn({ event: 'totp_setup_session_invalid', reason: 'token_invalid' })
+      return null
     }
 
     // Récupérer le secret associé
-    const secretData = db.getTotpSetupSecret(setupToken);
+    const secretData = db.getTotpSetupSecret(setupToken)
     if (!secretData) {
       logger.warn({
         event: 'totp_setup_session_invalid',
         reason: 'secret_not_found',
-        userId: tokenData.userId
-      });
-      return null;
+        userId: tokenData.userId,
+      })
+      return null
     }
 
     // Vérifier la cohérence userId
@@ -171,22 +173,22 @@ export function getSetupSession(setupToken: string): { userId: number; secret: s
       logger.error({
         event: 'totp_setup_session_mismatch',
         tokenUserId: tokenData.userId,
-        secretUserId: secretData.userId
-      });
-      return null;
+        secretUserId: secretData.userId,
+      })
+      return null
     }
 
     return {
       userId: tokenData.userId,
       secret: secretData.secret,
-      attempts: tokenData.attempts
-    };
+      attempts: tokenData.attempts,
+    }
   } catch (err: any) {
     logger.error({
       event: 'totp_get_setup_session_error',
-      error: err?.message
-    });
-    return null;
+      error: err?.message,
+    })
+    return null
   }
 }
 
@@ -196,15 +198,15 @@ export function getSetupSession(setupToken: string): { userId: number; secret: s
  */
 export function deleteSetupSession(setupToken: string): void {
   try {
-    db.deleteTotpSetupSecret(setupToken);
-    db.deleteLoginToken(setupToken);
+    db.deleteTotpSetupSecret(setupToken)
+    db.deleteLoginToken(setupToken)
 
-    logger.info({ event: 'totp_setup_session_deleted' });
+    logger.info({ event: 'totp_setup_session_deleted' })
   } catch (err: any) {
     logger.warn({
       event: 'totp_setup_session_delete_error',
-      error: err?.message
-    });
+      error: err?.message,
+    })
   }
 }
 
@@ -222,37 +224,37 @@ export function deleteSetupSession(setupToken: string): void {
  */
 export function verifySetupCode(setupToken: string, code: string): boolean {
   try {
-    const session = getSetupSession(setupToken);
+    const session = getSetupSession(setupToken)
 
     if (!session) {
-      return false;
+      return false
     }
 
     const isValid = authenticator.verify({
       token: code,
-      secret: session.secret
-    });
+      secret: session.secret,
+    })
 
     if (isValid) {
       logger.info({
         event: 'totp_setup_code_valid',
-        userId: session.userId
-      });
+        userId: session.userId,
+      })
     } else {
       logger.warn({
         event: 'totp_setup_code_invalid',
         userId: session.userId,
-        attempts: session.attempts + 1
-      });
+        attempts: session.attempts + 1,
+      })
     }
 
-    return isValid;
+    return isValid
   } catch (err: any) {
     logger.error({
       event: 'totp_setup_code_verification_error',
-      error: err?.message
-    });
-    return false;
+      error: err?.message,
+    })
+    return false
   }
 }
 
@@ -266,41 +268,41 @@ export function verifySetupCode(setupToken: string, code: string): boolean {
  */
 export function verifyLoginCode(userId: number, code: string): boolean {
   try {
-    const secret = db.getTotpSecret(userId);
+    const secret = db.getTotpSecret(userId)
 
     if (!secret) {
       logger.warn({
         event: 'totp_login_code_no_secret',
-        userId
-      });
-      return false;
+        userId,
+      })
+      return false
     }
 
     const isValid = authenticator.verify({
       token: code,
-      secret: secret
-    });
+      secret: secret,
+    })
 
     if (isValid) {
       logger.info({
         event: 'totp_login_code_valid',
-        userId
-      });
+        userId,
+      })
     } else {
       logger.warn({
         event: 'totp_login_code_invalid',
-        userId
-      });
+        userId,
+      })
     }
 
-    return isValid;
+    return isValid
   } catch (err: any) {
     logger.error({
       event: 'totp_login_code_verification_error',
       userId,
-      error: err?.message
-    });
-    return false;
+      error: err?.message,
+    })
+    return false
   }
 }
 
@@ -317,22 +319,22 @@ export function verifyLoginCode(userId: number, code: string): boolean {
  */
 export function enableTOTP(userId: number, secret: string): void {
   try {
-    db.enable2FA(userId, secret);
+    db.enable2FA(userId, secret)
 
     logger.info({
       event: 'totp_enabled',
-      userId
-    });
+      userId,
+    })
   } catch (err: any) {
     logger.error({
       event: 'totp_enable_error',
       userId,
-      error: err?.message
-    });
+      error: err?.message,
+    })
 
-    const error: any = new Error(`Failed to enable TOTP: ${err?.message || String(err)}`);
-    error.code = 'TOTP_ENABLE_ERROR';
-    throw error;
+    const error: any = new Error(`Failed to enable TOTP: ${err?.message || String(err)}`)
+    error.code = 'TOTP_ENABLE_ERROR'
+    throw error
   }
 }
 
@@ -344,22 +346,22 @@ export function enableTOTP(userId: number, secret: string): void {
  */
 export function disableTOTP(userId: number): void {
   try {
-    db.disable2FA(userId);
+    db.disable2FA(userId)
 
     logger.info({
       event: 'totp_disabled',
-      userId
-    });
+      userId,
+    })
   } catch (err: any) {
     logger.error({
       event: 'totp_disable_error',
       userId,
-      error: err?.message
-    });
+      error: err?.message,
+    })
 
-    const error: any = new Error(`Failed to disable TOTP: ${err?.message || String(err)}`);
-    error.code = 'TOTP_DISABLE_ERROR';
-    throw error;
+    const error: any = new Error(`Failed to disable TOTP: ${err?.message || String(err)}`)
+    error.code = 'TOTP_DISABLE_ERROR'
+    throw error
   }
 }
 
@@ -370,14 +372,14 @@ export function disableTOTP(userId: number): void {
  */
 export function isTOTPEnabled(userId: number): boolean {
   try {
-    return db.is2FAEnabled(userId);
+    return db.is2FAEnabled(userId)
   } catch (err: any) {
     logger.error({
       event: 'totp_check_enabled_error',
       userId,
-      error: err?.message
-    });
-    return false;
+      error: err?.message,
+    })
+    return false
   }
 }
 
@@ -391,15 +393,15 @@ export function isTOTPEnabled(userId: number): boolean {
  */
 export function cleanupExpiredSessions(): void {
   try {
-    db.cleanExpiredTokens();
-    db.cleanExpiredTotpSecrets();
+    db.cleanExpiredTokens()
+    db.cleanExpiredTotpSecrets()
 
-    logger.info({ event: 'totp_cleanup_completed' });
+    logger.info({ event: 'totp_cleanup_completed' })
   } catch (err: any) {
     logger.error({
       event: 'totp_cleanup_error',
-      error: err?.message
-    });
+      error: err?.message,
+    })
   }
 }
 
@@ -409,11 +411,11 @@ export function cleanupExpiredSessions(): void {
  */
 export function incrementSetupAttempts(setupToken: string): void {
   try {
-    db.incrementLoginTokenAttempts(setupToken);
+    db.incrementLoginTokenAttempts(setupToken)
   } catch (err: any) {
     logger.error({
       event: 'totp_increment_attempts_error',
-      error: err?.message
-    });
+      error: err?.message,
+    })
   }
 }

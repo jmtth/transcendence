@@ -42,15 +42,15 @@ export const AUTH_CONFIG = {
     REGISTER: { max: 3, timeWindow: '15 minutes' },
     TWO_FA_VERIFY: { max: 3, timeWindow: '2 minutes' },
     TWO_FA_SETUP: { max: 5, timeWindow: '15 minutes' },
-  }
-} as const;
+  },
+} as const
 
 /**
  * Rôles utilisateur pour RBAC (Role-Based Access Control)
  */
 export enum UserRole {
   USER = 'user',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
 }
 
 /**
@@ -65,8 +65,8 @@ export const RESERVED_USERNAMES: readonly string[] = [
   'guest',
   'support',
   'service',
-  'daemon'
-];
+  'daemon',
+]
 
 /**
  * Champs sensibles à ne jamais logger en clair
@@ -83,8 +83,8 @@ export const SENSITIVE_FIELDS = [
   '2fa_login_token',
   '2fa_setup_token',
   'access_token',
-  'refresh_token'
-] as const;
+  'refresh_token',
+] as const
 
 /**
  * Codes d'erreur standardisés
@@ -146,7 +146,7 @@ export const ERROR_CODES = {
 
   // QR Code
   QR_CODE_GENERATION_ERROR: 'QR_CODE_GENERATION_ERROR',
-} as const;
+} as const
 
 /**
  * Messages d'erreur standardisés
@@ -171,4 +171,4 @@ export const ERROR_MESSAGES = {
   [ERROR_CODES.INTERNAL_SERVER_ERROR]: 'Internal server error',
   [ERROR_CODES.NOT_FOUND]: 'Resource not found',
   [ERROR_CODES.ROUTE_NOT_FOUND]: 'Route not found',
-} as const;
+} as const

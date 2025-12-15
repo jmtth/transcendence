@@ -1,9 +1,9 @@
-import { FastifyInstance } from 'fastify';
-import { logger } from '../utils/logger.js';
+import { FastifyInstance } from 'fastify'
+import { logger } from '../utils/logger.js'
 
 export interface JWTPayload {
-  sub: number;
-  username: string;
+  sub: number
+  username: string
 }
 
 /**
@@ -18,20 +18,20 @@ export function generateJWT(
   fastify: FastifyInstance,
   userId: number,
   username: string,
-  expiresIn: string = '1h'
+  expiresIn: string = '1h',
 ): string {
   const payload: JWTPayload = {
     sub: userId,
     username: username,
-  };
+  }
 
-  const token = fastify.jwt.sign(payload, { expiresIn });
+  const token = fastify.jwt.sign(payload, { expiresIn })
   logger.info({
     event: 'jwt_generated',
     userId,
     username,
-    expiresIn
-  });
+    expiresIn,
+  })
 
-  return token;
+  return token
 }
