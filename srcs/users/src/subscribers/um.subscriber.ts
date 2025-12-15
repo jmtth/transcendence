@@ -1,4 +1,4 @@
-import { appenv } from "src/config";
+import { appenv } from "src/config/env";
 import { RedisManager } from "src/data/um.redis.client";
 import { REDIS } from "src/utils/messages";
 

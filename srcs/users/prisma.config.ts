@@ -1,4 +1,4 @@
-import { appenv } from '../users/src/config'
+import { appenv } from './src/config/env'
 
 import { defineConfig } from 'prisma/config'
 

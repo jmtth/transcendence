@@ -28,13 +28,13 @@ services:
     build:
       context: ./gateway
       dockerfile: Dockerfile
-    container_name: api-gateway
+    container_name: "${API_GATEWAY_NAME}"
     expose:
       - "${API_GATEWAY_PORT}"
+    env_file:
+      - path: ./.env
     environment:
-      - NODE_ENV=${NODE_ENV}
       - JWT_SECRET=${JWT_SECRET:-supersecretkey}
-      - LOG_LEVEL=${LOG_LEVEL:-info}
     networks:
       - app-network
     restart: unless-stopped
@@ -47,16 +47,14 @@ services:
     build:
       context: ./auth
       dockerfile: Dockerfile
-    container_name: auth-service
+    container_name: "${AUTH_SERVICE_NAME}"
     expose:
-      - "3001"
+      - "${AUTH_SERVICE_PORT}"
     env_file:
       - path: ./.env
     environment:
-      - NODE_ENV=production
-      - AUTH_DB_PATH=/data/auth.db  # SQLite database path inside container
+      - AUTH_DB_PATH=/data/auth.db                # SQLite database path inside container - TODO .env.auth ?
       - JWT_SECRET=${JWT_SECRET:-supersecretkey}
-      - LOG_LEVEL=${LOG_LEVEL:-warn}
     volumes:
       - data:/data
     networks:
@@ -74,14 +72,14 @@ services:
     build:
       context: ./blockchain
       dockerfile: Dockerfile
-    container_name: blockchain-service
+    container_name: "${BK_SERVICE_NAME}"
     expose:
-      - "3005"
+      - "${BK_SERVICE_PORT}"
+    env_file:
+      - path: ./.env
     environment:
-      - NODE_ENV=production
-      - BLOCK_DB_PATH=/data/blockchain.db  # SQLite database path inside container
-      - REDIS_URL=redis://redis-broker:6379
-      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - BLOCK_DB_PATH=/data/blockchain.db         # SQLite database path inside container - TODO .env.bk
+      - REDIS_URL="redis://${REDIS_SERVICE_NAME}:${REDIS_SERVICE_PORT}"
     volumes:
       - data:/data
     networks:
@@ -100,10 +98,11 @@ services:
       dockerfile: Dockerfile
     container_name: game-service 
     expose:
-      - "3003"
+      - "${GAME_SERVICE_PORT}"
+    env_file:
+      - path: ./.env
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://redis-broker:6379
+      - REDIS_URL="redis://${REDIS_SERVICE_NAME}:${REDIS_SERVICE_PORT}"
     networks:
       - app-network
     restart: unless-stopped
@@ -123,11 +122,13 @@ services:
       - app-network
     restart: unless-stopped
 
-  users-management:
+  user-service:
     build:
       context: ./users
       dockerfile: Dockerfile
     container_name: ${UM_SERVICE_NAME}
+    expose:
+      - "${UM_SERVICE_PORT}"
     env_file:
       - path: ./.env
       - path: ./users/.env.um

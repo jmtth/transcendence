@@ -68,4 +68,4 @@ export const DATA_ERROR = {
     CONNECTION_FAIL: 'connection_fail',
     CONSTRAINT_VIOLATION: 'constraint_violation',
     INTERNAL_ERROR: 'internal_error'
-}
+} as const
