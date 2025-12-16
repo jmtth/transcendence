@@ -60,9 +60,9 @@ export async function registerHandler(
   }
 
   try {
-    const id = authService.createUser({ username, email, password })
+    const id = await authService.createUser({ username, email, password })
     req.log.info({ event: 'register_success', username, email, id })
-    return reply.code(201).send({ result: { message: 'User registered successfully', id } })
+    return reply.code(201).send({ result: { message: 'User registered successfully', id: id } })
   } catch (err: any) {
     req.log.error({ event: 'register_error', username, email, err: err?.message || err })
     // Add errors handling

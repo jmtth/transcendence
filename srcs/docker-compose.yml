@@ -126,7 +126,7 @@ services:
       - path: ./.env
       - path: ./.env.um
     volumes:
-      - ${HOST_VOLUME_PATH}:/data
+      - data:/data
     networks:
       - app-network
     restart: unless-stopped

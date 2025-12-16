@@ -42,7 +42,7 @@ export default {
         'generated/',
         'dist/',
         '**/*.config.ts',
-        '**/src/generated/**',
+        '**/src/data/generated/**',
         ]
     },
   },

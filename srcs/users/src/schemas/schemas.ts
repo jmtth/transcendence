@@ -12,6 +12,10 @@ const usernameSchema = z
     message: "Username cannot contain 'admin'",
   })
 
+const idSchema = z
+  .number()
+  .min(1, 'ID should be above or equal to 1')
+
 export type SchemaCollectionType = {
   [key: string]: z.ZodType
 }
@@ -21,7 +25,7 @@ export const ValidationSchemas: SchemaCollectionType = {
     username: usernameSchema,
   }),
   UserCreate: z.object({
-    authId: z.uuid(),
+    authId: idSchema,
     email: z.email(),
     username: usernameSchema,
   }),

@@ -9,7 +9,7 @@ export default defineConfig([
     plugins: { js },
     extends: ['js/recommended'],
     languageOptions: { globals: globals.browser },
-    ignores: ["src/generated/**", "coverage/**", "dist/**"]
+    ignores: ["src/data/generated/**", "coverage/**", "dist/**"]
   },
   tseslint.configs.recommended,
 ])

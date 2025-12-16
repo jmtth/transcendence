@@ -4,8 +4,8 @@ import { umRoutes } from "../src/routes/um.routes.js";
 import { API_ERRORS } from '../src/utils/messages.js';
 import * as umService from "../src/services/um.service.js";
 import * as mappers from "../src/utils/mappers.js";
-import { UserProfile } from 'src/generated/prisma/client.js';
 import { afterEach } from 'node:test';
+import { UserProfile } from 'src/data/generated/prisma/client.js';
 
 // auto mock all functions from this file
 // vi.mock("../src/services/um.service.js");

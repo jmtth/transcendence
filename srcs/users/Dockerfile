@@ -30,11 +30,21 @@ RUN apk add --no-cache wget \
     && addgroup -S appgroup \
     && adduser -S appuser -G appgroup
 
+RUN mkdir -p ./data && chown -R appuser:appgroup /app
+
 COPY package.json package-lock.json ./
 RUN npm install --omit=dev
-# COPY --from=builder /app/node_modules_prod/node_modules ./node_modules
+
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder /app/src/config/env.ts ./src/config/env.ts
 COPY --from=builder /app/dist ./dist
 
+COPY ./entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
 USER appuser
+
+ENTRYPOINT [ "/app/entrypoint.sh" ]
 
 CMD ["node", "dist/index.js"]
