@@ -1,27 +1,13 @@
 import fastify from "fastify";
 import fastifyCors from "@fastify/cors";
-import fastifyJwt from "@fastify/jwt";
 import fastifyCookie from "@fastify/cookie";
+import fastifyJwt from "@fastify/jwt";
 import fastifyRateLimit from "@fastify/rate-limit";
 import websocketPlugin from "@fastify/websocket";
 import { apiRoutes, publicRoutes } from "./routes/gateway.routes.js";
 import { logger, optimizeErrorHandler } from "./utils/logger.js";
-
-const PUBLIC_HEALTH_ROUTES = ["/api/auth/health", "/api/game/health", "/api/block/health"];
-// Routes publiques : pas de vérification JWT requise
-const PUBLIC_ROUTES = [
-  "/api/auth/login",
-  "/api/auth/register",
-  "/api/auth/2fa/verify",
-  "/api/auth/2fa/setup/verify",
-  "/api/game/sessions",
-  ...PUBLIC_HEALTH_ROUTES
-];
-// Routes nécessitant une authentification JWT (mais pas 2FA complète)
-const AUTH_REQUIRED_ROUTES = [
-  "/api/auth/2fa/setup",
-  "/api/auth/2fa/disable"
-];
+import { verifyRequestJWT } from "./utils/jwt.service.js";
+import { GATEWAY_CONFIG, ERROR_CODES } from "./utils/constants.js";
 
 const app = fastify({
   logger: false, // Utiliser notre logger
@@ -31,10 +17,19 @@ const app = fastify({
 // Register fastify-cookie
 app.register(fastifyCookie);
 
+// Register fastify-jwt
+const JWT_SECRET = (globalThis as any).process?.env?.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET === 'supersecretkey') {
+  console.error('❌ CRITICAL: JWT_SECRET must be defined and cannot be the default value');
+  console.error('   Set a secure JWT_SECRET in environment variables');
+  (globalThis as any).process?.exit?.(1);
+}
+app.register(fastifyJwt, { secret: JWT_SECRET });
+
 // Rate limiting global
 app.register(fastifyRateLimit, {
-  max: 400,  // Plus permissif car c'est un gateway (aggrege plusieurs services)
-  timeWindow: '1 minute',
+  max: GATEWAY_CONFIG.RATE_LIMIT.GLOBAL.max,
+  timeWindow: GATEWAY_CONFIG.RATE_LIMIT.GLOBAL.timeWindow,
   keyGenerator: (request) => {
     // Rate limit par IP
     return request.ip || 'unknown';
@@ -42,7 +37,7 @@ app.register(fastifyRateLimit, {
   errorResponseBuilder: (req, context) => ({
     error: {
       message: 'Too many requests, please try again later',
-      code: 'RATE_LIMIT_EXCEEDED',
+      code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
       retryAfter: context.after
     }
   })
@@ -50,63 +45,41 @@ app.register(fastifyRateLimit, {
 
 console.log("register");
 app.register(websocketPlugin);
-// Hook verify JWT routes `/api` sauf les routes PUBLIC_ROUTES
+
+// Hook verify JWT routes `/api` sauf les routes publiques
 app.addHook("onRequest", async (request: any, reply: any) => {
   const url = request.url || request.raw?.url || "";
 
-  // Routes public non `/api` : on ne fait rien
+  // Routes non `/api` : on ne fait rien
   if (!url.startsWith("/api")) return;
 
   // Routes publiques
-  if (PUBLIC_ROUTES.includes(url)) {
+  if (GATEWAY_CONFIG.PUBLIC_ROUTES.includes(url)) {
     logger.logAuth({ url, user: request.user?.username }, true);
     return;
   }
 
-  const token = request.cookies && (request.cookies.token as string | undefined);
+  // Vérifier le JWT localement (pas d'appel au service auth)
+  const verification = verifyRequestJWT(app, request);
 
-  // No token present
-  if (!token) {
-    logger.logAuth({ url: request.url, token: false }, false);
-    return reply
-      .code(401)
-      .send({ error: { message: "Unauthorized", code: "UNAUTHORIZED" } });
-  }
-
-  // Verify JWT token auth service
-  try {
-    const verifyResponse = await fetch("http://auth-service:3001/verify", {
-      method: "GET",
-      headers: {
-        "cookie": `token=${token}`,
-        "content-type": "application/json"
-      }
-    });
-
-    if (!verifyResponse.ok) {
-      logger.logAuth({
-        url: request.url,
-        token: true,
-        verifyStatus: verifyResponse.status
-      }, false);
-      return reply
-        .code(401)
-        .send({ error: { message: "Unauthorized", code: "UNAUTHORIZED" } });
-    }
-
-    const verifyData = await verifyResponse.json();
-    request.user = verifyData.result.user;
-    logger.logAuth({ url: request.url, user: request.user.username }, true);
-  } catch (err: any) {
+  if (!verification.valid) {
     logger.logAuth({
       url: request.url,
-      token: true,
-      verifyError: err?.message
+      errorCode: verification.errorCode,
+      errorMessage: verification.errorMessage
     }, false);
-    return reply
-      .code(401)
-      .send({ error: { message: "Unauthorized", code: "UNAUTHORIZED" } });
+
+    return reply.code(401).send({
+      error: {
+        message: verification.errorMessage || "Unauthorized",
+        code: verification.errorCode || ERROR_CODES.UNAUTHORIZED
+      }
+    });
   }
+
+  // Attacher les données utilisateur à la requête
+  request.user = verification.user;
+  logger.logAuth({ url: request.url, user: request.user.username }, true);
 });
 
 // Décorateur requêtes internes : ajoute automatiquement

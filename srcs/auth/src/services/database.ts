@@ -524,7 +524,7 @@ export function storeTotpSetupSecret(
   token: string,
   userId: number,
   secret: string,
-  expiresInSeconds: number = 120,
+  expiresInSeconds: number = AUTH_CONFIG.TOTP_SETUP_EXPIRATION_SECONDS,
 ): void {
   try {
     const expiresAt = new Date(Date.now() + expiresInSeconds * 1000).toISOString()

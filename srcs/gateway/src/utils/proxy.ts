@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import WebSocket from 'ws'
 import { logger, createLogContext } from './logger.js'
+import { GATEWAY_CONFIG, ERROR_CODES } from './constants.js'
 
 // Message types for type safety
 interface ClientMessage {
@@ -142,8 +143,8 @@ export async function proxyRequest(
     url: request.url,
   })
 
-  // Timeout (5 secondes)
-  const timeoutMs = (init as any)?.timeout ?? 5000
+  // Timeout
+  const timeoutMs = (init as any)?.timeout ?? GATEWAY_CONFIG.PROXY_TIMEOUT_MS
   const controller = new AbortController()
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -183,7 +184,7 @@ export async function proxyRequest(
             body || {
               error: {
                 message: 'Upstream error',
-                code: 'UPSTREAM_ERROR',
+                code: ERROR_CODES.UPSTREAM_ERROR,
                 upstreamStatus: response.status,
               },
             }
@@ -204,7 +205,7 @@ export async function proxyRequest(
         return {
           error: {
             message: 'Invalid JSON from upstream',
-            code: 'BAD_GATEWAY',
+            code: ERROR_CODES.BAD_GATEWAY,
             details: errorMessage,
           },
         }
@@ -217,7 +218,7 @@ export async function proxyRequest(
         return {
           error: {
             message: text || 'Upstream error',
-            code: 'UPSTREAM_ERROR',
+            code: ERROR_CODES.UPSTREAM_ERROR,
             upstreamStatus: response.status,
           },
         }
@@ -237,7 +238,7 @@ export async function proxyRequest(
       return {
         error: {
           message: 'Error reading upstream response',
-          code: 'BAD_GATEWAY',
+          code: ERROR_CODES.BAD_GATEWAY,
           details: errorMessage,
         },
       }
@@ -245,28 +246,60 @@ export async function proxyRequest(
   } catch (err: any) {
     clearTimeout(timeoutHandle)
     const isAbort = err && (err.name === 'AbortError' || err.type === 'aborted')
+    const isNetworkError = err && (
+      err.code === 'ECONNREFUSED' ||
+      err.code === 'ENOTFOUND' ||
+      err.code === 'ETIMEDOUT' ||
+      err.code === 'ECONNRESET'
+    )
     const errorMessage = (err as Error)?.message || 'Unknown network error'
     const duration = Date.now() - startTime
 
+    // Log avec distinction entre timeout, erreur réseau et autres erreurs
+    const event = isAbort ? 'proxy_timeout' : (isNetworkError ? 'proxy_network_error' : 'proxy_error')
     logger.error({
-      event: isAbort ? 'proxy_timeout' : 'proxy_error',
+      event,
       targetUrl: url,
       method,
       user: userName,
       err: errorMessage,
+      errorCode: err?.code,
       upstreamDuration: duration,
       timeout: isAbort,
+      networkError: isNetworkError,
     })
+
     reply.code(502)
+
+    // Distinction entre timeout et erreur réseau pour un meilleur diagnostic
     if (isAbort) {
       return {
         error: {
-          message: 'Upstream request timed out',
-          code: 'BAD_GATEWAY',
+          message: `Upstream request timed out after ${timeoutMs}ms`,
+          code: ERROR_CODES.UPSTREAM_TIMEOUT,
           details: errorMessage,
+          timeout: timeoutMs,
         },
       }
     }
-    return { error: { message: 'Bad gateway', code: 'BAD_GATEWAY', details: errorMessage } }
+
+    if (isNetworkError) {
+      return {
+        error: {
+          message: 'Cannot connect to upstream service',
+          code: ERROR_CODES.NETWORK_ERROR,
+          details: errorMessage,
+          errorCode: err?.code,
+        },
+      }
+    }
+
+    return {
+      error: {
+        message: 'Bad gateway',
+        code: ERROR_CODES.BAD_GATEWAY,
+        details: errorMessage
+      }
+    }
   }
 }

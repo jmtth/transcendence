@@ -12,7 +12,7 @@ import {
   verify2FAHandler,
   disable2FAHandler,
 } from '../controllers/auth.controller.js'
-import { AUTH_CONFIG, ERROR_CODES } from '../utils/constants.js'
+import { AUTH_CONFIG } from '../utils/constants.js'
 
 export async function authRoutes(app: FastifyInstance) {
   app.get(

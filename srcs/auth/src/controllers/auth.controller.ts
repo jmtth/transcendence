@@ -265,7 +265,8 @@ export async function loginHandler(
       })
     } else {
       // Pas de 2FA : générer le JWT directement
-      const token = generateJWT(this, user.id || 0, user.username, AUTH_CONFIG.JWT_EXPIRATION)
+      const userRole = authService.getUserRole(user.id || 0)
+      const token = generateJWT(this, user.id || 0, user.username, userRole, AUTH_CONFIG.JWT_EXPIRATION)
       logger.info({ event: 'login_success', identifier })
 
       reply
@@ -643,7 +644,8 @@ export async function verify2FASetupHandler(
     }
 
     // Générer un nouveau JWT pour la session authentifiée
-    const token = generateJWT(this, userId, user.username, AUTH_CONFIG.JWT_EXPIRATION)
+    const userRole = authService.getUserRole(userId)
+    const token = generateJWT(this, userId, user.username, userRole, AUTH_CONFIG.JWT_EXPIRATION)
 
     logger.info({ event: '2fa_setup_completed', userId, username: user.username })
 
@@ -766,7 +768,8 @@ export async function verify2FAHandler(
     authService.deleteLoginToken(loginToken)
 
     // Générer le JWT final
-    const token = generateJWT(this, userId, user.username, AUTH_CONFIG.JWT_EXPIRATION)
+    const userRole = authService.getUserRole(userId)
+    const token = generateJWT(this, userId, user.username, userRole, AUTH_CONFIG.JWT_EXPIRATION)
 
     logger.info({ event: '2fa_verify_success', userId, username: user.username })
 

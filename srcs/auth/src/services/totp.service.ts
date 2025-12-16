@@ -25,8 +25,8 @@ import { logger } from '../utils/logger.js'
 function configureTOTP() {
   authenticator.options = {
     window: AUTH_CONFIG.TOTP_WINDOW, // Fenêtre de validation (±30s)
-    step: 30, // Période de rotation (30 secondes standard)
-    digits: 6, // Code à 6 chiffres
+    step: AUTH_CONFIG.TOTP_STEP, // Période de rotation (30 secondes standard)
+    digits: AUTH_CONFIG.TOTP_DIGITS, // Code à 6 chiffres
   }
 }
 
@@ -116,13 +116,13 @@ export async function generateTOTPSetup(username: string): Promise<TOTPSetupData
  */
 export function createSetupSession(userId: number, secret: string): string {
   try {
-    const setupToken = db.createLoginToken(userId, AUTH_CONFIG.LOGIN_TOKEN_EXPIRATION_SECONDS)
-    db.storeTotpSetupSecret(setupToken, userId, secret)
+    const setupToken = db.createLoginToken(userId, AUTH_CONFIG.TOTP_SETUP_EXPIRATION_SECONDS)
+    db.storeTotpSetupSecret(setupToken, userId, secret, AUTH_CONFIG.TOTP_SETUP_EXPIRATION_SECONDS)
 
     logger.info({
       event: 'totp_setup_session_created',
       userId,
-      expiresIn: AUTH_CONFIG.LOGIN_TOKEN_EXPIRATION_SECONDS,
+      expiresIn: AUTH_CONFIG.TOTP_SETUP_EXPIRATION_SECONDS,
     })
 
     return setupToken

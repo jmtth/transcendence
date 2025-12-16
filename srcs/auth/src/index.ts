@@ -51,15 +51,14 @@ app.register(authRoutes, { prefix: '/' })
     totpService.cleanupExpiredSessions()
 
     // Maintenance automatique toutes les 5 minutes
-    const CLEANUP_INTERVAL = 5 * 60 * 1000 // 5 minutes
     setInterval(() => {
       totpService.cleanupExpiredSessions()
-    }, CLEANUP_INTERVAL)
+    }, AUTH_CONFIG.CLEANUP_INTERVAL_MS)
 
     logger.info({
       event: 'service_ready',
       message: 'Auth service is ready',
-      cleanupInterval: `${CLEANUP_INTERVAL / 1000}s`,
+      cleanupInterval: `${AUTH_CONFIG.CLEANUP_INTERVAL_MS / 1000}s`,
     })
   } catch (error: any) {
     logger.error({ event: 'service_startup_failed', err: error?.message || error })
