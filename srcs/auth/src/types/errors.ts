@@ -1,7 +1,10 @@
-import { DATA_ERROR, EVENTS, REASONS } from "../utils/constants.js";
+import { DATA_ERROR, ERROR_CODES, EVENTS, REASONS } from "../utils/constants.js";
 import { LogContext } from "./logger.js";
 
 type DeepValues<T> = T extends object ? { [K in keyof T]: DeepValues<T[K]> }[keyof T] : T;
+
+export type ErrorCode = 
+  | DeepValues<typeof ERROR_CODES>
 
 export type EventValue = 
   | DeepValues<typeof EVENTS>
@@ -14,9 +17,10 @@ export type DataErrorCode =
   | DeepValues<typeof DATA_ERROR>
 
 export interface ErrorDefinition {
-  event: LogContext['event'];
-  reason: LogContext['reason'];
+  code: ErrorCode;
   message: string;
+  event: EventValue;
+  reason: ReasonValue;
   statusCode?: number;
 }
 

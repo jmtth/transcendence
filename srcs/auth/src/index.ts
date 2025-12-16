@@ -4,18 +4,26 @@ import fastifyJwt from '@fastify/jwt'
 import { authRoutes } from './routes/auth.routes.js'
 import { initAdminUser, initInviteUser } from './utils/init-users.js'
 import { loggerConfig } from './config/logger.config.js'
-import { EVENTS } from './utils/constants.js'
+import { AUTH_CONFIG, ERROR_CODES, EVENTS, REASONS } from './utils/constants.js'
 import { AppBaseError, ServiceError } from './types/errors.js'
 
 const env = (globalThis as any).process?.env || {}
-const UM_SERVICE_NAME = env['UM_SERVICE_NAME'] || 'user-service';
-const UM_SERVICE_PORT = env['UM_SERVICE_PORT'] || '3002';
 
-export const UM_SERVICE_URL = `http://${UM_SERVICE_NAME}:${UM_SERVICE_PORT}`
+// Validation du JWT_SECRET au démarrage (CRITIQUE)
+const JWT_SECRET = env.JWT_SECRET
+if (!JWT_SECRET || JWT_SECRET === 'supersecretkey') {
+  console.error('❌ CRITICAL: JWT_SECRET must be defined and cannot be the default value')
+  console.error('   Set a secure JWT_SECRET in environment variables')
+  ;(globalThis as any).process?.exit?.(1)
+  throw new Error('JWT_SECRET not configured')
+}
+
 const app = fastify({
   logger: loggerConfig,
   disableRequestLogging: false,
 })
+
+export const logger = app.log
 
 /**
  * @abstract add userId and userName to logger
@@ -38,30 +46,33 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
 app.setErrorHandler((error: AppBaseError, req, _reply) => {
   req.log.error({
     err: error, 
-    event: error?.context?.event || EVENTS.EXCEPTION.UNHANDLED,
-    reason: error.context?.reason,
-  }, 'Request failed');
+    event: error?.context?.event || EVENTS.CRITICAL.BUG,
+    reason: error?.context?.reason || REASONS.UNKNOWN,
+  }, 'Error');
 });
 
 // Register shared plugins once
 app.register(fastifyCookie)
 app.register(fastifyJwt, { secret: env.JWT_SECRET || 'supersecretkey' })
 
-app.register(authRoutes, { prefix: '/' })
+app.register(authRoutes, { prefix: '/' });
 
-app.listen({ host: '0.0.0.0', port: 3001 }, async (err: any, address: string) => {
-  if (err) {
-    console.error(err)
-    ;(globalThis as any).process?.exit?.(1)
-  }
-  console.log(`Auth service listening at ${address}`)
-
+(async () => {
   try {
+    const address = await app.listen({ host: '0.0.0.0', port: 3001 })
+    console.log(`Auth service listening at ${address}`)
+
     await initAdminUser()
     await initInviteUser()
-    app.log.info({ event: EVENTS.SERVICE.READY }, '✅ Auth service is ready')
+
+    logger.info({
+      event: 'service_ready',
+      message: 'Auth service is ready',
+    })
   } catch (error: any) {
-    app.log.error({ event: EVENTS.SERVICE.FAIL, err: error?.message || error })
+    logger.error({ event: 'service_startup_failed', err: error?.message || error })
+    console.error(error)
     ;(globalThis as any).process?.exit?.(1)
   }
-})
+})()
+

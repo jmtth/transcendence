@@ -1,21 +1,29 @@
 import { FastifyRequest, FastifyError } from 'fastify';
 import { IncomingMessage } from 'node:http';
-import { LoggerOptions } from 'pino';
+import { LoggerOptions, stdSerializers } from 'pino';
 import { hostname } from 'os';
+import { REDACT_PATHS } from '../utils/constants.js';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
+function isFastifyRequest(req: IncomingMessage | FastifyRequest): req is FastifyRequest {
+  return 'raw' in req && 'id' in req;
+}
+
+function isFastifyError(err: Error | unknown): err is FastifyError {
+  return err instanceof Error && ('code' in err || 'statusCode' in err);
+}
+
 /**
  * @abstract configure logging to facilitate future compatibility with ELK
- * @todo check if logging of all headers (except for authorization as of now) is necessary 
  */
 export const loggerConfig: LoggerOptions = {
-    redact: ['req.headers.authorization'],
+    redact: [...REDACT_PATHS],
     level: process.env.LOG_LEVEL || 'info',
     timestamp: () => `,"time":"${new Date().toISOString()}"`,
     base: {
         env: process.env.NODE_ENV,
-        service: process.env.AUTH_SERVICE_NAME || 'auth-service',
+        service: process.env.AUTH_SERVICE_NAME,
         pid: process.pid,
         hostname: hostname()
     },
@@ -26,30 +34,44 @@ export const loggerConfig: LoggerOptions = {
     },
     serializers: {
         req (request: FastifyRequest | IncomingMessage) {
-            const fastifyReq = request as any;
-            return {
-                method: request.method,
-                url: request.url,
-                headers: request.headers,
-                hostname: fastifyReq.hostname || request.headers?.host,
-                remoteAddress: fastifyReq.ip || request.socket?.remoteAddress,
-                remotePort: request.socket?.remotePort,
-                traceId: fastifyReq.id,
-            };
+            const rawReq = isFastifyRequest(request) ? request.raw : request;
+            const serialized = stdSerializers.req(rawReq);
+            if (isFastifyRequest(request)) {
+                return {
+                   ...serialized,
+                   remoteAddress: request.ip,
+                   hostname: request.hostname,
+                   traceId: request.id,
+                };
+            }
+            return serialized;
+        
         },
-        err (err: any) {
+        err (err: unknown) {
+            if (err instanceof Error) {
+                const serialized = stdSerializers.err(err);
+
+                if (isFastifyError(err)) {
+                    return {
+                        ...serialized,
+                        code: err.code,
+                        statusCode: err.statusCode
+                    };
+                }
+                return serialized;
+            }
             return {
-                type: err.name || err.type,
-                message: err.message,
-                stack: err.stack || '',
-                code: err.code || err.statusCode,
+                type: 'UnknownError',
+                message: String(err)
             };
         }
     },
     transport: isDev ? {
         target: 'pino-pretty',
         options: {
-            colorize: true, translateTime: 'HH:MM:ss Z', ignore: 'pid,hostname'
+            colorize: true,
+            translateTime: 'HH:MM:ss Z',
+            ignore: 'pid,hostname'
         },
     } : undefined,
 }
