@@ -8,8 +8,6 @@ import { EVENTS, REASONS, UserRole } from '../utils/constants.js'
 import { ADMIN_USERNAME, INVITE_USERNAME } from '../config/env.js'
 
 const SALT_ROUNDS = 10
-import { AUTH_CONFIG, UserRole } from '../utils/constants.js'
-
 
 export function findUser(identifier: string) {
   return db.findUserByIdentifier(identifier)
@@ -21,6 +19,10 @@ export function findByUsername(username: string) {
 
 export function findByEmail(email: string) {
   return db.findUserByEmail(email)
+}
+
+export function findUserById(id: number) {
+  return db.findUserById(id)
 }
 
 export async function createUser(user: { username: string; email?: string | null; password: string }): Promise<number> {

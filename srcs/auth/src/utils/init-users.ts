@@ -25,7 +25,7 @@ export async function initAdminUser(): Promise<void> {
     }
 
     // Créer l'utilisateur admin
-    const adminId = authService.createUser({
+    const adminId = await authService.createUser({
       username: ADMIN_USERNAME,
       email: ADMIN_EMAIL,
       password: ADMIN_PASSWORD,

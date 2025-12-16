@@ -90,14 +90,6 @@ try {
   throw e
 }
 
-export interface DBUser {
-  id?: number
-  username: string
-  email?: string | null
-  password: string
-  role?: string
-}
-
 // Prepare statements
 const findByUsernameStmt = db.prepare('SELECT * FROM users WHERE username = ?')
 const findByEmailStmt = db.prepare('SELECT * FROM users WHERE email = ?')

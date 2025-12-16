@@ -3,4 +3,5 @@ export interface DBUser {
   username: string
   email?: string | null
   password: string
+  role: string
 }
