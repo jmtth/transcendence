@@ -5,6 +5,7 @@ import { DataError, ServiceError } from '../types/errors.js'
 import { APP_ERRORS } from '../utils/error-catalog.js'
 import { logger } from '../utils/logger.js'
 import { EVENTS, REASONS } from '../utils/constants.js'
+import { ADMIN_USERNAME, INVITE_USERNAME } from '../config/env.js'
 
 const SALT_ROUNDS = 10
 
@@ -39,6 +40,9 @@ export async function createUser(user: { username: string; email?: string | null
     throw err;
   }
   
+  if ([ADMIN_USERNAME, INVITE_USERNAME].includes(user.username))
+    return userId;
+
   try {
     await createUserProfile({
         authId: userId,
@@ -47,7 +51,7 @@ export async function createUser(user: { username: string; email?: string | null
     });
     return userId;
   } catch (error) {
-    logger.warn({event: EVENTS.INFRA.ROLLBACK, userId, reason: REASONS.NETWORK.UPSTREAM_ERROR });
+    logger.warn({event: EVENTS.DEPENDENCY.ROLLBACK, userId, reason: REASONS.NETWORK.UPSTREAM_ERROR });
     db.deleteUser(userId);
     throw error;
   }

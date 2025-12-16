@@ -4,13 +4,11 @@ import fastifyJwt from '@fastify/jwt'
 import { authRoutes } from './routes/auth.routes.js'
 import { initAdminUser, initInviteUser } from './utils/init-users.js'
 import { loggerConfig } from './config/logger.config.js'
-import { AUTH_CONFIG, ERROR_CODES, EVENTS, REASONS } from './utils/constants.js'
-import { AppBaseError, ServiceError } from './types/errors.js'
-
-const env = (globalThis as any).process?.env || {}
+import { EVENTS, REASONS } from './utils/constants.js'
+import { AppBaseError } from './types/errors.js'
+import { JWT_SECRET } from './config/env.js'
 
 // Validation du JWT_SECRET au démarrage (CRITIQUE)
-const JWT_SECRET = env.JWT_SECRET
 if (!JWT_SECRET || JWT_SECRET === 'supersecretkey') {
   console.error('❌ CRITICAL: JWT_SECRET must be defined and cannot be the default value')
   console.error('   Set a secure JWT_SECRET in environment variables')
@@ -53,7 +51,7 @@ app.setErrorHandler((error: AppBaseError, req, _reply) => {
 
 // Register shared plugins once
 app.register(fastifyCookie)
-app.register(fastifyJwt, { secret: env.JWT_SECRET || 'supersecretkey' })
+app.register(fastifyJwt, { secret: JWT_SECRET || 'supersecretkey' })
 
 app.register(authRoutes, { prefix: '/' });
 

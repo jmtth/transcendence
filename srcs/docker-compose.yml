@@ -36,8 +36,7 @@ services:
       - "${API_GATEWAY_PORT}"
     env_file:
       - path: ./.env
-    environment:
-      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
+      - path: ./.env.gateway
     networks:
       - app-network
     restart: unless-stopped
@@ -56,14 +55,14 @@ services:
     env_file:
       - path: ./.env
       - path: ./.env.auth
-    environment:
-      - AUTH_DB_PATH=/data/auth.db                # SQLite database path inside container - TODO .env.auth ?
-      - JWT_SECRET=${JWT_SECRET:-supersecretkey}
     volumes:
       - data:/data
     networks:
       - app-network
     restart: unless-stopped
+    depends_on:
+      user-service:
+        condition: service_healthy
     healthcheck:
       <<: *healthcheck-template
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${AUTH_SERVICE_PORT}/health"]

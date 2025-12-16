@@ -1,8 +1,10 @@
 import { FastifyRequest, FastifyError } from 'fastify';
 import { IncomingMessage } from 'node:http';
-import { LoggerOptions, stdSerializers } from 'pino';
 import { hostname } from 'os';
 import { appenv } from './env';
+import { PinoLoggerOptions } from 'fastify/types/logger';
+import serializer from 'pino-std-serializers/index.js';
+
 
 const isDev = appenv.NODE_ENV !== 'production';
 
@@ -18,7 +20,7 @@ function isFastifyError(err: Error | unknown): err is FastifyError {
  * @abstract configure logging to facilitate future compatibility with ELK
  * @todo check if logging of all headers (except for authorization as of now) is necessary 
  */
-export const loggerConfig: LoggerOptions = {
+export const loggerConfig: PinoLoggerOptions = {
     redact: ['req.headers.authorization'],
     level: appenv.LOG_LEVEL || 'info',
     timestamp: () => `,"time":"${new Date().toISOString()}"`,
@@ -36,7 +38,7 @@ export const loggerConfig: LoggerOptions = {
     serializers: {
         req (request: FastifyRequest | IncomingMessage) {
             const rawReq = isFastifyRequest(request) ? request.raw : request;
-            const serialized = stdSerializers.req(rawReq);
+            const serialized = serializer.req(rawReq as IncomingMessage);
             if (isFastifyRequest(request)) {
                 return {
                    ...serialized,
@@ -50,7 +52,7 @@ export const loggerConfig: LoggerOptions = {
         },
         err (err: unknown) {
             if (err instanceof Error) {
-                const serialized = stdSerializers.err(err);
+                const serialized = serializer.err(err);
 
                 if (isFastifyError(err)) {
                     return {
@@ -67,12 +69,15 @@ export const loggerConfig: LoggerOptions = {
             };
         }
     },
-    transport: isDev ? {
-        target: 'pino-pretty',
-        options: {
-            colorize: true,
-            translateTime: 'HH:MM:ss Z',
-            ignore: 'pid,hostname'
-        },
-    } : undefined,
+    ...(isDev && {
+            transport: {
+                target: 'pino-pretty',
+                options: {
+                    colorize: true,
+                    translateTime: 'HH:MM:ss Z',
+                    ignore: 'pid,hostname'
+                },
+            }
+        }
+    ),
 }
