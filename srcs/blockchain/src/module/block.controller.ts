@@ -1,4 +1,4 @@
-import { db } from "../core/database.js";
+import * as db from "../core/database.js";
 import { RecordNotFoundError } from "../core/error.js";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { Blockchain } from "./block.schema.js";
@@ -26,7 +26,7 @@ export async function showRow(request: FastifyRequest<{ Params: { tx_id: number 
     title: "My data is",
     message: "My data is",
     datadb
-  });
+ });
 }
 
 export async function addRow(request: FastifyRequest, reply: FastifyReply) {
@@ -38,16 +38,56 @@ export async function addRow(request: FastifyRequest, reply: FastifyReply) {
   return reply.redirect("/");
 }
 
+// export async function addRowJSON(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+//   const { tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id } = request.body as Blockchain;
+//   this.log.info({ event: "register_attempt", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id });
+//   try {
+//     const iddb = db
+//       .prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`)
+//       .run(tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id);
+//     this.log.info({ event: "register_success", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, iddb });
+//   } catch (err: any) {
+//     this.log.error({ event: "register_error", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, err: err?.message || err });
+//     return reply.code(406).send({ error: { message: "Internal server error", code: "INSERT FAILED" } });
+//   }
+// }
 export async function addRowJSON(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-  const { tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id } = request.body as Blockchain;
+  const { tx_id, tour_id, player1_id, player2_id, player1_score, player2_score, winner_id } = request.body as Blockchain;
   this.log.info({ event: "register_attempt", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id });
   try {
-    const iddb = db
-      .prepare(`INSERT INTO snapshot(tx_id,match_id,player1_id,player2_id,player1_score,player2_score,winner_id) VALUES (?,?,?,?,?,?,?)`)
-      .run(tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id);
+    db.insertSnapMatch(request.body);
     this.log.info({ event: "register_success", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, iddb });
   } catch (err: any) {
     this.log.error({ event: "register_error", tx_id, match_id, player1_id, player2_id, player1_score, player2_score, winner_id, err: err?.message || err });
     return reply.code(406).send({ error: { message: "Internal server error", code: "INSERT FAILED" } });
   }
 }
+
+app.post("/api/tournament/result", async (req, res) => {
+  const { id, players } = req.body;
+
+  try {
+    const tx = await gameStorage.storeTournament(
+      id,
+      players[0],
+      players[1],
+      players[2],
+      players[3]
+    );
+
+    // ⚠️ attendre la confirmation
+    const receipt = await tx.wait();
+
+    res.json({
+      status: "stored",
+      txHash: receipt.hash,
+    });
+
+  } catch (err) {
+    res.status(400).json({
+      error: "Blockchain write failed",
+      details: err.message,
+    });
+  }
+});
+

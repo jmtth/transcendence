@@ -14,24 +14,22 @@ export const blockSchema = {
     tx_id: { type: "number" },
     tx_hash: { type: "string" },
     date_confirmed: { type: "string" },
-    match_id: { type: "number" },
+    tour_id: { type: "number" },
     player1_id: { type: "number" },
     player2_id: { type: "number" },
-    player1_score: { type: "number" },
-    player2_score: { type: "number" },
-    winner_id: { type: "number" }
+    player3_id: { type: "number" },
+    player4_id: { type: "number" }
   },
-  required: ["tx_id", "match_id", "player1_id", "player2_id", "player1_score", "player2_score", "winner_id"]
+  required: ["tx_id", "tour_id", "player1_id", "player2_id", "player3_id", "player4_id"]
 } as const;
 
 export interface Blockchain {
   tx_id: number;
   tx_hash?: string;
   date_confirmed?: string;
-  match_id: number;
+  tour_id: number;
   player1_id: number;
   player2_id: number;
-  player1_score: number;
-  player2_score: number;
-  winner_id: number;
+  player3_id: number;
+  player4_id: number;
 }

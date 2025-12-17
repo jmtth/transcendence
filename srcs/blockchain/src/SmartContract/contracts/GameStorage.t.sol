@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-// import "forge-std/Test.sol";
 import { Test } from "forge-std/Test.sol";
 import {GameStorage} from "./GameStorage.sol";
 
@@ -28,12 +27,22 @@ contract GameStorageTest is Test{
         game.storeTournament(0,1,2,3,4);
         GameStorage.Tournament memory t = game.getTournament(0);
         require(t.player1 == 1, "tournament[1] should be 1");
+        require(t.player2 == 2, "tournament[2] should be 2");
+        require(t.player3 == 3, "tournament[3] should be 3");
+        require(t.player4 == 4, "tournament[4] should be 4");
+    }
+
+    function test_GetWrongTrounament_Fails() public {
+        vm.startPrank(OWNER);
+        game.storeTournament(0,1,2,3,4);
+        game.storeTournament(1,1,2,3,4);
+        vm.expectRevert("Tournament does not exist");
+        game.getTournament(2);
+        vm.stopPrank();
     }
 
      function test_StoreTournament_onlyOwnerFails() public {
-        // ATTACKER tente d'appeler => doit revert avec message OZ
         vm.prank(ATTACKER);
-        // vm.expectRevert();
         vm.expectRevert(
             abi.encodeWithSignature(
                 "OwnableUnauthorizedAccount(address)",
@@ -48,6 +57,31 @@ contract GameStorageTest is Test{
         vm.prank(OWNER);
         vm.expectRevert("ID already used");
         game.storeTournament(1, 4, 6, 7, 8);
+    }
+
+    function test_EventMatchesStorage_PerTransaction() public {
+        vm.startPrank(OWNER);
+
+        for (uint8 i = 1; i <= 10; i++) {
+            // 1️⃣ On s'attend à l'event EXACT
+            vm.expectEmit(true, true, true, true);
+            emit GameStorage.TournamentStored(i, i, i, i, i);
+
+            // 2️⃣ Transaction
+            game.storeTournament(i, i, i, i, i);
+
+            // 3️⃣ Lecture du storage
+            GameStorage.Tournament memory t = game.getTournament(i);
+
+            // 4️⃣ Vérification event ↔ storage
+            assertEq(t.player1, i);
+            assertEq(t.player2, i);
+            assertEq(t.player3, i);
+            assertEq(t.player4, i);
+            assertGt(t.timestamp, 0);
+        }
+
+        vm.stopPrank();
     }
 
 }

@@ -12,6 +12,7 @@ async function blockRoutes(app: FastifyInstance) {
   app.get("/list", listRowsJSON);
   app.post("/", { schema: { body: blockSchema } }, addRow);
   app.post("/register", { schema: { body: blockSchema } }, addRowJSON);
+  app.post("/store", { schema: { body: blockSchema } }, addBlock);
   app.get("/row/:tx_id", { schema: { params: blockIdSchema } }, showRow);
 }
 
