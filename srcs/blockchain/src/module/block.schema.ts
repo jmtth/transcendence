@@ -1,15 +1,15 @@
 // Params for /row/:id
 export const blockIdSchema = {
-  type: "object",
+  type: 'object',
   properties: {
-    tx_id: { type: "number" }
+    tx_id: { type: 'number' },
   },
-  required: ["tx_id"]
-} as const;
+  required: ['tx_id'],
+} as const
 
 // Body for POST /
 export const blockSchema = {
-  type: "object",
+  type: 'object',
   properties: {
     tx_id: { type: "number" },
     tx_hash: { type: "string" },
