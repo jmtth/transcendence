@@ -44,12 +44,12 @@ const insertSnapMatchStmt = db.prepare(`INSERT INTO snapshot(tx_id,tour_id,playe
 
 export function insertSnapMatch(block: Blockchain): number{
     try {    
-        const idb = insertSnapMatchStmt.run(block.tour_id, block.player1_id, block.player2_id, block.player3_id,block.player4_id);
+        const idb = insertSnapMatchStmt.run(block.tx_id, block.tour_id, block.player1_id, block.player2_id, block.player3_id, block.player4_id);
         return Number(idb.lastInsertRowid);
     } catch (err: any) {
         if (err && err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
         const msg = (err.message || '').toLowerCase();
-        if (msg.includes('match')) {
+        if (msg.includes('tour_id')) {
             const error: any = new Error(`Tournament '${block.tour_id}' is already taken`);
             error.code = 'TOURNAMENT_EXISTS';
             throw error;

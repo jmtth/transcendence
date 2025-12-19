@@ -78,7 +78,7 @@ export async function addBlock(this: FastifyInstance, request: FastifyRequest, r
     })
     return reply
       .code(406)
-      .send({ error: { message: 'Internal server error', code: 'INSERT FAILED' } })
+      .send({ error: { message: err.message, code: err.code } })
   }
 }
 

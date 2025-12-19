@@ -11,16 +11,17 @@ export const blockIdSchema = {
 export const blockSchema = {
   type: 'object',
   properties: {
-    tx_id: { type: "number" },
+    tx_id: { type: "integer" },
     tx_hash: { type: "string" },
     date_confirmed: { type: "string" },
-    tour_id: { type: "number" },
-    player1_id: { type: "number" },
-    player2_id: { type: "number" },
-    player3_id: { type: "number" },
-    player4_id: { type: "number" }
+    tour_id: { type: "integer" , minimum: 1},
+    player1_id: { type: "integer" , minimum: 1},
+    player2_id: { type: "integer" , minimum: 1},
+    player3_id: { type: "integer" , minimum: 1},
+    player4_id: { type: "integer" , minimum: 1}
   },
-  required: ["tx_id", "tour_id", "player1_id", "player2_id", "player3_id", "player4_id"]
+  required: ["tx_id", "tour_id", "player1_id", "player2_id", "player3_id", "player4_id"],
+  additionalProperties: false
 } as const;
 
 export interface Blockchain {
