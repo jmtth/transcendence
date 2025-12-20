@@ -1,4 +1,4 @@
-import { UserProfile } from './generated/prisma/client.js'
+import { UserProfile } from '@prisma/client'
 import { prisma } from './prisma.js'
 
 export async function findProfileByUsername(
