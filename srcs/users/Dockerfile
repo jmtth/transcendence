@@ -16,6 +16,7 @@ COPY prisma ./prisma
 COPY prisma.config.* ./
 COPY src ./src
 
+RUN npx prisma generate
 RUN npm run build
 
 # ==========================
