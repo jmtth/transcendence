@@ -1,30 +1,45 @@
-######## Builder #########
-FROM node:18-alpine AS builder
-WORKDIR /build
-COPY . .
-# Use esbuild to bundle TypeScript for the browser
-RUN npx esbuild src/index.ts --bundle --outfile=app.js --format=iife --target=es2017
-# RUN npm install -g typescript && tsc index.ts --outFile app.js --target ES2017 --lib ES2017,DOM
+# ==========================
+# Stage 1 — Builder
+# ==========================
 
-######## Server #########
+FROM node:20-alpine AS builder
+WORKDIR /build
+
+# Install dependencies
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy code and build
+COPY . .
+RUN npm run build
+
+# ==========================
+# Stage 2 — Production
+# ==========================
+
 FROM nginx:alpine
 
-# Installer wget pour health check
+# Install wget for health check
 RUN apk add --no-cache wget
 
-# Supprime la conf par défaut si besoin
+# Remove default nginx conf
 RUN rm /etc/nginx/conf.d/default.conf || true
 
-# Supprime les entrypoint de l'image officiel
+# Remove official entrypoint scripts
 RUN rm -f /docker-entrypoint.d/*
 
-COPY --from=builder /build/app.js /usr/share/nginx/src/html/
+# Copy nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY conf.d/default.conf /etc/nginx/conf.d/default.conf
-COPY ./src      /usr/share/nginx/src
+# Assets should be bundled by Vite under dist/assets (from src/assets) : no need to copy
+# COPY ./src/assets         /usr/share/nginx/html/assets
+
+# Copy React app built with Vite
+COPY --from=builder /build/dist /usr/share/nginx/src/html/
 
 # Create directory for uploads
-RUN mkdir -p /usr/share/nginx/html/uploads
+RUN mkdir -p /usr/share/nginx/html/uploads \
+  && chmod 755 /usr/share/nginx/html/uploads
 
 # RUN DNS=$(grep nameserver /etc/resolv.conf | head -n1 | awk '{print $2}') \
 #     && sed -i "s|__DNS__|$DNS|g" /etc/nginx/nginx.conf

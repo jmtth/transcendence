@@ -25,5 +25,3 @@ RUN chmod +x /start.sh
 EXPOSE 80 443
 
 CMD ["/start.sh"]
-
-

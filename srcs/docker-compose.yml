@@ -17,7 +17,7 @@ services:
     networks:
       - app-network
     volumes:
-      - ${HOST_VOLUME_PATH}:/usr/share/nginx/html/uploads:ro
+      - uploads:/usr/share/nginx/html/uploads
     restart: unless-stopped
     depends_on:
       api-gateway:
@@ -142,6 +142,12 @@ volumes:
   data:
     driver: local
     driver_opts:
-      device: ${HOST_VOLUME_PATH}
+      device: ${HOST_VOLUME_PATH}/data
+      o: bind
+      type: none
+  uploads:
+    driver: local
+    driver_opts:
+      device: ${HOST_VOLUME_PATH}/uploads
       o: bind
       type: none
