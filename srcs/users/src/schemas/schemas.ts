@@ -16,6 +16,10 @@ const idSchema = z
   .number()
   .min(1, 'ID should be above or equal to 1')
 
+const idSpecialSchema = z
+  .string()
+  .max(50, 'Username must be at most 50 characters')
+
 export type SchemaCollectionType = {
   [key: string]: z.ZodType
 }
@@ -30,14 +34,16 @@ export const ValidationSchemas: SchemaCollectionType = {
     username: usernameSchema,
   }),
   FriendAdd: z.object({
-    idFriend1: idSchema,
-    idFriend2: idSchema,
+    targetId: idSchema,
   }),
   FriendDelete: z.object({
-    idRelation: idSchema,
+    targetId: idSchema,
   }),
   FriendGet: z.object({
     idUser: idSchema,
   }),
+  FriendUpdate: z.object({
+    nickname: idSpecialSchema,
+  })
 }
 
