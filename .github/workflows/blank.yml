@@ -19,6 +19,8 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     env:
+      HOST_VOLUME_PATH: "data"
+      NODE_ENV: "development"
       PROXY_SERVICE_NAME: "nginx-proxy"
       API_GATEWAY_NAME: "api-gateway"
       API_GATEWAY_PORT: "3000"
