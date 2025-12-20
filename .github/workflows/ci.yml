@@ -18,6 +18,23 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    env:
+      PROXY_SERVICE_NAME: "nginx-proxy"
+      API_GATEWAY_NAME: "api-gateway"
+      API_GATEWAY_PORT: "3000"
+      AUTH_SERVICE_NAME: "auth-service"
+      AUTH_SERVICE_PORT: "3001"
+      UM_SERVICE_PORT: "3002"
+      UM_SERVICE_NAME: "user-service"
+      UM_REDIS_CHANNEL: "user_management"
+      UM_SERVICE_DIR: "users"
+      GAME_SERVICE_PORT: "3003"
+      GAME_SERVICE_NAME: "game-service"
+      BK_SERVICE_PORT: "3005"
+      BK_SERVICE_NAME: "blockchain-service"
+      REDIS_SERVICE_PORT: 6379
+      REDIS_SERVICE_NAME: "redis-broker"
+      REDIS_URL: "redis://redis-broker:6379"
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
