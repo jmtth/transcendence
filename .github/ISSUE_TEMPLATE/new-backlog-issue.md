@@ -10,26 +10,16 @@ assignees: ''
 
 **user story** : As a [role], I want [feature] so that [benefit]
 
-## Acceptance criteria
+# Details
 
 ## Additional context (screenshots, links, ...)
+
+> [!NOTE]
+> 
 
 ---
 
 # Priority and estimates
-
-<!-- Select one priority by marking [x] and leave the others blank -->
-
-**priority** :
-
-- [ ] low (not planned)
-- [ ] medium (add in next sprint)
-- [ ] high (add in current sprint)
-- [ ] critical (add in current sprint top priority)
-
-**estimate** : X story points
-
-## cf [resource](https://teamhood.com/agile/story-point-estimation-table/) for story points
 
 # Definition of done
 
