@@ -51,6 +51,17 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug JWT_SECRET presence
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          if [ -z "$JWT_SECRET" ]; then
+            echo "JWT_SECRET is EMPTY in GitHub Actions env"
+          else
+            echo "JWT_SECRET is SET (length=${#JWT_SECRET})"
+          fi
+
       - name: Create .env for docker compose
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -105,6 +116,3 @@ jobs:
 
       - name: Build
         run: make all
-
-      - name: Get auth-service logs
-        run: docker logs auth-service
