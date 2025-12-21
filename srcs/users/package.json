@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "user management",
   "license": "GPL-3.0",
-  "author": "",
   "type": "module",
+  "private": true,
   "main": "dist/index.js",
   "scripts": {
     "dev": "vite",

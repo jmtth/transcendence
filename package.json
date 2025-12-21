@@ -5,12 +5,8 @@
   "private": true,
   "workspaces": [
     "srcs/shared/core",
-    "srcs/auth",
-    "srcs/users",
     "srcs/gateway",
-    "srcs/game",
-    "srcs/blockchain",
-    "srcs/nginx"
+    "srcs/users"
   ],
   "main": "index.js",
   "directories": {

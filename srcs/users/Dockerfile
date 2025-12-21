@@ -38,11 +38,11 @@ COPY srcs/users/entrypoint.sh ./srcs/users/entrypoint.sh
 COPY srcs/users/prisma ./srcs/users/prisma
 COPY srcs/users/prisma.config.* ./srcs/users/
 
-# Generate Prisma client
 WORKDIR /app/srcs/users
+# Generate Prisma client
 RUN npx prisma generate
 
-# Build users service
+# Build → dist/
 RUN npm run build
 
 # ==========================
@@ -87,8 +87,8 @@ RUN npm ci --omit=dev
 WORKDIR /app/srcs/users
 RUN npx prisma generate
 
-# Create data directory and set permissions
-RUN mkdir -p ./data && chown -R appuser:appgroup /app
+# Create data directory and set permissions (only for /app/srcs/users)
+RUN mkdir -p ./data && chown -R appuser:appgroup ./
 
 # Copy entrypoint
 COPY --from=builder /app/srcs/users/entrypoint.sh ./entrypoint.sh
