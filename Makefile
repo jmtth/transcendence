@@ -76,19 +76,19 @@ format:
 	npx prettier . --write
 	
 nginx:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build nginx-proxy
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(PROXY_SERVICE_NAME)
 redis:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build redis-broker
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(REDIS_SERVICE_NAME)
 api:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build api-gateway
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(API_GATEWAY_NAME)
 auth:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build auth-service
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(AUTH_SERVICE_NAME)
 user:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build users-management
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(UM_SERVICE_NAME)
 game:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build game-service
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(GAME_SERVICE_NAME)
 block:
-	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build blockchain-service
+	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d --build $(BK_SERVICE_NAME)
 build:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml build
 
@@ -102,14 +102,19 @@ down :
 logs:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml logs -f
 logs-nginx:
-	$(CONTAINER_CMD) logs -f nginx-proxy
+	$(CONTAINER_CMD) logs -f $(PROXY_SERVICE_NAME)
 logs-api:
-	$(CONTAINER_CMD) logs -f api-gateway
+	$(CONTAINER_CMD) logs -f $(API_GATEWAY_NAME)
 logs-auth:
-	$(CONTAINER_CMD) logs -f auth-service
+	$(CONTAINER_CMD) logs -f $(AUTH_SERVICE_NAME)
 logs-game:
-	$(CONTAINER_CMD) logs -f game-service
-
+	$(CONTAINER_CMD) logs -f $(GAME_SERVICE_NAME)
+logs-user:
+	$(CONTAINER_CMD) logs -f $(UM_SERVICE_NAME)
+logs-bk:
+	$(CONTAINER_CMD) logs -f $(BK_SERVICE_NAME)
+logs-redis:
+	$(CONTAINER_CMD) logs -f $(REDIS_SERVICE_NAME)
 re : fclean all
 
 show:
