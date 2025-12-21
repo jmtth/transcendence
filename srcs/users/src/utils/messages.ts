@@ -32,6 +32,7 @@ export const LOG_EVENTS = {
     GET_FRIENDS: "get_friends_by_user_id",
     ADD_FRIEND: "add_friend",
     REMOVE_FRIEND: "remove_friend",
+    UPDATE_FRIEND: "Friend nickname update"
 }
 
 export const REDIS = {

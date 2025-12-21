@@ -1,6 +1,7 @@
 import { createProfile, getProfileByUsername } from '../controllers/um.controller.js'
 import { getFriendsByUserId, addFriend } from '../controllers/friends.controller.js'
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify'
+import { updateFriend } from '../controllers/friends.controller.js'
 
 export async function umRoutes(app: FastifyInstance) {
   app.get('/', async function (this: FastifyInstance) {
@@ -14,6 +15,7 @@ export async function umRoutes(app: FastifyInstance) {
   app.get('/users/:username', getProfileByUsername);
   app.get('/users/friends/', getFriendsByUserId);
   app.post('/users/friends', addFriend);
+  app.put('/users/friends/:targetId', updateFriend);
 
   app.post('/users', createProfile);
 }

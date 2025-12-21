@@ -9,4 +9,5 @@ export interface FriendDTO {
   username: string
   avatar_url: string
   status?: string
+  nickname: string
 }

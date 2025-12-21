@@ -57,12 +57,13 @@ export async function removeFriend(userId: number, targetId: number) {
   })
 }
 
-export async function updateFriend(userId: number, targetId: number)
+export async function updateFriend(userId: number, targetId: number, nickname: string)
 {
   const friendship = await prisma.friendship.findFirst({
     where: {
       OR: [
-        { userId, friendId: targetId }
+        { userId, friendId: targetId },
+        { userId: targetId, friendId: userId },
       ]
     }
   })
@@ -70,9 +71,12 @@ export async function updateFriend(userId: number, targetId: number)
     return null
   }
 
-  return await prisma.friendship.updateFriend({
+  return await prisma.friendship.update({
     where: {
-      nickname: friendship.nickname
+      id: friendship.id
     },
+    data: {
+      nickname : nickname
+    }
   })
 }

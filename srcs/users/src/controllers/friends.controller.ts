@@ -22,10 +22,11 @@ export async function getFriendsByUserId(
   req: FastifyRequest,
   reply: FastifyReply
 ) {
-  // TODO: Get current user ID from auth middleware/token
-  // For now, assuming it comes from query or we get it from context
-  const idUser = req.query?.idUser as string || '1' // Placeholder
-  const userId = parseInt(idUser, 10)
+  const userId = (req as any).user?.id 
+  
+  if (!userId) {
+    return reply.status(401).send({ message: 'Unauthorized' })
+  }
   
   req.log.info({ event: LOG_EVENTS.GET_FRIENDS, userId })
 
@@ -36,6 +37,9 @@ export async function getFriendsByUserId(
 
   try {
     const friends = await friendsService.getFriendsByUserId(userId)
+    if (!friends || friends.length === 0) {
+      return reply.status(404).send({ message: 'User not found or has no friends' })
+    }
     const friendDTOs = friends.map(mapProfileToFriendDTO)
     return reply.status(200).send(friendDTOs)
   } catch (error) {
@@ -52,10 +56,14 @@ export async function addFriend(
   reply: FastifyReply
 ) {
   const { targetId } = req.body
-  const userId = req.user?.id // Get from auth header/middleware
+  const userId = (req as any).user?.id 
   
   if (!userId) {
     return reply.status(401).send({ message: 'Unauthorized' })
+  }
+  
+  if (userId === targetId) {
+    return reply.status(400).send({ message: 'Cannot add yourself as friend' })
   }
   
   req.log.info({ event: LOG_EVENTS.ADD_FRIEND, userId, targetId })
@@ -78,6 +86,9 @@ export async function addFriend(
     req.log.error(error)
     const errorMsg = error instanceof Error ? error.message : String(error)
     
+    if (errorMsg.includes('do not exist')) {
+      return reply.status(400).send({ message: 'One or both users do not exist' })
+    }
     if (errorMsg.includes('already exist')) {
       return reply.status(409).send({ message: API_ERRORS.USER.FRIEND.ALREADY_FRIENDS })
     }
@@ -95,9 +106,14 @@ export async function removeFriend(
 ) {
   const targetId = parseInt(req.params.targetId, 10)
   const userId = (req as any).user?.id
+  const isAdmin = (req as any).user?.role === 'admin'
   
   if (!userId) {
     return reply.status(401).send({ message: 'Unauthorized' })
+  }
+  
+  if (!isAdmin && userId !== targetId) {
+    return reply.status(403).send({ message: 'Forbidden: You can only delete your own friendships' })
   }
   
   req.log.info({ event: LOG_EVENTS.REMOVE_FRIEND, userId, targetId })
@@ -120,21 +136,32 @@ export async function removeFriend(
 }
 
 export async function updateFriend(
-  req: FastifyRequest<{ Params: {targetId: string, userId: string}}>,
+  req: FastifyRequest<{ 
+    Params: {targetId: string },
+    Body: {nickname: string}
+  }>,
   reply: FastifyReply
 ) {
-  //const targetId = parseInt(req.params.targetId, 10)
+  const targetId = parseInt(req.params.targetId, 10)
   const userId = (req as any).user?.id
-  const validation = ValidationSchemas['FriendUpdate'].safeParse({userId})
+  const {nickname} = req.body;
+  const validation = ValidationSchemas['FriendUpdate'].safeParse({nickname})
+  if (!userId)
+    return reply.status(401).send({message: 'Unauthorized'})
   if (!validation.success) {
     return handleInvalidRequest(req, reply, validation)
   }
   try {
-    const result = await friendsService.upadeFriend(userId)
+    const result = await friendsService.updateFriend(userId, targetId, nickname)
     if (!result)
       return reply.status(404).send({message: API_ERRORS.USER.FRIEND.NOT_FRIENDS})
-    return reply.status(200).send({message: 'Nickname changed'})
-    
+    req.log.info({ event: LOG_EVENTS.UPDATE_FRIEND, userId, targetId })
+    return reply.status(200).send({
+  relationId: result.id,
+  user1Id: result.user1Id,
+  user2Id: result.user2Id,
+  nickname: result.nickname
+})
   }
   catch (error) {
     req.log.error(error)
