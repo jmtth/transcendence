@@ -3,7 +3,7 @@ import * as umService from '../services/um.service.js'
 import z from 'zod'
 import { API_ERRORS, LOG_EVENTS } from '../utils/messages.js'
 import { mapProfileToDTO } from '../utils/mappers.js'
-import { UserCreateSchema, UsernameSchema } from 'src/schemas/profile.schema.js'
+import { UserCreateSchema, UsernameSchema } from '../schemas/profile.schema.js'
 
 function handleInvalidRequest<T>(
   req: FastifyRequest,
