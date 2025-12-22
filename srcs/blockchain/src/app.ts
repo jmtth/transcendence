@@ -9,7 +9,7 @@ export async function buildApp() {
   })
 
   await registerPlugins(app)
-  await registerErrorHandler(app)
+  registerErrorHandler(app)
   await registerRoutes(app)
 
   return app

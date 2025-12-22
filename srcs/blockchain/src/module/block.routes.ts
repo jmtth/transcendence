@@ -1,6 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { blockIdSchema, blockSchema } from './block.schema.js'
-import { addMatch, addMatchForm, getMatchView, listMatch, listMatchView } from './block.controller.js'
+import { addTournament, addTournamentForm, getTournamentView, listTournament, listTournamentView } from './block.controller.js'
 
 export async function registerRoutes(app: FastifyInstance) {
   app.register(healthRoutes, { prefix: '/health' })
@@ -8,11 +8,12 @@ export async function registerRoutes(app: FastifyInstance) {
 }
 
 async function blockRoutes(app: FastifyInstance) {
-  app.get("/", listMatchView);
-  app.get("/list", listMatch);
-  app.post("/", { schema: { body: blockSchema } }, addMatchForm);
-  app.post("/register", { schema: { body: blockSchema } }, addMatch);
-  app.get("/row/:tx_id", { schema: { params: blockIdSchema } }, getMatchView);
+  app.get("/", listTournamentView);
+  app.get("/list", listTournament);
+  app.post("/", { schema: { body: blockSchema } }, addTournamentForm);
+  app.post("/register", { schema: { body: blockSchema } }, addTournament);
+  app.get("/row/:tx_id", { schema: { params: blockIdSchema } }, getTournamentView);
+  app.get("/cwd", chekCwd);
 }
 
 async function healthRoutes(app: FastifyInstance) {
@@ -23,3 +24,10 @@ async function healthRoutes(app: FastifyInstance) {
     },
   )
 }
+
+async function chekCwd() {
+  return {
+    cwd: process.cwd(),
+  };
+}
+

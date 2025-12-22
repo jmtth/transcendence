@@ -24,7 +24,7 @@ export const blockSchema = {
   additionalProperties: false
 } as const;
 
-export interface Blockchain {
+export interface BlockTournamentInput {
   tx_id: number;
   tx_hash?: string;
   date_confirmed?: string;
@@ -33,4 +33,9 @@ export interface Blockchain {
   player2_id: number;
   player3_id: number;
   player4_id: number;
+}
+
+export interface BlockTournamentStored extends BlockTournamentInput {
+  tx_hash: string;
+  date_confirmed: string;
 }

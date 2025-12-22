@@ -2,9 +2,10 @@
 import * as db from "../core/database.js";
 import { RecordNotFoundError } from "../core/error.js";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
-import { Blockchain } from "./block.schema.js";
+import { BlockTournamentInput, BlockTournamentStored } from "./block.schema.js";
+import { storeTournament } from "./block.service.js";
 
-export async function listMatchView(_request: FastifyRequest, reply: FastifyReply) {
+export async function listTournamentView(_request: FastifyRequest, reply: FastifyReply) {
   const snapshots = db.listSnap();
   return reply.view('index', {
     title: 'Blockchain Service',
@@ -13,16 +14,16 @@ export async function listMatchView(_request: FastifyRequest, reply: FastifyRepl
   })
 }
 
-export async function listMatch(_request: FastifyRequest, reply: FastifyReply) {
+export async function listTournament(_request: FastifyRequest, reply: FastifyReply) {
   const snapshots = db.listSnap();
   return reply.code(200).send(snapshots)
 }
 
-export async function getMatchView(
+export async function getTournamentView(
   request: FastifyRequest<{ Params: { tx_id: number } }>,
   reply: FastifyReply,
 ) {
-  const snapshots = db.getSnapMatch(request.params.tx_id)
+  const snapshots = db.getSnapTournament(request.params.tx_id)
   if (snapshots === undefined) {
     throw new RecordNotFoundError(`No data with id ${request.params.tx_id}`)
   }
@@ -33,23 +34,43 @@ export async function getMatchView(
   })
 }
 
-export async function addMatchForm(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+export async function addTournamentForm(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
   const { tx_id, tour_id, player1_id, player2_id, player3_id, player4_id } =
-    request.body as Blockchain;
-  const rowId = db.insertSnapMatch(request.body as Blockchain);
+    request.body as BlockTournamentInput;
+  const rowId = db.insertSnapTournament(request.body as BlockTournamentInput);
   this.log.info({ event: "register_success", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id, rowId });
   return reply.redirect('/')
 }
 
-export async function addMatch(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
-  const { tx_id, tour_id, player1_id, player2_id, player3_id, player4_id } = request.body as Blockchain;
-  this.log.info({ event: "register_attempt", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id});
+export async function addTournament(this: FastifyInstance, request: FastifyRequest, reply: FastifyReply) {
+  const { tx_id, tour_id, player1_id, player2_id, player3_id, player4_id } = request.body as BlockTournamentInput;
+  this.log.info({ event: "snapshot_register_attempt", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id});
   try {
-    const rowId = db.insertSnapMatch(request.body as Blockchain);
-    this.log.info({ event: "register_success", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id, rowId });
+    const rowSnapId = db.insertSnapTournament(request.body as BlockTournamentInput);
+    this.log.info({ event: "snapshot_register_success", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id, rowSnapId });
+    
+    this.log.info({ event: "blockchain_register_attempt", tx_id, tour_id, player1_id, player2_id, player3_id, player4_id});
+    const tournament: BlockTournamentStored = await storeTournament(request.body as  BlockTournamentInput);
+    const {date_confirmed, tx_hash} = tournament;
+    this.log.info({ event: "blockchain_register_success", tx_id, tour_id, tx_hash});
+    
+    this.log.info({ event: "snapshot_update_attempt", tx_id, tour_id, tx_hash, date_confirmed });
+    const rowBlockId = db.updateTournament(tx_id, tournament.tx_hash, tournament.date_confirmed);
+    this.log.info({ event: "snapshot_update_success", tx_id, tour_id, tx_hash, date_confirmed, rowBlockId });
   } catch (err: any) {
+    const errorEventMap: Record<string, string> = {
+      TOURNAMENT_EXISTS: 'snapshot_register_error',
+      BD_INSERT_TOURNAMENT_ERR: 'snapshot_register_error',
+      BLOCKCHAIN_INSERT_TOURNAMENT_ERR: 'blockchain_register_error',
+      BLOCKCHAIN_NO_SMART_CONTRACT_ERR: 'blockchain_dont_exist_error',
+    };
+    const event = errorEventMap[err.code];
+    if (event) {
+      this.log.error({ event, err });
+    } else {
+      this.log.error({ event: 'unknown_error', err });
+    }
     this.log.error({
-      event: 'register_error',
       tx_id,
       tour_id,
       player1_id,
@@ -64,31 +85,3 @@ export async function addMatch(this: FastifyInstance, request: FastifyRequest, r
   }
 }
 
-// app.post("/api/tournament/result", async (req, res) => {
-//   const { id, players } = req.body;
-//
-//   try {
-//     const tx = await gameStorage.storeTournament(
-//       id,
-//       players[0],
-//       players[1],
-//       players[2],
-//       players[3]
-//     );
-//
-//     // ⚠️ attendre la confirmation
-//     const receipt = await tx.wait();
-//
-//     res.json({
-//       status: "stored",
-//       txHash: receipt.hash,
-//     });
-//
-//   } catch (err) {
-//     res.status(400).json({
-//       error: "Blockchain write failed",
-//       details: err.message,
-//     });
-//   }
-// });
-//
