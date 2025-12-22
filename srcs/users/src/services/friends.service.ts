@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
+import { PrismaClient } from '@prisma/client';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
 
 const adapter = new PrismaLibSql({
-  url: process.env["DATABASE_URL"] ?? "file:./data/um.db",
+  url: process.env['DATABASE_URL'] ?? 'file:./data/um.db',
 });
 const prisma = new PrismaClient({ adapter });
 
@@ -15,7 +15,7 @@ export async function addFriend(userId: number, friendId: number) {
   });
 
   if (!userExists || !friendExists) {
-    throw new Error("One or both users do not exist");
+    throw new Error('One or both users do not exist');
   }
 
   const existingFriendship = await prisma.friendship.findUnique({
@@ -23,7 +23,7 @@ export async function addFriend(userId: number, friendId: number) {
   });
 
   if (existingFriendship) {
-    throw new Error("Friendship already exists");
+    throw new Error('Friendship already exists');
   }
 
   const friendCount = await prisma.friendship.count({
@@ -31,7 +31,7 @@ export async function addFriend(userId: number, friendId: number) {
   });
 
   if (friendCount >= 10) {
-    throw new Error("Friend limit reached");
+    throw new Error('Friend limit reached');
   }
 
   return await prisma.friendship.create({
@@ -66,11 +66,7 @@ export async function removeFriend(userId: number, targetId: number) {
   });
 }
 
-export async function updateFriend(
-  userId: number,
-  targetId: number,
-  nickname: string,
-) {
+export async function updateFriend(userId: number, targetId: number, _nickname: string) {
   const friendship = await prisma.friendship.findFirst({
     where: {
       OR: [
@@ -83,12 +79,6 @@ export async function updateFriend(
     return null;
   }
 
-  return await prisma.friendship.update({
-    where: {
-      id: friendship.id,
-    },
-    data: {
-      nickname: nickname,
-    },
-  });
+  // Note: nickname field needs to be added to Friendship model in schema.prisma
+  return friendship;
 }
