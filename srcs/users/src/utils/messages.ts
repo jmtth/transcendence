@@ -1,5 +1,6 @@
 export const API_ERRORS = {
     USER: {
+        BAD_REQUEST: "Bad Request",
         NOT_FOUND: "User not found",
         INVALID_FORMAT: "Invalid format",
         ADMIN_FORBIDDEN: "Admin username is restricted",

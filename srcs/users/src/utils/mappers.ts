@@ -1,9 +1,9 @@
 import type { UserProfile } from "@prisma/client";
-import type { UserProfileDTO } from "../types/user-profile.js";
+import { ProfileDTO } from "@transcendence/core";
 
-export function mapProfileToDTO(profile: UserProfile): UserProfileDTO {
+export function mapUserProfileToDTO(model: UserProfile): ProfileDTO {
     return {
-        username: profile.username,
-        avatarUrl: profile.avatarUrl
+        username: model.username,
+        avatarUrl: model.avatarUrl
     }
 }

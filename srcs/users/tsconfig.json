@@ -21,7 +21,7 @@
     "noFallthroughCasesInSwitch": true,         // duplicate ESLint ? prevent missing break in switch
     "noImplicitOverride": true,                 // duplicate ESLint ?
     "noPropertyAccessFromIndexSignature": true, // duplicate ESLint ? can't use obj.key if not defined explicitely
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": true,         // tedious
     "sourceMap": true,                          // debug
     "inlineSources": true
   },

@@ -1,21 +1,21 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import * as umService from '../services/um.service.js'
-import z from 'zod'
+import * as mappers from '../utils/mappers.js';
+// import z from 'zod'
 import { API_ERRORS, LOG_EVENTS } from '../utils/messages.js'
-import { mapProfileToDTO } from '../utils/mappers.js'
-import { Schemas } from '@transcendence/core'
+import { ProfileCreateInDTO } from '@transcendence/core'
 
-function handleInvalidRequest<T>(
-  req: FastifyRequest,
-  reply: FastifyReply,
-  validation: z.ZodSafeParseError<T>
-) {
-  req.log.warn({ event: LOG_EVENTS.INVALID_REQUEST, request: req })
-  return reply.status(400).send({
-    error: API_ERRORS.USER.INVALID_FORMAT,
-    details: z.treeifyError(validation.error),
-  })
-}
+// function handleInvalidRequest<T>(
+//   req: FastifyRequest,
+//   reply: FastifyReply,
+//   validation: z.ZodSafeParseError<T>
+// ) {
+//   req.log.warn({ event: LOG_EVENTS.INVALID_REQUEST, request: req })
+//   return reply.status(400).send({
+//     error: API_ERRORS.USER.INVALID_FORMAT,
+//     details: z.treeifyError(validation.error),
+//   })
+// }
 
 export async function getProfileByUsername(
   req: FastifyRequest<{ Params: { username: string } }>,
@@ -24,40 +24,28 @@ export async function getProfileByUsername(
   const { username } = req.params
   req.log.info({ event: LOG_EVENTS.GET_PROFILE_BY_USERNAME, username })
 
-  const validation = Schemas.UsernameSchema.safeParse({ username })
-  if (!validation.success) {
-    return handleInvalidRequest(req, reply, validation)
-  }
+  // const validation = Schemas.FieldUsername.safeParse({ username })
+  // if (!validation.success) {
+  //   return handleInvalidRequest(req, reply, validation)
+  // }
 
-  const profile = await umService.findByUsername(username)
-  if (!profile) {
+  const profileDTO = await umService.findByUsername(username);
+  if (!profileDTO) {
     return reply.status(404).send({ message: API_ERRORS.USER.NOT_FOUND })
   }
-  const profileDTO = mapProfileToDTO(profile);
-  return reply.status(200).send({profile: profileDTO});
+  return reply.status(200).send(profileDTO);
 }
 
 export async function createProfile(
-  req: FastifyRequest<{
-    Body: { authId: number; email: string; username: string }
-  }>,
+  req: FastifyRequest,
   reply: FastifyReply
 ) {
-  const { authId, email, username } = req.body
-  req.log.info({ event: LOG_EVENTS.CREATE_PROFILE, request: req })
-
-  const validation = Schemas.UserCreateSchema.safeParse({
-    authId,
-    email,
-    username,
-  })
-  if (!validation.success) {
-    return handleInvalidRequest(req, reply, validation)
-  }
+  req.log.info({ event: LOG_EVENTS.CREATE_PROFILE, payload: req.body })
 
   try {
-    const profile = await umService.createProfile(authId, email, username)
-    return reply.status(201).send(profile)
+    const profile = await umService.createProfile(req.body as ProfileCreateInDTO)
+    const profileDTO = mappers.mapUserProfileToDTO(profile);
+    return reply.status(201).send(profileDTO);
   } catch (error) {
     req.log.error(error)
     return reply

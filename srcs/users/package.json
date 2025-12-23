@@ -41,6 +41,8 @@
   },
   "dependencies": {
     "@fastify/http-proxy": "11.4.1",
+    "@fastify/swagger": "^9.6.1",
+    "@scalar/fastify-api-reference": "^1.40.9",
     "@prisma/adapter-better-sqlite3": "^7.0.0",
     "@prisma/client": "^7.0.1",
     "@transcendence/core": "1.0.0",
