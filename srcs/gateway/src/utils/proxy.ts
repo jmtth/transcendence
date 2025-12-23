@@ -2,7 +2,38 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import WebSocket from 'ws'
 import { logger, createLogContext } from './logger.js'
 import { GATEWAY_CONFIG, ERROR_CODES } from './constants.js'
+import { pipeline } from 'node:stream/promises'
 
+export async function proxyBlockRequest(
+  app: FastifyInstance,
+  request: FastifyRequest,
+  reply: FastifyReply,
+  url: string,
+  init: RequestInit = {}
+): Promise<void> {
+
+  const res = await fetch(url, init)
+
+  // 🔥 headers typés correctement
+  const headers: Record<string, string> = {}
+
+  res.headers.forEach((value, key) => {
+    const lower = key.toLowerCase()
+    if (lower !== 'transfer-encoding' && lower !== 'content-length') {
+      headers[key] = value
+    }
+  })
+
+  reply.raw.writeHead(res.status, headers)
+
+  if (!res.body) {
+    reply.raw.end()
+    return
+  }
+
+  // 🔥 streaming direct backend → client
+  await pipeline(res.body, reply.raw)
+}
 // Message types for type safety
 interface ClientMessage {
   type: 'paddle' | 'start' | 'stop' | 'ping'

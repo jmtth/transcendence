@@ -8,7 +8,7 @@ export async function registerRoutes(app: FastifyInstance) {
 }
 
 async function blockRoutes(app: FastifyInstance) {
-  app.get("/", listTournamentView);
+  app.get("/blockchain", listTournamentView);
   app.get("/list", listTournament);
   app.post("/", { schema: { body: blockSchema } }, addTournamentForm);
   app.post("/register", { schema: { body: blockSchema } }, addTournament);
