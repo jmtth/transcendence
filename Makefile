@@ -59,7 +59,7 @@ colima-dev:
 ifeq ($(OS),Darwin)
 	@echo "Checking Colima status and mounts..."
 	@colima status --verbose | grep -q "$(PROJECT_PATH)" || \
-	( echo "Starting Colima with mount $(PROJECT_PATH)..." && \
+	( echo "Starting Colima with mount $(PROJECT_PATH)" && \
 	  colima start --mount "$(PROJECT_PATH):w" --vm-type vz )
 endif
 
@@ -101,7 +101,6 @@ down :
 
 logs:
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml logs -f
-
 logs-nginx:
 	$(CONTAINER_CMD) logs -f $(PROXY_SERVICE_NAME)
 logs-api:
@@ -145,7 +144,7 @@ fclean: clean
 
 # Hard reset - deletes everything including folder
 reset-hard: clean
-	@echo "WARNING: Full reset including Colima restart"
+	@echo "WARNING: Full reset including Colima stop"
 	-$(CONTAINER_CMD) volume prune -f
 	-$(CONTAINER_CMD) network prune -f
 	-$(CONTAINER_CMD) system prune -a --volumes --force
@@ -153,8 +152,6 @@ ifeq ($(OS), Darwin)
 	@echo "Stopping Colima…"
 	-colima stop
 	rm -rf $(VOLUMES_PATH)
-	@echo "Restarting Colima with fresh mount…"
-	$(MAKE) colima
 else
 	rm -rf $(VOLUMES_PATH)
 endif
