@@ -22,31 +22,12 @@ else
 	COMPOSE_CMD=docker compose
 endif
 
-all : volumes build
+all : volumes colima build
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/docker-compose.yml up -d
 
-# Detect if volumes exist and Colima needs restart
 volumes:
-	@echo "Configuring volumes at $(VOLUMES_PATH)"
-ifeq ($(OS), Darwin)
-	@if [ ! -d "$(VOLUMES_PATH)" ]; then \
-		echo "Creating new volume path, Colima restart required"; \
-		mkdir -p $(VOLUMES_PATH); \
-		chmod -R 777 $(VOLUMES_PATH); \
-		if colima list 2>/dev/null | grep -q "Running"; then \
-			echo "Stopping Colima to mount new path..."; \
-			colima stop; \
-		fi; \
-		$(MAKE) colima; \
-	else \
-		echo "Volume path exists: $(VOLUMES_PATH)"; \
-		mkdir -p $(VOLUMES_PATH); \
-		chmod -R 777 $(VOLUMES_PATH); \
-	fi
-else
 	@mkdir -p $(VOLUMES_PATH)
 	@chmod -R 777 $(VOLUMES_PATH)
-endif
 
 dev: volumes colima-dev
 	HOST_VOLUME_PATH=$(VOLUMES_PATH) $(COMPOSE_CMD) -f srcs/dev-docker-compose.yml up --build -d
