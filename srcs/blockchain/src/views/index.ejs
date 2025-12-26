@@ -88,7 +88,7 @@
             const player3_id = document.getElementById("regp3Id").value;
             const player4_id = document.getElementById("regp4Id").value;
             try {
-                const result = await postJson("/register", { tx_id, tour_id, player1_id, player2_id,player3_id,player4_id  });
+                const result = await postJson("/tournaments", { tx_id, tour_id, player1_id, player2_id,player3_id,player4_id  });
                 if (result.ok) {
                     regMsg.textContent = "Inscription réussie";
                     regMsg.classList.add("success");
@@ -167,7 +167,7 @@
             meBtn.disabled = true;
 
             try {
-                const res = await fetch("/api/block", {
+                const res = await fetch("/tournaments", {
                     method: "GET",
                     credentials: "include"
                 });
