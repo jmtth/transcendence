@@ -82,8 +82,12 @@ build: build-core
 # --- Test ---
 test: test-user
 
+test-coverage: test-coverage-user
+
 test-user:
 	npm run test --workspace srcs/users
+test-coverage-user:
+	npm run test:coverage --workspace srcs/users
 
 # --- DB ---
 redis-cli:
