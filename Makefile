@@ -85,9 +85,9 @@ test: test-user
 test-coverage: test-coverage-user
 
 test-user: build-core
-	npm run test --workspace srcs/users
+	npm run test -w srcs/users
 test-coverage-user: build-core
-	npm run test:coverage --workspace srcs/users
+	npm run test:coverage -w srcs/users
 
 # --- DB ---
 redis-cli:
