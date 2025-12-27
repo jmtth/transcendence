@@ -28,7 +28,7 @@ export function findUserById(id: number) {
 export async function createUser(user: { username: string; email?: string | null; password: string }): Promise<number> {
   const hash = await bcrypt.hash(user.password, SALT_ROUNDS);
   let userId: number;
-  logger.info({user});
+
   try {
       userId = db.createUser({ username: user.username, email: user.email || null, password: hash });
   } catch (err: any) {
