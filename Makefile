@@ -85,9 +85,9 @@ test: test-user
 test-coverage: test-coverage-user
 
 test-user: build-core
-	npm run test -w srcs/users
+	npx vitest run --config srcs/users/vite.config.mjs
 test-coverage-user: build-core
-	npm run test:coverage -w srcs/users
+	npx vitest run --coverage --config srcs/users/vite.config.mjs
 
 # --- DB ---
 redis-cli:
