@@ -36,13 +36,8 @@ jobs:
           cp srcs/.env.gateway.example srcs/.env.gateway
           cp srcs/.env.um.example srcs/.env.um
 
-          cat << EOF >> srcs/.env.auth
-          JWT_SECRET=${JWT_SECRET}
-          EOF
-
-          cat << EOF >> srcs/.env.gateway
-          JWT_SECRET=${JWT_SECRET}
-          EOF
+          sed -i "s|JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|g" srcs/.env.auth
+          sed -i "s|JWT_SECRET=.*|JWT_SECRET=${JWT_SECRET}|g" srcs/.env.gateway
 
       - name: Build
         run: make all
