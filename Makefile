@@ -34,6 +34,11 @@ format-core:
 format-user:
 	npx prettier srcs/users --write
 
+lint:
+	npx eslint .
+lint-fix:
+	npx eslint . --fix
+
 # === Services ===
 
 # --- Installs Node ---
@@ -152,13 +157,15 @@ fclean: clean
 		find $(VOLUMES_PATH) -mindepth 1 -delete || true; \
 	fi
 	@echo "Volume folder cleaned (structure preserved)"
-	@echo "Cleaning local build artifacts..."
-	npm run clean
 
 re : fclean all
 
+clean-packages:
+	@echo "Cleaning local build artifacts..."
+	npm run clean
+
 # Hard reset - deletes everything including folder
-reset-hard: clean
+reset-hard: clean clean-packages
 	@echo "WARNING: Full reset including Colima stop"
 	-$(CONTAINER_CMD) volume prune -f
 	-$(CONTAINER_CMD) network prune -f
