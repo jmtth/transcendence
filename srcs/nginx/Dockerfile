@@ -10,13 +10,20 @@ RUN npx esbuild src/index.ts --bundle --outfile=app.js --format=iife --target=es
 FROM nginx:alpine
 
 # Installer wget pour health check
-RUN apk add --no-cache wget
+RUN apk add --no-cache wget openssl
 
 # Supprime la conf par défaut si besoin
 RUN rm /etc/nginx/conf.d/default.conf || true
 
 # Supprime les entrypoint de l'image officiel
 RUN rm -f /docker-entrypoint.d/*
+RUN mkdir -p /etc/nginx/ssl
+
+# Generate self-signed certificate directly to /etc/nginx/ssl
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout /etc/nginx/ssl/key.pem \
+  -out /etc/nginx/ssl/cert.pem \
+  -subj "/CN=localhost"
 
 COPY --from=builder /build/app.js /usr/share/nginx/src/html/
 COPY nginx.conf /etc/nginx/nginx.conf
@@ -26,8 +33,5 @@ COPY ./src      /usr/share/nginx/src
 # Create directory for uploads
 RUN mkdir -p /usr/share/nginx/html/uploads
 
-# RUN DNS=$(grep nameserver /etc/resolv.conf | head -n1 | awk '{print $2}') \
-#     && sed -i "s|__DNS__|$DNS|g" /etc/nginx/nginx.conf
-
-EXPOSE 80 443
+EXPOSE 8080 4430
 CMD ["nginx", "-g", "daemon off;"]
