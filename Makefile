@@ -43,7 +43,7 @@ lint-fix:
 
 # --- Installs Node ---
 install:
-	npm i
+	npm ci
 
 # --- Builds Node ---
 build-core: install
@@ -85,9 +85,9 @@ test: install test-user
 test-coverage: install test-coverage-user
 
 test-user: build-core
-	npx vitest run --config srcs/users/vite.config.mjs
+	npx vitest run ./srcs/users --config srcs/users/vite.config.mjs
 test-coverage-user: build-core
-	npx vitest run --coverage --config srcs/users/vite.config.mjs
+	npx vitest run ./srcs/users  --coverage --config srcs/users/vite.config.mjs
 
 # --- DB ---
 redis-cli:

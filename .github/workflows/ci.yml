@@ -59,6 +59,16 @@ jobs:
       - name: Build Users
         run: make build-user
 
+      - name: Debug vitest installation
+        run: |
+          echo "Node version:"
+          node -v
+          echo "NPM version:"
+          npm -v
+          echo "Local vitest?"
+          npx vitest --version || echo "npx couldn't find vitest"
+          jq '.devDependencies | {vitest, "@vitest/coverage-v8"}' package.json
+
       - name: Test coverage
         run: make test-coverage
 
