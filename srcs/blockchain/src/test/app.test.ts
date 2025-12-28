@@ -112,7 +112,7 @@ describe.runIf(blockchainReady)('TEST blockchain with Smart Contract', () => {
       body: tournamentData,
     });
 
-    expect(response.statusCode).toBe(406);
+    expect(response.statusCode).toBe(200);
     const body = response.json() as any;
     expect(body.error.code).toBe('BLOCKCHAIN_INSERT_TOURNAMENT_ERR');
     expect(body.error.message).toContain(

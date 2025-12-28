@@ -3,7 +3,7 @@ import { BlockTournamentInput, BlockTournamentStored } from "./block.schema.js";
 import { FastifyInstance } from "fastify";
 import type { AppLogger } from "../core/logger.js";
 
-export async function storeTournament(logger: AppLogger, tournament: BlockTournamentInput): Promise<BlockTournamentStored>{
+export async function storeTournament(logger: AppLogger, tournament: BlockTournamentInput): Promise<BlockTournamentStored> {
   logger.info({
     event: "blockchain_env_check",
     BLOCKCHAIN_READY: process.env.BLOCKCHAIN_READY,
@@ -39,6 +39,10 @@ export async function storeTournament(logger: AppLogger, tournament: BlockTourna
     throw error;
   }
 }
+
+// export async function listBlockchainTournaments(): Promise<map<string, string>> {
+//
+// }
 
 
 

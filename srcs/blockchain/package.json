@@ -25,6 +25,7 @@
     "test": "dotenv -e .env.test vitest",
     "coverage": "vitest run --coverage",
     "dev": "nodemon",
+    "dev:block": "dotenv -e .env.test.blockchain nodemon",
     "build": "tsc -p tsconfig.json",
     "start": "tsc -p tsconfig.json && node dist/server.js"
   },
