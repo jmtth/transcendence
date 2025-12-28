@@ -36,7 +36,7 @@ export async function getFriendsByUserId(req: FastifyRequest, reply: FastifyRepl
   try {
     const friends = await friendsService.getFriendsByUserId(userId);
     if (!friends || friends.length === 0) {
-      return reply.status(404).send({ message: 'User not found or has no friends' });
+      return reply.status(200).send({ message: 'User not found or has no friends' });
     }
     return reply.status(200).send(friends);
   } catch (error) {

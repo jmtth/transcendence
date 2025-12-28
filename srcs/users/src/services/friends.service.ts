@@ -25,7 +25,7 @@ export async function getFriendsByUserId(userId: number) {
   const friendships = await friendsData.findFriendshipsByUser(userId);
 
   return friendships.map((f: any) => {
-    const friendProfile = f.userId === userId ? f.friend : f.user;
+    const friendProfile = f.userId === userId ? f.receiver : f.requester;
     return {
       id: f.id,
       userId: friendProfile.id,
