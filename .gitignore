@@ -77,8 +77,8 @@ web_modules/
 !.env.test.*
 
 # Docker volumes and data
-data/
-volumes/
+/data/
+/volumes/
 
 # SQLite databases
 *.db
