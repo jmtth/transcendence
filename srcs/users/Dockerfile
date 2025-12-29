@@ -69,7 +69,7 @@ COPY --from=builder /app/srcs/shared/core/dist ./srcs/shared/core/dist
 
 # Copy users service package files
 COPY --from=builder /app/srcs/users/package.json ./srcs/users/package.json
-# COPY --from=builder /app/srcs/users/package-lock.json ./srcs/users/package-lock.json
+COPY --from=builder /app/srcs/users/package-lock.json ./srcs/users/package-lock.json
 
 # Copy users built artifacts
 COPY --from=builder /app/srcs/users/dist ./srcs/users/dist
