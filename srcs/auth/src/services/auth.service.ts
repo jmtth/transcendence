@@ -3,9 +3,9 @@ import * as db from './database.js'
 import { createUserProfile } from './external/um.service.js'
 import { DataError, ServiceError } from '../types/errors.js'
 import { APP_ERRORS } from '../utils/error-catalog.js'
-import { logger } from '../utils/logger.js'
 import { EVENTS, REASONS, UserRole } from '../utils/constants.js'
 import { ADMIN_USERNAME, INVITE_USERNAME } from '../config/env.js'
+import { logger } from '../index.js'
 
 const SALT_ROUNDS = 10
 
@@ -28,7 +28,7 @@ export function findUserById(id: number) {
 export async function createUser(user: { username: string; email?: string | null; password: string }): Promise<number> {
   const hash = await bcrypt.hash(user.password, SALT_ROUNDS);
   let userId: number;
-  
+
   try {
       userId = db.createUser({ username: user.username, email: user.email || null, password: hash });
   } catch (err: any) {
@@ -46,6 +46,7 @@ export async function createUser(user: { username: string; email?: string | null
   if ([ADMIN_USERNAME, INVITE_USERNAME].includes(user.username))
     return userId;
 
+  logger.info("created in auth DB");
   try {
     await createUserProfile({
         authId: userId,

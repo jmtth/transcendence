@@ -2,24 +2,61 @@ import fastify from 'fastify';
 import { umRoutes as userRoutes } from './routes/um.routes.js';
 import { appenv } from './config/env.js';
 import { loggerConfig } from './config/logger.config.js';
+import ScalarApiReference from '@scalar/fastify-api-reference';
+
+import {
+  jsonSchemaTransform,
+  serializerCompiler,
+  validatorCompiler,
+  ZodTypeProvider,
+} from 'fastify-type-provider-zod';
+import fastifySwagger from '@fastify/swagger';
 
 const app = fastify({
   logger: loggerConfig,
   disableRequestLogging: false,
 });
 
-export const logger = app.log;
+export async function buildApp() {
+  const app = fastify({
+    logger: loggerConfig,
+    disableRequestLogging: false,
+  }).withTypeProvider<ZodTypeProvider>();
 
-app.addHook('preHandler', async (req) => {
-  const userId = req.headers['x-user-id'];
-  const role = req.headers['x-user-role'];
-  if (userId) {
-    (req as any).user = {
-      id: parseInt(userId as string, 10),
-      role: role || 'user',
-    };
+  await app.setValidatorCompiler(validatorCompiler);
+  await app.setSerializerCompiler(serializerCompiler);
+
+  if (appenv.NODE_ENV !== 'test') {
+    await app.register(fastifySwagger, {
+      openapi: {
+        info: {
+          title: 'User API documentation',
+          description: 'User API',
+          version: '0.0.1',
+        },
+        servers: [{ url: `http://localhost:8080/users` }],
+      },
+      transform: jsonSchemaTransform,
+    });
+
+    // app.get('/doc/json', (req, reply) => {
+    //   reply.send(app.swagger());
+    // });
+
+    await app.register(ScalarApiReference, {
+      routePrefix: '/doc',
+      configuration: {
+        theme: 'purple',
+      },
+    });
   }
-});
+
+  await app.register(userRoutes);
+
+  return app;
+}
+
+export const logger = app.log;
 
 app.register(userRoutes, { prefix: '/' });
 
