@@ -1,5 +1,6 @@
 import * as z from 'zod';
 
+// should not be exported out of module
 export const usernameSchema = z
   .string()
   .min(4, 'Username must be at least 4 characters')
@@ -9,4 +10,19 @@ export const usernameSchema = z
     message: "Username cannot contain 'admin'",
   });
 
-export const idSchema = z.number().min(1, 'ID should be above or equal to 1');
+export const nicknameSchema = z
+  .string()
+  .min(2, 'Nickname must be at least 2 characters')
+  .max(10, 'Nickname must be at most 10 characters');
+
+export const idSchema = z.coerce.number().int().min(1, 'ID must be positive');
+
+export const statusUpdateSchema = z.enum(['ACCEPTED', 'REJECTED']);
+
+// can be exported
+export const IdSchema = z.object({
+  id: idSchema,
+});
+
+export type IdDTO = z.output<typeof IdSchema>;
+export type statusUpdateDTO = z.output<typeof statusUpdateSchema>;
