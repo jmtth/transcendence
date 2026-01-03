@@ -21,7 +21,6 @@ import {
   FriendshipUnifiedDTO,
   LOG_RESOURCES,
 } from '@transcendence/core';
-import { logger } from 'src/utils/logger.js';
 
 describe('Friends Controller unit tests', () => {
   let app: FastifyInstance;
@@ -174,7 +173,6 @@ describe('Friends Controller unit tests', () => {
         url: '/friends/2',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
       });
-      logger.error(response);
 
       expect(response.statusCode).toBe(200);
     });
@@ -253,7 +251,6 @@ describe('Friends Controller unit tests', () => {
         url: '/friends',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
       });
-      logger.warn(response);
 
       expect(response.statusCode).toBe(200);
     });
