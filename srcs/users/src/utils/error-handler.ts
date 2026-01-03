@@ -48,15 +48,13 @@ export async function errorHandler(
     });
   }
 
-  console.error('🔥 CRASH DEBUG:', error);
-
   // should not happen
   req.log.error(
     {
       event: LOG_EVENTS.CRITICAL.PANIC,
       originalError: error,
     },
-    error.message || 'Unexpected error',
+    error.message || '🔥 Unexpected error',
   );
 
   return reply.status(500).send({

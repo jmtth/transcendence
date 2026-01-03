@@ -38,7 +38,7 @@ describe.skip('GET /:username', () => {
     vi.clearAllMocks();
   });
 
-  test('GET /:username - Should return user profile', async () => {
+  test('Should return user profile', async () => {
     vi.spyOn(profileService, 'getByUsername').mockResolvedValue(mockProfileDTO as ProfileDTO);
 
     const response = await app.inject({
@@ -51,7 +51,7 @@ describe.skip('GET /:username', () => {
     expect(JSON.parse(response.payload)).toEqual(mockProfileDTO);
   });
 
-  test('GET /:username - Should return 404 if not found', async () => {
+  test('Should return 404 if not found', async () => {
     vi.spyOn(profileService, 'getByUsername').mockRejectedValue(
       new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
         details: {
@@ -69,7 +69,7 @@ describe.skip('GET /:username', () => {
     expect(response.statusCode).toBe(404);
   });
 
-  test('GET /:username - Should reject admin as username', async () => {
+  test('Should reject admin as username', async () => {
     const response = await app.inject({
       method: 'GET',
       url: '/admin',
@@ -81,7 +81,7 @@ describe.skip('GET /:username', () => {
     expect(body.message).toBe('Validation failed');
   });
 
-  test('GET /:username - Should return 500 if service throws unhandled error', async () => {
+  test('Should return 500 if service throws unhandled error', async () => {
     vi.spyOn(profileService, 'getByUsername').mockRejectedValue(new Error('DB crashed'));
 
     const response = await app.inject({

@@ -16,7 +16,6 @@ export const getFriendsByUserIdSchema = {
   tags: ['friends'],
   summary: "Get a user's friends",
   description: 'Returns all friends for the given user id',
-  params: IdSchema,
   response: {
     200: z.array(FriendshipUnifiedSchema),
     400: ValidationErrorSchema,
@@ -76,8 +75,8 @@ export const updateFriendNicknameSchema = {
 };
 
 export const friendsRoutes: FastifyPluginAsyncZod = async (app) => {
-  app.get('/', { schema: getFriendsByUserIdSchema }, friendshipController.getFriendsByUserId);
-  app.post('/', { schema: createFriendSchema }, friendshipController.createFriend);
+  app.get('', { schema: getFriendsByUserIdSchema }, friendshipController.getFriendsByUserId);
+  app.post('', { schema: createFriendSchema }, friendshipController.createFriend);
   app.delete('/:id', { schema: removeFriendSchema }, friendshipController.removeFriend);
   app.patch(
     '/:id/status',
