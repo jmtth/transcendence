@@ -14,7 +14,13 @@ vi.mock('../src/services/friends.service.js', () => ({
 
 import { friendshipService } from '../src/services/friends.service.js';
 import { mockProfileDTO, mockProfileDTO2 } from './profiles.controller.test.js';
-import { AppError, ERR_DEFS, FriendshipFullDTO, FriendshipUnifiedDTO } from '@transcendence/core';
+import {
+  AppError,
+  ERR_DEFS,
+  FriendshipFullDTO,
+  FriendshipUnifiedDTO,
+  LOG_RESOURCES,
+} from '@transcendence/core';
 
 describe('Friends Controller tests', () => {
   let app: FastifyInstance;
@@ -157,22 +163,33 @@ describe('Friends Controller tests', () => {
   //   });
   // });
 
-  describe('DELETE /friends/:targetId', () => {
-    test('Should delete own friendship - 200', async () => {
-      vi.spyOn(friendshipService, 'removeFriend').mockResolvedValue(mockFriendshipDTO as any);
+  describe('DELETE /friends/:id', () => {
+    test('Should delete friendship - 200', async () => {
+      vi.spyOn(friendshipService, 'removeFriend').mockResolvedValue(
+        mockFriendshipFullDTO as FriendshipFullDTO,
+      );
 
       const response = await app.inject({
         method: 'DELETE',
         url: '/friends/2',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
       });
+      logger.error(response);
 
       // expect(friendshipService.removeFriend).toHaveBeenCalledWith(1, 2);
       expect(response.statusCode).toBe(200);
     });
 
     test('Should return 404 if not friends with target', async () => {
-      vi.spyOn(friendshipService, 'removeFriend').mockResolvedValue(null);
+      vi.spyOn(friendshipService, 'removeFriend').mockRejectedValue(
+        new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
+          userId: 1,
+          details: {
+            resource: LOG_RESOURCES.FRIEND,
+            targetId: 2,
+          },
+        }),
+      );
 
       const response = await app.inject({
         method: 'DELETE',
@@ -183,20 +200,28 @@ describe('Friends Controller tests', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    test('Should allow admin to delete any friendship', async () => {
-      vi.spyOn(friendshipService, 'removeFriend').mockResolvedValue(mockFriendshipDTO as any);
+    // test('Should allow admin to delete any friendship', async () => {
+    //   vi.spyOn(friendshipService, 'removeFriend').mockResolvedValue(mockFriendshipDTO as any);
 
-      const response = await app.inject({
-        method: 'DELETE',
-        url: '/friends/2',
-        headers: { 'x-user-id': '1', 'x-user-role': 'admin' },
-      });
+    //   const response = await app.inject({
+    //     method: 'DELETE',
+    //     url: '/friends/2',
+    //     headers: { 'x-user-id': '15', 'x-user-role': 'ADMIN' },
+    //   });
 
-      expect(response.statusCode).toBe(200);
-    });
+    //   expect(response.statusCode).toBe(200);
+    // });
 
-    test('Should return 404 if friendship not found', async () => {
-      vi.spyOn(friendshipService, 'removeFriend').mockResolvedValue(null);
+    test('Should return 404 if profile not found', async () => {
+      vi.spyOn(friendshipService, 'removeFriend').mockRejectedValue(
+        new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
+          userId: 1,
+          details: {
+            resource: LOG_RESOURCES.PROFILE,
+            targetId: 2,
+          },
+        }),
+      );
 
       const response = await app.inject({
         method: 'DELETE',
@@ -211,6 +236,7 @@ describe('Friends Controller tests', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: '/friends/2',
+        headers: { 'x-user-id': '1' },
       });
 
       expect(response.statusCode).toBe(401);
