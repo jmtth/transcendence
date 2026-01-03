@@ -7,8 +7,8 @@ import {
   type ProfileDTO,
   LOG_RESOURCES,
 } from '@transcendence/core';
-import { logger } from '../index.js';
 import { Trace } from '../utils/decorators.js';
+import { logger } from 'src/utils/logger.js';
 
 export class ProfileRepository {
   async findProfileByUsername(username: string): Promise<ProfileDTO | null> {
