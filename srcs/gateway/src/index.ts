@@ -35,7 +35,7 @@ app.register(fastifyRateLimit, {
     // Rate limit par IP
     return request.ip || 'unknown';
   },
-  errorResponseBuilder: (req: FastifyRequest, context: any) => ({
+  errorResponseBuilder: (req, context) => ({
     error: {
       message: 'Too many requests, please try again later',
       code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
