@@ -2,7 +2,7 @@ import { appenv } from '../config/env.js';
 import { API_ERRORS } from '../utils/messages.js';
 import { Redis } from 'ioredis';
 import { LOG_EVENTS } from '@transcendence/core';
-import { logger } from 'src/utils/logger.js';
+import { logger } from '../utils/logger.js';
 
 const REDIS_HOST = appenv.REDIS_SERVICE_NAME;
 
