@@ -10,9 +10,11 @@ export async function errorHandler(
   req.log.error(error);
 
   if (error.code === 'FST_ERR_VALIDATION') {
-    req.log.info({
+    req.log.error({
       event: LOG_EVENTS.APPLICATION.VALIDATION_FAIL,
       userId: req.user?.id,
+      message: error.message,
+      stack: error.stack,
       originalError: error,
     });
 
@@ -46,10 +48,13 @@ export async function errorHandler(
     });
   }
 
+  console.error('🔥 CRASH DEBUG:', error);
+
   // should not happen
   req.log.error(
     {
       event: LOG_EVENTS.CRITICAL.PANIC,
+      originalError: error,
     },
     error.message || 'Unexpected error',
   );

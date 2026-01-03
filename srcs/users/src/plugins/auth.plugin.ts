@@ -1,8 +1,9 @@
 import { UserRequestDTO } from '@transcendence/core';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
+import fp from 'fastify-plugin';
 
-export const authPlugin: FastifyPluginAsyncZod = async (app) => {
+const authPluginCallback: FastifyPluginAsyncZod = async (app) => {
   app.addHook('onRequest', async (req: FastifyRequest, reply: FastifyReply) => {
     const userIdRaw = req.headers['x-user-id'] as string;
     const username = req.headers['x-user-name'] as string;
@@ -24,3 +25,7 @@ export const authPlugin: FastifyPluginAsyncZod = async (app) => {
     req.user = userDto;
   });
 };
+
+export const authPlugin = fp(authPluginCallback, {
+  name: 'auth-plugin',
+});

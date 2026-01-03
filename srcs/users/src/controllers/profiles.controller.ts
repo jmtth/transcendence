@@ -11,7 +11,7 @@ export class ProfileController {
     const { username } = req.params as UserNameDTO;
     req.log.trace({ event: `${LOG_ACTIONS.READ}_${LOG_RESOURCES.PROFILE}`, param: username });
 
-    const profileDTO = await profileService.findByUsername(username);
+    const profileDTO = await profileService.getByUsername(username);
     return reply.status(200).send(profileDTO);
   }
 

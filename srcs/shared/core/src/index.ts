@@ -53,7 +53,7 @@ export {
 // DTO (TS types)
 // ============================================================================
 
-export type { IdDTO, statusUpdateDTO } from './schemas/base.schema.js';
+export type { IdDTO, targetUserIdDTO, statusUpdateDTO } from './schemas/base.schema.js';
 export type { UserNameDTO, UserRequestDTO } from './schemas/user.schema.js';
 export type {
   FriendshipFullDTO,

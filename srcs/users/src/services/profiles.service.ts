@@ -11,7 +11,7 @@ import { profileRepository } from '../data/profiles.data.js';
 
 export class ProfileService {
   @Trace
-  async findByUsername(username: string): Promise<ProfileDTO | null> {
+  async getByUsername(username: string): Promise<ProfileDTO | null> {
     const profile = await profileRepository.findProfileByUsername(username);
     if (!profile) {
       throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
@@ -25,7 +25,7 @@ export class ProfileService {
   }
 
   @Trace
-  async findById(userId: number): Promise<ProfileDTO | null> {
+  async getById(userId: number): Promise<ProfileDTO | null> {
     const profile = await profileRepository.findProfileById(userId);
     if (!profile) {
       throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {

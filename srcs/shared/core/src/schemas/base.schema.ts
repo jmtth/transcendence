@@ -24,5 +24,10 @@ export const IdSchema = z.object({
   id: idSchema,
 });
 
+export const targetUserIdSchema = z.object({
+  targetUserId: idSchema,
+});
+
 export type IdDTO = z.output<typeof IdSchema>;
+export type targetUserIdDTO = z.output<typeof targetUserIdSchema>;
 export type statusUpdateDTO = z.output<typeof statusUpdateSchema>;

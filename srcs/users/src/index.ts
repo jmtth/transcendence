@@ -49,8 +49,8 @@ export async function buildApp() {
     });
   }
 
-  app.register(umRoutes, { prefix: '/' });
-  app.register(friendsRoutes, { prefix: '/friends/' });
+  app.register(umRoutes, { prefix: '' });
+  app.register(friendsRoutes, { prefix: '/friends' });
 
   return app;
 }
@@ -59,13 +59,15 @@ const app = await buildApp();
 
 export const logger = app.log;
 
-app.listen(
-  { host: '0.0.0.0', port: appenv.UM_SERVICE_PORT },
-  (err: Error | null, address: string) => {
-    if (err) {
-      app.log.error({ message: err.message });
-      process.exit(1);
-    }
-    app.log.info({ message: `User Management service listening at ${address}` });
-  },
-);
+if (appenv.NODE_ENV !== 'test') {
+  app.listen(
+    { host: '0.0.0.0', port: appenv.UM_SERVICE_PORT },
+    (err: Error | null, address: string) => {
+      if (err) {
+        app.log.error({ message: err.message });
+        process.exit(1);
+      }
+      app.log.info({ message: `User Management service listening at ${address}` });
+    },
+  );
+}

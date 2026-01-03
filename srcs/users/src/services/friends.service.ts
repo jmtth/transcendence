@@ -41,9 +41,9 @@ function checkFriendshipExistence(
   }
 }
 export class FriendshipService {
-  async addFriend(userId: number, targetId: number): Promise<FriendshipFullDTO> {
-    await profileService.findById(userId);
-    await profileService.findById(targetId);
+  async createFriend(userId: number, targetId: number): Promise<FriendshipFullDTO> {
+    await profileService.getById(userId);
+    await profileService.getById(targetId);
 
     const existingFriendship = await friendshipRepository.findFriendshipBetween(userId, targetId);
     checkFriendshipAbsence(existingFriendship, userId, targetId);
