@@ -9,7 +9,7 @@ import { prisma } from './prisma.js';
 
 export class FriendshipRepository {
   async findFriendshipBetween(userId: number, targetId: number): Promise<Friendship | null> {
-    return prisma.friendship.findFirst({
+    return await prisma.friendship.findFirst({
       where: {
         OR: [
           { requesterId: userId, receiverId: targetId },
@@ -20,7 +20,7 @@ export class FriendshipRepository {
   }
 
   async countFriendships(userId: number): Promise<number> {
-    return prisma.friendship.count({
+    return await prisma.friendship.count({
       where: {
         OR: [{ requesterId: userId }, { receiverId: userId }],
       },
@@ -28,7 +28,7 @@ export class FriendshipRepository {
   }
 
   async findRequestedFriendships(userId: number): Promise<FriendshipReceiverDTO[]> {
-    const requests = prisma.friendship.findMany({
+    const requests = await prisma.friendship.findMany({
       where: { requesterId: userId },
       include: { receiver: true },
     });
@@ -36,7 +36,7 @@ export class FriendshipRepository {
   }
 
   async findReceivedFriendships(userId: number): Promise<FriendshipRequesterDTO[]> {
-    const requests = prisma.friendship.findMany({
+    const requests = await prisma.friendship.findMany({
       where: { receiverId: userId },
       include: { requester: true },
     });
@@ -44,7 +44,7 @@ export class FriendshipRepository {
   }
 
   async findFriendshipsByUser(userId: number): Promise<FriendshipFullDTO[]> {
-    const requests = prisma.friendship.findMany({
+    const requests = await prisma.friendship.findMany({
       where: { OR: [{ requesterId: userId }, { receiverId: userId }] },
       include: { requester: true, receiver: true },
     });
@@ -52,7 +52,7 @@ export class FriendshipRepository {
   }
 
   async createFriendship(userId: number, targetId: number): Promise<FriendshipFullDTO> {
-    const requests = prisma.friendship.create({
+    const requests = await prisma.friendship.create({
       data: {
         requesterId: userId,
         receiverId: targetId,
@@ -64,11 +64,11 @@ export class FriendshipRepository {
   }
 
   async updateFriendshipStatus(
-    friendshpId: number,
+    friendshipId: number,
     status: statusUpdateDTO,
   ): Promise<FriendshipFullDTO> {
-    const requests = prisma.friendship.update({
-      where: { id: friendshpId },
+    const requests = await prisma.friendship.update({
+      where: { id: friendshipId },
       data: { status },
       include: { requester: true, receiver: true },
     });
@@ -76,11 +76,11 @@ export class FriendshipRepository {
   }
 
   async updateFriendshipNickname(
-    friendshpId: number,
+    friendshipId: number,
     nickname: string,
   ): Promise<FriendshipFullDTO> {
-    const requests = prisma.friendship.update({
-      where: { id: friendshpId },
+    const requests = await prisma.friendship.update({
+      where: { id: friendshipId },
       data: { nickname },
       include: { requester: true, receiver: true },
     });
@@ -88,7 +88,7 @@ export class FriendshipRepository {
   }
 
   async deleteFriendshipById(friendshipId: number): Promise<FriendshipFullDTO> {
-    const requests = prisma.friendship.delete({
+    const requests = await prisma.friendship.delete({
       where: { id: friendshipId },
       include: { requester: true, receiver: true },
     });

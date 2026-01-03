@@ -15,7 +15,7 @@ export class ProfileRepository {
     const found = await prisma.userProfile.findUnique({
       where: { username },
       select: {
-        id: true,
+        authId: true,
         username: true,
         avatarUrl: true,
       },
@@ -25,10 +25,10 @@ export class ProfileRepository {
   }
 
   async findProfileById(id: number): Promise<ProfileDTO | null> {
-    return prisma.userProfile.findUnique({
-      where: { id },
+    return await prisma.userProfile.findUnique({
+      where: { authId: id },
       select: {
-        id: true,
+        authId: true,
         username: true,
         avatarUrl: true,
       },

@@ -18,7 +18,7 @@ export const ProfileDataSchema = z.object({
 });
 
 export const ProfileSchema = z.object({
-  id: idSchema,
+  authId: idSchema,
   username: usernameSchema,
   avatarUrl: z.string().nullable(),
 });

@@ -42,10 +42,10 @@ function checkFriendshipExistence(
 }
 export class FriendshipService {
   async createFriend(userId: number, targetId: number): Promise<FriendshipFullDTO> {
-    if (userId == targetId) {
+    if (userId === targetId) {
       throw new AppError(ERR_DEFS.RESOURCE_INVALID_STATE, {
         details: {
-          ressource: LOG_RESOURCES.FRIEND,
+          resource: LOG_RESOURCES.FRIEND,
           issue: 'self binding relation',
           userId,
           targetId,
@@ -62,7 +62,7 @@ export class FriendshipService {
     const friendCount = await friendshipRepository.countFriendships(userId);
     if (friendCount >= CONFIG.MAX_FRIENDS) {
       throw new AppError(ERR_DEFS.RESOURCE_LIMIT_REACHED, {
-        details: { ressource: LOG_RESOURCES.FRIEND, max: CONFIG.MAX_FRIENDS },
+        details: { resource: LOG_RESOURCES.FRIEND, max: CONFIG.MAX_FRIENDS },
       });
     }
 
@@ -73,7 +73,7 @@ export class FriendshipService {
     const friendships = await friendshipRepository.findFriendshipsByUser(userId);
 
     return friendships.map((f: FriendshipFullDTO) => {
-      const friendProfile = f.receiver.id === userId ? f.requester : f.receiver;
+      const friendProfile = f.receiver.authId === userId ? f.requester : f.receiver;
       return {
         id: f.id,
         status: f.status,

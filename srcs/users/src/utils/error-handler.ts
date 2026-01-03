@@ -48,7 +48,7 @@ export async function errorHandler(
     });
   }
 
-  console.log(error, '🔥 Unexpected error');
+  // console.log(error, '🔥 Unexpected error');
   req.log.error(
     {
       event: LOG_EVENTS.CRITICAL.PANIC,

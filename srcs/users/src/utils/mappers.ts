@@ -3,7 +3,7 @@ import { FriendshipFullDTO, FriendshipUnifiedDTO, ProfileDTO } from '@transcende
 
 export function mapProfileToDTO(profile: UserProfile): ProfileDTO {
   return {
-    id: profile.authId,
+    authId: profile.authId,
     username: profile.username,
     avatarUrl: profile.avatarUrl,
   };
@@ -14,7 +14,7 @@ export function mapFriendshipToDTO(
   currentUserId: number,
 ): FriendshipUnifiedDTO {
   const friendProfile =
-    friendship.receiver.id === currentUserId ? friendship.requester : friendship.receiver;
+    friendship.receiver.authId === currentUserId ? friendship.requester : friendship.receiver;
   return {
     id: friendship.id,
     status: friendship.status,

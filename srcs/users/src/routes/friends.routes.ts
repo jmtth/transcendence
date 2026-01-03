@@ -59,7 +59,7 @@ export const updateFriendStatusSchema = {
     400: ValidationErrorSchema,
     404: DetailedErrorSchema.describe('Users are not friends'),
   },
-};
+} as const;
 
 export const updateFriendNicknameSchema = {
   tags: ['friends'],
@@ -72,7 +72,7 @@ export const updateFriendNicknameSchema = {
     400: ValidationErrorSchema,
     404: DetailedErrorSchema.describe('Users are not friends'),
   },
-};
+} as const;
 
 export const friendsRoutes: FastifyPluginAsyncZod = async (app) => {
   app.get('', { schema: getFriendsByUserIdSchema }, friendshipController.getFriendsByUserId);
