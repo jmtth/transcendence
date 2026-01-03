@@ -1,4 +1,4 @@
-import fastify, { FastifyBaseLogger } from 'fastify';
+import fastify from 'fastify';
 import fastifySwagger from '@fastify/swagger';
 import ScalarApiReference from '@scalar/fastify-api-reference';
 import {
