@@ -3,10 +3,11 @@ import { friendshipController } from '../controllers/friends.controller.js';
 import {
   IdSchema,
   FriendshipFullSchema as FriendshipFullSchema,
-  ErrorSchema,
+  SimpleErrorWithMessageSchema,
   ValidationErrorSchema,
   FriendshipUnifiedSchema,
   FriendshipUpdateStatusSchema,
+  DetailedErrorSchema,
 } from '@transcendence/core';
 import z from 'zod';
 
@@ -30,8 +31,8 @@ export const createFriendSchema = {
   response: {
     201: FriendshipFullSchema,
     400: ValidationErrorSchema,
-    409: ErrorSchema.describe('Users are already friends'),
-    422: ErrorSchema.describe('You cannot add yourself as a friend'),
+    409: DetailedErrorSchema.describe('Users are already friends'),
+    422: SimpleErrorWithMessageSchema.describe('You cannot add yourself as a friend'),
   },
 } as const;
 
@@ -43,7 +44,7 @@ export const removeFriendSchema = {
   response: {
     200: FriendshipFullSchema,
     400: ValidationErrorSchema,
-    404: ErrorSchema.describe('Users are not friends'),
+    404: DetailedErrorSchema.describe('Users are not friends'),
   },
 } as const;
 
@@ -56,7 +57,7 @@ export const updateFriendStatusSchema = {
   response: {
     200: FriendshipFullSchema,
     400: ValidationErrorSchema,
-    404: ErrorSchema.describe('Users are not friends'),
+    404: DetailedErrorSchema.describe('Users are not friends'),
   },
 };
 
@@ -69,7 +70,7 @@ export const updateFriendNicknameSchema = {
   response: {
     200: FriendshipFullSchema,
     400: ValidationErrorSchema,
-    404: ErrorSchema.describe('Users are not friends'),
+    404: DetailedErrorSchema.describe('Users are not friends'),
   },
 };
 

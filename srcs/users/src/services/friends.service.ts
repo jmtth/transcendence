@@ -8,7 +8,7 @@ import {
   statusUpdateDTO,
 } from '@transcendence/core';
 import { friendshipRepository } from '../data/friends.data.js';
-import { profileService } from './um.service.js';
+import { profileService } from './profiles.service.js';
 import { Friendship } from '@prisma/client';
 
 function checkFriendshipAbsence(friendship: Friendship | null, userId: number, targetId: number) {

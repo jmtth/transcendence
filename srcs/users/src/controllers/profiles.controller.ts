@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
-import { profileService } from '../services/um.service.js';
+import { profileService } from '../services/profiles.service.js';
 import * as mappers from '../utils/mappers.js';
 import { LOG_ACTIONS, LOG_RESOURCES, ProfileCreateInDTO, UserNameDTO } from '@transcendence/core';
 

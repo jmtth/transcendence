@@ -43,7 +43,11 @@ export {
   FriendshipUpdateStatusSchema,
   FriendshipUpdateNicknameSchema,
 } from './schemas/friend.schema.js';
-export { ErrorSchema, ValidationErrorSchema } from './schemas/error.schema.js';
+export {
+  SimpleErrorWithMessageSchema,
+  DetailedErrorSchema,
+  ValidationErrorSchema,
+} from './schemas/error.schema.js';
 
 // ============================================================================
 // DTO (TS types)

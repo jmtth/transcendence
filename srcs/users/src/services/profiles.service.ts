@@ -7,7 +7,7 @@ import {
   AppError,
 } from '@transcendence/core';
 import { Trace } from '../utils/decorators.js';
-import { profileRepository } from '../data/um.data.js';
+import { profileRepository } from '../data/profiles.data.js';
 
 export class ProfileService {
   @Trace

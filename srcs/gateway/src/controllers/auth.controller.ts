@@ -15,7 +15,7 @@ export function registerAuthRoutes(app: FastifyInstance) {
   // Proxy toutes les autres requêtes vers le service auth
   app.all('/*', async (request: FastifyRequest, reply: FastifyReply) => {
     const rawPath = (request.params as any)['*'];
-    const cleanPath = rawPath.replace(/^api\/auth\//, '');
+    const cleanPath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath;
     const url = `${AUTH_SERVICE_URL}/${cleanPath}`;
     const queryString = new URL(request.url, 'http://localhost').search;
     const fullUrl = `${url}${queryString}`;

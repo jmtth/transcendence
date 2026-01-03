@@ -8,7 +8,7 @@ import {
   ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 
-import { umRoutes } from './routes/um.routes.js';
+import { umRoutes } from './routes/profiles.routes.js';
 import { authPlugin } from './plugins/auth.plugin.js';
 import { errorHandler } from './utils/error-handler.js';
 import { appenv } from './config/env.js';
@@ -49,15 +49,15 @@ export async function buildApp() {
     });
   }
 
+  app.register(umRoutes, { prefix: '/' });
+  app.register(friendsRoutes, { prefix: '/friends/' });
+
   return app;
 }
 
 const app = await buildApp();
 
 export const logger = app.log;
-
-app.register(umRoutes, { prefix: '/' });
-app.register(friendsRoutes, { prefix: '/friends/' });
 
 app.listen(
   { host: '0.0.0.0', port: appenv.UM_SERVICE_PORT },

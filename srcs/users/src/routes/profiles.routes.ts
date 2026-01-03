@@ -1,11 +1,11 @@
-import { profileController } from '../controllers/um.controller.js';
+import { profileController } from '../controllers/profiles.controller.js';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import {
   UserNameSchema,
   ProfileSchema,
   ProfileCreateInSchema,
-  ErrorSchema,
+  DetailedErrorSchema,
   ValidationErrorSchema,
 } from '@transcendence/core';
 import { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
@@ -29,7 +29,7 @@ const getProfileByUsernameSchema = {
   response: {
     200: ProfileSchema,
     400: ValidationErrorSchema,
-    404: ErrorSchema.describe('Profile not found'),
+    404: DetailedErrorSchema,
   },
 } as const;
 
@@ -41,7 +41,7 @@ export const createProfileSchema = {
   response: {
     201: ProfileSchema,
     400: ValidationErrorSchema,
-    409: ErrorSchema.describe('Profile already exists'),
+    409: DetailedErrorSchema,
   },
 } as const;
 

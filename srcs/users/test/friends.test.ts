@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from 'vite
 import fastify from 'fastify';
 vi.mock('../src/services/friends.service.js');
 
-import { umRoutes } from '../src/routes/um.routes.js';
+import { umRoutes } from '../src/routes/profiles.routes.js';
 import * as friendsService from '../src/services/friends.service.js';
 
 describe('Friends API', () => {
