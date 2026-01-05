@@ -24,15 +24,18 @@ console.log('Using SQLite file:', DB_PATH);
 try {
   db.exec(`
 CREATE TABLE IF NOT EXISTS snapshot(
-    tx_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     tx_hash TEXT UNIQUE,
-    date_confirmed TEXT,
+    snap_hash TEXT UNIQUE,
+    block_timestamp INTEGER,
     tour_id INTEGER UNIQUE,
     player1_id INTEGER NOT NULL,
     player2_id INTEGER NOT NULL,
     player3_id INTEGER NOT NULL,
     player4_id INTEGER NOT NULL
     );
+CREATE INDEX IF NOT EXISTS idx_snapshot_tour_id ON snapshot(tour_id);
+CREATE INDEX IF NOT EXISTS idx_snapshot_block_timestamp ON snapshot(block_timestamp);
   `);
 } catch (err) {
   const e: any = new Error(
@@ -42,19 +45,19 @@ CREATE TABLE IF NOT EXISTS snapshot(
 }
 
 const insertSnapTournamentStmt = db.prepare(
-  `INSERT INTO snapshot(tx_id,tour_id,player1_id,player2_id,player3_id,player4_id) VALUES (?,?,?,?,?,?)`,
+  `INSERT INTO snapshot(id,tour_id,player1_id,player2_id,player3_id,player4_id) VALUES (?,?,?,?,?,?)`,
 );
 const listSnapStmt = db.prepare(`SELECT * FROM snapshot`);
-const getSnapTournamentStmt = db.prepare(`SELECT * FROM snapshot WHERE tx_id = ?`);
+const getSnapTournamentStmt = db.prepare(`SELECT * FROM snapshot WHERE id = ?`);
 const updateTournamentStmt = db.prepare(
-  `UPDATE snapshot SET tx_hash = ?, date_confirmed = ? WHERE tx_id = ?`,
+  `UPDATE snapshot SET tx_hash = ?, snap_hash = ?, block_timestamp = ? WHERE id = ?`,
 );
 const truncateSnapshotStmt = db.prepare(`DELETE FROM snapshot`);
 
 export function insertSnapTournament(block: BlockTournamentInput): number {
   try {
     const idb = insertSnapTournamentStmt.run(
-      block.tx_id,
+      block.id,
       block.tour_id,
       block.player1_id,
       block.player2_id,
@@ -86,9 +89,9 @@ export function listSnap(): BlockTournamentInput[] {
   }
 }
 
-export function getSnapTournament(tx_id: number): BlockTournamentInput | null {
+export function getSnapTournament(id: number): BlockTournamentInput | null {
   try {
-    const match = getSnapTournamentStmt.get(tx_id);
+    const match = getSnapTournamentStmt.get(id);
     return (match as BlockTournamentInput) || null;
   } catch (err) {
     const error: any = new Error(
@@ -99,9 +102,9 @@ export function getSnapTournament(tx_id: number): BlockTournamentInput | null {
   }
 }
 
-export function updateTournament(tx_id: number, tx_hash: string, date: string) {
+export function updateTournament(id: number, tx_hash: string, snap_hash: string, date: number) {
   try {
-    updateTournamentStmt.run(tx_hash, date, tx_id);
+    updateTournamentStmt.run(tx_hash, snap_hash, date, id);
   } catch (err) {
     const error: any = new Error(
       `Error storing tx_hash in DB: ${(err as any)?.message || String(err)}`,
