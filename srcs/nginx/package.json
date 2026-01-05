@@ -30,7 +30,7 @@
     "webpack": "^5.103.0"
   },
   "dependencies": {
-    "@transcendence/core": "1.0.0",
+    "@transcendence/core": "1.1.0",
     "envalid": "^8.1.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
