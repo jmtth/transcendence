@@ -1,7 +1,7 @@
 // Props
 interface ToggleProps {
   isEnabled?: boolean;
-  onToggle?: () => void;
+  onToggle: () => void;
   className?: string;
 }
 

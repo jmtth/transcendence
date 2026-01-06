@@ -4,6 +4,7 @@ import { NavBar } from '../molecules/NavBar';
 
 interface PageProps {
   children: React.ReactNode;
+  className?: string;
 }
 
 const colors = {
@@ -11,9 +12,9 @@ const colors = {
   end: '#0088ff',
 };
 
-export const Page = ({ children }: PageProps) => {
+export const Page = ({ children, className }: PageProps) => {
   return (
-    <div className="w-full h-full relative">
+    <div className={`w-full h-full relative ${className}`}>
       <Background
         grainIntensity={8}
         baseFrequency={0.28}

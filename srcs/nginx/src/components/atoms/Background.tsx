@@ -80,7 +80,7 @@ const Background = ({
         <rect width="100%" height="100%" fill="url(#baseGradient)" />
         <rect width="100%" height="100%" fill="url(#baseGradient)" filter="url(#filter)" />
       </svg>
-      <div className="w-full relative z-10">{children}</div>
+      <div className="w-full h-full relative z-10">{children}</div>
     </div>
   );
 };
