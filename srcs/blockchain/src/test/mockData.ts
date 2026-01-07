@@ -1,6 +1,5 @@
 const tournamentsData = [
   {
-    id: 1,
     tour_id: 1,
     player1: 1,
     player2: 1,
@@ -8,7 +7,6 @@ const tournamentsData = [
     player4: 1,
   },
   {
-    id: 2,
     tour_id: 2,
     player1: 2,
     player2: 2,
@@ -16,7 +14,6 @@ const tournamentsData = [
     player4: 2,
   },
   {
-    id: 3,
     tour_id: 3,
     player1: 3,
     player2: 3,
@@ -24,7 +21,6 @@ const tournamentsData = [
     player4: 3,
   },
   {
-    id: 4,
     tour_id: 4,
     player1: 4,
     player2: 4,
@@ -35,7 +31,6 @@ const tournamentsData = [
 export { tournamentsData };
 
 const badtournamentData = {
-  tour_id: 5,
   player1: 5,
   player2: 5,
   player3: 5,
@@ -44,7 +39,6 @@ const badtournamentData = {
 export { badtournamentData };
 
 const tournamentData = {
-  id: 5,
   tour_id: 5,
   player1: 5,
   player2: 5,
@@ -52,3 +46,12 @@ const tournamentData = {
   player4: 5,
 };
 export { tournamentData };
+
+const tournamentBlockData = {
+  tour_id: 19,
+  player1: 19,
+  player2: 19,
+  player3: 19,
+  player4: 19,
+};
+export { tournamentBlockData };

@@ -24,12 +24,12 @@ export async function listTournament(_request: FastifyRequest, reply: FastifyRep
 }
 
 export async function getTournamentView(
-  request: FastifyRequest<{ Params: { id: number } }>,
+  request: FastifyRequest<{ Params: { tour_id: number } }>,
   reply: FastifyReply,
 ) {
-  const snapshot = db.getSnapTournament(request.params.id);
+  const snapshot = db.getSnapTournament(request.params.tour_id);
   if (snapshot === undefined) {
-    throw new RecordNotFoundError(`No data with id ${request.params.id}`);
+    throw new RecordNotFoundError(`No data with id ${request.params.tour_id}`);
   }
   return reply.view('snapshot-details', {
     title: 'Tournament details',
@@ -70,6 +70,7 @@ export async function addTournament(
     if (blockchainReady) {
       const dataStored = await addTournamentBlockchain(this.log, data, rowSnapId);
       updateTournamentSnapDB(this.log, dataStored);
+      return reply.code(200).send(dataStored);
     }
   } catch (err: any) {
     const event = errorEventMap[err.code];

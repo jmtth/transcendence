@@ -2,9 +2,9 @@
 export const blockIdSchema = {
   type: 'object',
   properties: {
-    id: { type: 'number' },
+    tour_id: { type: 'number' },
   },
-  required: ['id'],
+  required: ['tour_id'],
 } as const;
 
 // Body for POST /

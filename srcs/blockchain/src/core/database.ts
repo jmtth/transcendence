@@ -50,7 +50,7 @@ const insertSnapTournamentStmt = db.prepare(
   `INSERT INTO snapshot(tour_id,player1_id,player2_id,player3_id,player4_id) VALUES (?,?,?,?,?)`,
 );
 const listSnapStmt = db.prepare(`SELECT * FROM snapshot`);
-const getSnapTournamentStmt = db.prepare(`SELECT * FROM snapshot WHERE id = ?`);
+const getSnapTournamentStmt = db.prepare(`SELECT * FROM snapshot WHERE tour_id = ?`);
 const truncateSnapshotStmt = db.prepare(`DELETE FROM snapshot`);
 
 const updateTournamentStmt = db.prepare(`
@@ -99,9 +99,9 @@ export function listSnap(): BlockTournamentInput[] {
   }
 }
 
-export function getSnapTournament(id: number): BlockTournamentInput | null {
+export function getSnapTournament(tour_id: number): BlockTournamentInput | null {
   try {
-    const match = getSnapTournamentStmt.get(id);
+    const match = getSnapTournamentStmt.get(tour_id);
     return (match as BlockTournamentInput) || null;
   } catch (err) {
     const error: any = new Error(
