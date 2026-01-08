@@ -7,7 +7,7 @@ import {
   addTournamentSnapDB,
   updateTournamentSnapDB,
 } from './block.service.js';
-import { BlockTournamentInput } from './block.type.js';
+import { BlockTournamentInput, SnapshotRow } from './block.type.js';
 
 export async function listTournamentView(_request: FastifyRequest, reply: FastifyReply) {
   const snapshots = db.listSnap();
@@ -27,7 +27,7 @@ export async function getTournamentView(
   request: FastifyRequest<{ Params: { tour_id: number } }>,
   reply: FastifyReply,
 ) {
-  const snapshot = db.getSnapTournament(request.params.tour_id);
+  const snapshot = db.getSnapTournament(request.params.tour_id) as SnapshotRow;
   if (snapshot === undefined) {
     throw new RecordNotFoundError(`No data with id ${request.params.tour_id}`);
   }

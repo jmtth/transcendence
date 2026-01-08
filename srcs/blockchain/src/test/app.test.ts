@@ -38,10 +38,10 @@ describe('TEST blockchain without Smart Contract', () => {
       const tournament = body[i];
       expect(tournament).toBeDefined();
       expect(tournament.tour_id).toBe(tournamentsData[i].tour_id);
-      expect(tournament.player1_id).toBe(tournamentsData[i].player1);
-      expect(tournament.player2_id).toBe(tournamentsData[i].player2);
-      expect(tournament.player3_id).toBe(tournamentsData[i].player3);
-      expect(tournament.player4_id).toBe(tournamentsData[i].player4);
+      expect(tournament.player1).toBe(tournamentsData[i].player1);
+      expect(tournament.player2).toBe(tournamentsData[i].player2);
+      expect(tournament.player3).toBe(tournamentsData[i].player3);
+      expect(tournament.player4).toBe(tournamentsData[i].player4);
     }
   });
 

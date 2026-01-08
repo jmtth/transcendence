@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS snapshot(
     snapshot_hash TEXT UNIQUE,
     block_timestamp INTEGER,
     tour_id INTEGER UNIQUE,
-    player1_id INTEGER NOT NULL,
-    player2_id INTEGER NOT NULL,
-    player3_id INTEGER NOT NULL,
-    player4_id INTEGER NOT NULL,
+    player1 INTEGER NOT NULL,
+    player2 INTEGER NOT NULL,
+    player3 INTEGER NOT NULL,
+    player4 INTEGER NOT NULL,
     block_number INTEGER,
     verify_status TEXT NOT NULL DEFAULT 'PENDING',
     verified_at INTEGER
@@ -47,7 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_snapshot_block_timestamp ON snapshot(block_timest
 }
 
 const insertSnapTournamentStmt = db.prepare(
-  `INSERT INTO snapshot(tour_id,player1_id,player2_id,player3_id,player4_id) VALUES (?,?,?,?,?)`,
+  `INSERT INTO snapshot(tour_id,player1,player2,player3,player4) VALUES (?,?,?,?,?)`,
 );
 const listSnapStmt = db.prepare(`SELECT * FROM snapshot`);
 const getSnapTournamentStmt = db.prepare(`SELECT * FROM snapshot WHERE tour_id = ?`);
@@ -99,10 +99,10 @@ export function listSnap(): BlockTournamentInput[] {
   }
 }
 
-export function getSnapTournament(tour_id: number): BlockTournamentInput | null {
+export function getSnapTournament(tour_id: number): SnapshotRow | null {
   try {
-    const match = getSnapTournamentStmt.get(tour_id);
-    return (match as BlockTournamentInput) || null;
+    const tour = getSnapTournamentStmt.get(tour_id);
+    return (tour as SnapshotRow) || null;
   } catch (err) {
     const error: any = new Error(
       `Error during BlockTournamentInput lookup by ID: ${(err as any)?.message || String(err)}`,
