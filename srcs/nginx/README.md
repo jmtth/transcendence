@@ -102,6 +102,8 @@ upstream user_service {
 - ✅ Évite les résolutions DNS répétées
 - ✅ Stabilité maximale (pas de 502 aléatoires)
 
+**Important :** Les services backend (api-gateway, user-service) doivent avoir un `keepalive_timeout` supérieur ou égal à celui de nginx (65s) pour profiter pleinement du pool de connexions persistantes.
+
 ### Timeouts (default.conf)
 
 #### REST API (`/api/`)
