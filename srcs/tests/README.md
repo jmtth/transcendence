@@ -12,16 +12,19 @@ pip install -r requirements.txt
 ## Exécution
 
 ### Service Auth (complet)
+
 ```bash
 python test_auth.py
 ```
 
 ### Gateway & health checks
+
 ```bash
 python test_gateway.py
 ```
 
 ### Runner global
+
 ```bash
 python test.py
 ```
@@ -29,6 +32,7 @@ python test.py
 ### Tests inclus
 
 #### Authentification
+
 - ✅ Health check
 - ✅ Register (succès, duplicata, validations)
 - ✅ Login (username, email, credentials invalides)
@@ -37,6 +41,7 @@ python test.py
 - ✅ Logout
 
 #### 2FA
+
 - ✅ Setup 2FA
 - ✅ Vérification code setup
 - ✅ Code invalide
@@ -44,17 +49,30 @@ python test.py
 - ✅ Désactivation 2FA
 
 #### Admin
+
 - ✅ List users (admin)
 - ✅ List users interdit (non-admin)
 
 #### Sécurité
+
 - ✅ Rate limiting
 
 ## Prérequis
 
 - Backend running sur `https://localhost:4430`
-- Comptes admin/invite configurés dans `.env.auth`
+- Comptes admin/invite configurés dans `.env.auth` ou auto-créés
 - Services docker up: `make up` ou `docker-compose up`
+
+### CI/CD (GitHub Actions)
+
+Les tests sont automatiquement exécutés dans GitHub Actions avec :
+
+- Installation automatique de Python 3.10
+- Installation des dépendances système (`libzbar0` pour QR codes 2FA)
+- Installation des requirements Python
+- Démarrage des services backend via `make up`
+- Exécution des tests fonctionnels
+- Nettoyage automatique des services
 
 ## Exit codes
 
@@ -106,16 +124,21 @@ def test_XX_feature():
 ## Troubleshooting
 
 ### Erreur SSL
+
 ```
 SSLError: [SSL: CERTIFICATE_VERIFY_FAILED]
 ```
+
 → Normal, les tests désactivent la vérification SSL (`verify=False`)
 
 ### Services non accessibles
+
 ```
 Connection refused
 ```
+
 → Vérifier que les services Docker sont lancés:
+
 ```bash
 cd srcs
 docker-compose up -d
@@ -123,9 +146,11 @@ docker-compose ps  # Vérifier le statut
 ```
 
 ### Rate limiting
+
 ```
 429 Too Many Requests
 ```
+
 → Attendre 5 minutes ou redémarrer le service auth pour reset le rate limiter
 
 ## Roadmap

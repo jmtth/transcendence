@@ -9,7 +9,17 @@ from typing import Optional, Dict, Any
 
 import requests
 from PIL import Image
-from pyzbar.pyzbar import decode as qr_decode
+
+# Import optionnel pour le décodage QR (nécessite libzbar système)
+try:
+    from pyzbar.pyzbar import decode as qr_decode
+    QR_DECODE_AVAILABLE = True
+except ImportError:
+    print("⚠️  Warning: pyzbar not available (missing libzbar system library)")
+    print("   QR code decoding will be disabled in 2FA tests")
+    print("   To fix: sudo apt-get install libzbar0")
+    QR_DECODE_AVAILABLE = False
+    qr_decode = None
 
 # Configuration
 BASE_URL = "https://localhost:4430"
@@ -130,6 +140,10 @@ def print_error(message: str):
 
 def decode_qr_secret(qr_data_url: str) -> Optional[str]:
     """Extrait le secret TOTP depuis une data URL de QR code."""
+    if not QR_DECODE_AVAILABLE:
+        print("⚠️  QR decode skipped: pyzbar not available")
+        return None
+
     if not qr_data_url.startswith("data:image"):
         return None
     try:
