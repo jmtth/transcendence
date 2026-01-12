@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
-import { MenuActions } from '../../core/react-types';
+import { MenuActions } from '../../types/react-types';
 import { interpolate, Shape } from 'flubber';
+import { useTranslation } from 'react-i18next';
 
 type Color = 'white' | 'cyan';
 interface Item {
@@ -30,12 +31,6 @@ interface MenuElementProps {
   className?: string;
 }
 
-const titles: Record<MenuActions, string> = {
-  [MenuActions.PLAY]: 'Play',
-  [MenuActions.HOME]: 'Home',
-  [MenuActions.PROFILE]: 'Profile',
-};
-
 const paths: Record<MenuActions, string> = {
   [MenuActions.PLAY]: RACKET_PATH,
   [MenuActions.HOME]: HOUSE_PATH,
@@ -51,9 +46,16 @@ const fadeTransition = {
 
 const MenuElement = ({ action, items, scale = 1, className = '', ...props }: MenuElementProps) => {
   const [isHovered, setIsHovered] = useState(false);
+
+  const progress = useMotionValue(0);
+  const { t } = useTranslation();
+  const titles: Record<MenuActions, string> = {
+    [MenuActions.PLAY]: t('navbar.play'),
+    [MenuActions.HOME]: t('navbar.home'),
+    [MenuActions.PROFILE]: t('navbar.profile'),
+  };
   const title = titles[action];
   const targetPath = paths[action];
-  const progress = useMotionValue(0);
   const pathD = useTransform(progress, [0, 1], [HALO_PATH, targetPath], {
     mixer: (a: Shape, b: Shape) => interpolate(a, b, { maxSegmentLength: 0.1 }),
   });

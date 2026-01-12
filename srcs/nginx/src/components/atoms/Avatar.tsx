@@ -1,5 +1,5 @@
 import defaultAvatar from '../../assets/avatars/default.png';
-import { AvatarSize } from '../../core/react-types';
+import { AvatarSize } from '../../types/react-types';
 
 interface AvatarProps {
   src?: string;

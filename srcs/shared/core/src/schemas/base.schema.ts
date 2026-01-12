@@ -10,6 +10,8 @@ export const usernameSchema = z
     message: "Username cannot contain 'admin'",
   });
 
+export const roleShema = z.enum(['GUEST', 'USER', 'ADMIN']);
+
 export const nicknameSchema = z
   .string()
   .min(2, 'Nickname must be at least 2 characters')
@@ -29,5 +31,6 @@ export const targetUserIdSchema = z.object({
 });
 
 export type IdDTO = z.output<typeof IdSchema>;
+export type RoleDTO = z.output<typeof roleShema>;
 export type targetUserIdDTO = z.output<typeof targetUserIdSchema>;
 export type statusUpdateDTO = z.output<typeof statusUpdateSchema>;

@@ -1,4 +1,4 @@
-import { Scores, GameState, ServerMessage, ClientMessage, Vector2D } from '../core/types.js';
+import { Scores, GameState, ServerMessage, ClientMessage, Vector2D } from '../types/types.js';
 
 export interface GameSettings {
   ballRadius: number;

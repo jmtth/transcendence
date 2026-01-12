@@ -1,12 +1,12 @@
-import { AvatarSize } from '../../core/react-types';
-import { UserProfileDTO } from '../../schemas/profile.schema';
+import { ProfileDTO } from '@transcendence/core';
+import { AvatarSize } from '../../types/react-types';
 import Avatar from '../atoms/Avatar';
 
 /**
  * @todo guards for avatar url format
  */
 interface Props {
-  user: UserProfileDTO;
+  user: ProfileDTO;
   avatarSize: AvatarSize;
 }
 
