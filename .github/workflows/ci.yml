@@ -97,8 +97,8 @@ jobs:
           fi
 
       - name: Update coverage badge
-        # Only run when secrets exist and either this is not a pull_request OR the PR head repo is the same repository
-        if: ${{ secrets.GIST_SECRET && secrets.GIST_ID && (github.event.pull_request == null || github.event.pull_request.head.repo.full_name == github.repository) }}
+        # Skip for forks/PRs - only run on main repo when secrets are available
+        if: github.repository == 'codastream/transcendence' && github.event.pull_request == null
         uses: Schneegans/dynamic-badges-action@v1.7.0
         with:
           auth: ${{ secrets.GIST_SECRET }}
