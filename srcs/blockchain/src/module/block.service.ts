@@ -1,12 +1,15 @@
 import { getGameStorage } from '../core/GameStorage.client.js';
-import { BlockTournamentInput, BlockTournamentStored } from './block.schema.js';
-import { FastifyInstance } from 'fastify';
 import type { AppLogger } from '../core/logger.js';
+import { extractTournamentStoredEvent } from '../core/GameStorage.utils.js';
+import * as db from '../core/database.js';
+import { BlockTournamentInput, SnapshotRow } from './block.type.js';
+import { verifyTournamentSnapshot } from '../core/Gamestorage.verification.js';
 
 export async function storeTournament(
   logger: AppLogger,
   tournament: BlockTournamentInput,
-): Promise<BlockTournamentStored> {
+  rowSnapId: number,
+): Promise<SnapshotRow> {
   logger.info({
     event: 'blockchain_env_check',
     BLOCKCHAIN_READY: process.env.BLOCKCHAIN_READY,
@@ -22,21 +25,48 @@ export async function storeTournament(
     error.code = 'BLOCKCHAIN_NO_SMART_CONTRACT_ERR';
     throw error;
   }
-
   try {
     const tx = await gamestorage.storeTournament(
-      tournament.tx_id,
-      tournament.player1_id,
-      tournament.player2_id,
-      tournament.player3_id,
-      tournament.player4_id,
+      tournament.tour_id,
+      tournament.player1,
+      tournament.player2,
+      tournament.player3,
+      tournament.player4,
     );
 
     const receipt = await tx.wait();
+    if (!receipt) {
+      throw new Error('Transaction receipt missing');
+    }
+    const event = extractTournamentStoredEvent(receipt, gamestorage);
+    if (!event) {
+      throw new Error('TournamentStored event not found');
+    }
+
+    const verification = verifyTournamentSnapshot(
+      {
+        tour_id: event.tour_id,
+        player1: event.player1,
+        player2: event.player2,
+        player3: event.player3,
+        player4: event.player4,
+        block_timestamp: event.ts,
+      },
+      event.snapshotHash,
+    );
+
+    if (verification.status !== 'OK') {
+      throw new Error('Business hash mismatch — integrity violation');
+    }
     return {
       ...tournament,
+      id: rowSnapId,
       tx_hash: receipt.hash,
-      date_confirmed: new Date().toISOString(),
+      snapshot_hash: event.snapshotHash,
+      block_number: receipt.blockNumber,
+      block_timestamp: event.ts,
+      verify_status: verification.status,
+      verified_at: Date.now(),
     };
   } catch (err: any) {
     const error: any = new Error(
@@ -45,6 +75,33 @@ export async function storeTournament(
     error.code = 'BLOCKCHAIN_INSERT_TOURNAMENT_ERR';
     throw error;
   }
+}
+
+export function addTournamentSnapDB(logger: AppLogger, data: BlockTournamentInput): number {
+  logger.info({ event: 'snapshot_register_attempt', tournament: data });
+  const rowSnapId = db.insertSnapTournament(data);
+  logger.info({ event: 'snapshot_register_success', tournament: data });
+  return Number(rowSnapId);
+}
+
+export async function addTournamentBlockchain(
+  logger: AppLogger,
+  data: BlockTournamentInput,
+  rowSnapId: number,
+): Promise<SnapshotRow> {
+  logger.info({
+    event: 'blockchain_register_attempt',
+    data,
+  });
+  const tournament: SnapshotRow = await storeTournament(logger, data, rowSnapId);
+  logger.info({ event: 'blockchain_register_success', tournament: tournament });
+  return tournament;
+}
+
+export function updateTournamentSnapDB(logger: AppLogger, data: SnapshotRow) {
+  logger.info({ event: 'snapshot_update_attempt', tournament: data });
+  const rowBlockId = db.updateTournament(data);
+  logger.info({ event: 'snapshot_update_success', tournament: data, rowBlockId });
 }
 
 // export async function listBlockchainTournaments(): Promise<map<string, string>> {
