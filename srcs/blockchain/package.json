@@ -33,7 +33,7 @@
     "dev:ts": "tsc -p tsconfig.json --watch",
     "dev:service": "nodemon",
     "dev": "concurrently \"npm run dev:css\" \"npm run dev:ts\" \"npm run dev:service\"",
-    "dev:block": "dotenv -e .env.test.blockchain concurrently \"npm run dev:css\" \"nodemon\"",
+    "dev:block": "dotenv -e .env.test.blockchain concurrently \"npm run dev:css\" \"npm run dev:ts\" \"nodemon\"",
     "build": "tsc -p tsconfig.json && npm run build:css",
     "start": "node dist/server.js"
   },
