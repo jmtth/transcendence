@@ -58,11 +58,23 @@ export async function registerHandler(
   try {
     if (authService.findByUsername(username)) {
       logger.warn({ event: 'register_failed', username, reason: 'user_exists' });
-      return reply.code(409).send({ error: "username already exists" });
+      return reply.code(409).send({
+        error: {
+          message: 'Username is already taken',
+          code: 'USERNAME_EXISTS',
+          field: 'username',
+        },
+      });
     }
     if (authService.findByEmail(email)) {
       logger.warn({ event: 'register_failed', email, reason: 'email_exists' });
-      return reply.code(409).send({ error: "email already exists" });
+      return reply.code(409).send({
+        error: {
+          message: 'Email is already taken',
+          code: 'EMAIL_EXISTS',
+          field: 'email',
+        },
+      });
     }
   } catch (err: any) {
     req.log.error({
@@ -117,10 +129,22 @@ export async function registerHandler(
     }
     // Add errors handling
     if (err && err.code === 'USER_EXISTS') {
-      return reply.code(409).send({ error: "username already exists" });
+      return reply.code(409).send({
+        error: {
+          message: err.message || 'Username is already taken',
+          code: 'USERNAME_EXISTS',
+          field: 'username',
+        },
+      });
     }
     if (err && err.code === 'EMAIL_EXISTS') {
-      return reply.code(409).send({ error: "email already exists" });
+      return reply.code(409).send({
+        error: {
+          message: err.message || 'Email is already taken',
+          code: 'EMAIL_EXISTS',
+          field: 'email',
+        },
+      });
     }
     if (err && err.code === 'DB_CREATE_USER_ERROR') {
       return reply.code(500).send({
@@ -356,16 +380,22 @@ export async function verifyHandler(
   }
 }
 
-// DEV ONLY - À supprimer    ADMIN ONLY
+// Handler pour récupérer les informations de l'utilisateur connecté
 export async function meHandler(this: FastifyInstance, req: FastifyRequest, reply: FastifyReply) {
   const username = (req.headers as any)['x-user-name'] || null;
   const idHeader = (req.headers as any)['x-user-id'] || null;
   const id = idHeader ? Number(idHeader) : null;
 
-  logger.info({ event: 'me_request_dev_only', user: username, id });
+  logger.info({ event: 'me_request', user: username, id });
 
-    if (!id || !username) {
-      return reply.code(401).send({ error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } });
+  if (!id || !username) {
+    logger.warn({ event: 'me_request_unauthorized', user: username, id });
+    return reply.code(401).send({
+      error: {
+        message: 'Authentication required',
+        code: 'UNAUTHORIZED',
+      },
+    });
   }
 
   try {
@@ -373,13 +403,21 @@ export async function meHandler(this: FastifyInstance, req: FastifyRequest, repl
     const user = authService.findUserById(id);
 
     if (!user) {
-        return reply.code(401).send({ error: { message: 'Unauthorized', code: 'UNAUTHORIZED' } });
+      logger.warn({ event: 'me_request_user_not_found', user: username, id });
+      return reply.code(404).send({
+        error: {
+          message: 'User not found',
+          code: 'USER_NOT_FOUND',
+        },
+      });
     }
 
     // Récupérer le statut 2FA
     const has2FA = totpService.isTOTPEnabled(id);
 
-    // Construire la réponse avec toutes les informations disponibles
+    logger.info({ event: 'me_request_success', user: username, id });
+
+    // Format de réponse standardisé
     return reply.code(200).send({
       user: {
         id: user.id,
@@ -400,7 +438,7 @@ export async function meHandler(this: FastifyInstance, req: FastifyRequest, repl
   }
 }
 
-// ADMIN ONLY
+// ADMIN ONLY - Liste tous les utilisateurs avec leurs informations complètes
 export async function listAllUsers(
   this: FastifyInstance,
   req: FastifyRequest,
@@ -415,20 +453,46 @@ export async function listAllUsers(
   // Vérifier que l'utilisateur existe et a le rôle admin
   if (!userId || !authService.hasRole(userId, UserRole.ADMIN)) {
     logger.warn({ event: 'list_users_forbidden', user: username, userId });
-    return reply
-      .code(403)
-      .send({ error: { message: 'Forbidden - Admin role required', code: 'FORBIDDEN' } });
+    return reply.code(403).send({
+      error: {
+        message: 'Forbidden - Admin role required',
+        code: 'FORBIDDEN',
+      },
+    });
   }
 
   try {
-    const users = authService.listUsers();
-    req.log.info({ event: 'list_users_success', user: username, count: users.length });
-    return reply.code(200).send(users);
+    const rawUsers = authService.listUsers();
+
+    // Transformer les données pour un format cohérent avec /me
+    const users = rawUsers.map((user) => {
+      const has2FA = totpService.isTOTPEnabled(user.id || 0);
+
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        is2FAEnabled: has2FA,
+      };
+    });
+
+    logger.info({ event: 'list_users_success', user: username, count: users.length });
+
+    // Format de réponse standardisé
+    return reply.code(200).send({
+      users,
+      total: users.length,
+      timestamp: new Date().toISOString(),
+    });
   } catch (err: any) {
-    req.log.error({ event: 'list_users_error', user: username, err: err?.message || err });
-    return reply
-      .code(500)
-      .send({ error: { message: 'Internal server error', code: 'INTERNAL_SERVER_ERROR' } });
+    logger.error({ event: 'list_users_error', user: username, err: err?.message || err });
+    return reply.code(500).send({
+      error: {
+        message: 'Internal server error',
+        code: 'INTERNAL_SERVER_ERROR',
+      },
+    });
   }
 }
 
