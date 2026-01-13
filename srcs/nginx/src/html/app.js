@@ -13,7 +13,9 @@
     async updateStatus(dot, label, isOnline, onlineText = 'Ready', offlineText = 'Offline') {
       var _a;
       if (!dot || !label) return;
-      dot.className = `w-3 h-3 rounded-full bg-${isOnline ? 'green' : 'red'}-400 ${isOnline ? 'animate-pulse' : ''}`;
+      dot.className = `w-3 h-3 rounded-full bg-${isOnline ? 'green' : 'red'}-400 ${
+        isOnline ? 'animate-pulse' : ''
+      }`;
       label.textContent = isOnline ? onlineText : offlineText;
       label.className = `text-${isOnline ? 'green' : 'red'}-400 text-sm font-mono`;
       const parent = (_a = dot.closest('.flex')) == null ? void 0 : _a.parentElement;
@@ -652,7 +654,13 @@
             if (statusText2 && message.data.status) {
               statusText2.textContent =
                 message.data.status.charAt(0).toUpperCase() + message.data.status.slice(1);
-              statusText2.className = `text-xl font-semibold ${message.data.status === 'playing' ? 'text-green-400' : message.data.status === 'finished' ? 'text-red-400' : 'text-yellow-400'}`;
+              statusText2.className = `text-xl font-semibold ${
+                message.data.status === 'playing'
+                  ? 'text-green-400'
+                  : message.data.status === 'finished'
+                  ? 'text-red-400'
+                  : 'text-yellow-400'
+              }`;
             }
           }
           break;
@@ -790,7 +798,9 @@
             if (((_a = this.websocket) == null ? void 0 : _a.readyState) !== WebSocket.OPEN) {
               reject(
                 new Error(
-                  `WebSocket closed with code ${event.code}: ${event.reason || 'Connection rejected'}`,
+                  `WebSocket closed with code ${event.code}: ${
+                    event.reason || 'Connection rejected'
+                  }`,
                 ),
               );
             }
@@ -965,7 +975,9 @@
       const hours = Math.floor(elapsed / 36e5);
       const minutes = Math.floor((elapsed % 36e5) / 6e4);
       const seconds = Math.floor((elapsed % 6e4) / 1e3);
-      const uptimeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      const uptimeString = `${hours.toString().padStart(2, '0')}:${minutes
+        .toString()
+        .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       const uptimeElement = document.getElementById('uptime');
       if (uptimeElement) {
         uptimeElement.textContent = uptimeString;

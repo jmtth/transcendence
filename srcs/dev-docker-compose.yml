@@ -1,5 +1,3 @@
-version: '3.8'
-
 x-healthcheck-template: &healthcheck-template
   interval: 10s
   timeout: 5s
@@ -23,18 +21,19 @@ services:
     restart: unless-stopped
     depends_on:
       api-gateway:
-        condition: service_started
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
     healthcheck:
       <<: *healthcheck-template
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
-      start_period: 5s
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', '--no-check-certificate', 'https://localhost/health']
 
   # Main Fastify API
   api-gateway:
     build:
       context: ../
       dockerfile: "srcs/gateway/Dockerfile"
-    container_name: "${API_GATEWAY_NAME}-dev"
+    container_name: "${API_GATEWAY_NAME}"
     expose:
       - "${API_GATEWAY_PORT}"
     env_file:
@@ -46,6 +45,9 @@ services:
     depends_on:
       auth-service:
         condition: service_healthy
+    healthcheck:
+      <<: *healthcheck-template
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://127.0.0.1:${API_GATEWAY_PORT}/health']
 
   # Auth service
   auth-service:
@@ -68,7 +70,7 @@ services:
         condition: service_healthy
     healthcheck:
       <<: *healthcheck-template
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${AUTH_SERVICE_PORT}/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:${AUTH_SERVICE_PORT}/health"]
 
   # Blockchain service
   blockchain-service:
@@ -131,13 +133,16 @@ services:
     networks:
       - app-network
     restart: unless-stopped
+    healthcheck:
+      <<: *healthcheck-template
+      test: ['CMD', 'redis-cli', 'ping']
 
   # User service
   user-service:
     build:
       context: ..
       dockerfile: srcs/users/Dockerfile
-    container_name: "${UM_SERVICE_NAME}-dev"
+    container_name: "${UM_SERVICE_NAME}"
     expose:
       - "${UM_SERVICE_PORT}"
     env_file:
@@ -150,7 +155,7 @@ services:
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${UM_SERVICE_PORT}/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:${UM_SERVICE_PORT}/health"]
    
 networks:
     app-network:
