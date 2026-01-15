@@ -1,10 +1,9 @@
 import { AvatarSize } from '../../types/react-types';
 
 interface AvatarProps {
-  src?: string;
+  src: string | null;
   alt?: string;
   size?: AvatarSize;
-  avatarUrl?: string | null;
   className?: string;
 }
 
@@ -20,11 +19,11 @@ const Avatar = ({
     lg: 'w-24 h-24',
   };
 
-  const getImageUrl = (name: string) => {
-    return new URL(`../../assets/avatars/${name}`, import.meta.url).href;
+  const getImageUrl = (src: string) => {
+    return new URL(`../../assets/avatars/${src}`, import.meta.url).href;
   };
 
-  const displaySrc = getImageUrl(src);
+  const displaySrc = getImageUrl(src || 'default.png');
 
   return (
     <div

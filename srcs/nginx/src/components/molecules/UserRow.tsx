@@ -13,7 +13,7 @@ interface Props {
 export const UserRow = ({ user, avatarSize }: Props) => {
   return (
     <div className="flex items-center gap-4">
-      <Avatar alt="user avatar" size={avatarSize} avatarUrl={user.avatarUrl}></Avatar>
+      <Avatar alt="user avatar" size={avatarSize} src={user.avatarUrl}></Avatar>
       <div className="flex flex-col">
         <span className="font-quantico font-bold text-lg">{user.username}</span>
       </div>

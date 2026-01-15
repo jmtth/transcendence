@@ -25,9 +25,9 @@ const Background = ({
   children,
   colorStart,
   colorEnd,
-  grainIntensity = 8,
-  baseFrequency = 0.2201,
-  animated = false,
+  grainIntensity = 4,
+  baseFrequency = 0.02201,
+  animated = true,
   direction = 9,
 }: BackgroundProps) => {
   const coords = getGradientCoordinates(direction);

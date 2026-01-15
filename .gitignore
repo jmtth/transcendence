@@ -6,6 +6,10 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
+# SSL and secrets
+secrets
+*.pem
+
 # VScode
 .vscode
 

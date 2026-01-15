@@ -6,21 +6,17 @@ FROM node:20-alpine AS builder
 WORKDIR /build
 
 # Copy root package files for workspace resolution
-COPY package.json package-lock.json ./
-
 # Copy shared core package files
-COPY srcs/shared/core/package.json ./srcs/shared/core/package.json
-COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
-
 # Copy nginx service package files
-COPY srcs/nginx/package.json ./srcs/nginx/package.json
-# COPY srcs/nginx/package-lock.json ./srcs/nginx/package-lock.json
-
 # Install dependencies
-RUN npm ci
+COPY package.json package-lock.json ./
+COPY srcs/shared/core/package*.json ./srcs/shared/core/
+COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/
+COPY srcs/nginx/package.json ./srcs/nginx/
+RUN npm i
 
 # Copy and build shared core first
-COPY srcs/shared/core/ ./srcs/shared/core/src
+COPY srcs/shared/core/ ./srcs/shared/core/
 RUN npm run build -w @transcendence/core
 
 # Copy code and build
@@ -52,8 +48,6 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 # Copy nginx config
 COPY srcs/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY srcs/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
-# Assets should be bundled by Vite under dist/assets (from src/assets) : no need to copy
-# COPY ./src/assets         /usr/share/nginx/html/assets
 
 # Copy React app built with Vite
 COPY --from=builder /build/srcs/nginx/dist /usr/share/nginx/src/html/

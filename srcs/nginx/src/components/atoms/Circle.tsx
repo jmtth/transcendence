@@ -20,6 +20,7 @@ const Circle = ({ children, className = '' }: CircleProps) => {
       h-[80vh]
       rounded-3xl
       mx-auto
+      text-gray-700
 
       lg:absolute
       lg:top-1/2

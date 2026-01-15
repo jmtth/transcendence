@@ -34,9 +34,9 @@ export { type LogContext, type EventValue, type ReasonValue } from './logging/lo
 // Zod Schemas
 // ============================================================================
 
-export { IdSchema, roleShema } from './schemas/base.schema.js';
+export { idSchema, usernameSchema, IdSchema, roleShema } from './schemas/base.schema.js';
 export { UserNameSchema } from './schemas/user.schema.js';
-export { UserSchema } from './schemas/auth.schema.js';
+export { UserSchema, UserLoginSchema, UserRegisterSchema } from './schemas/auth.schema.js';
 export { ProfileSchema, ProfileCreateInSchema } from './schemas/profile.schema.js';
 export {
   FriendshipFullSchema,
@@ -54,9 +54,16 @@ export {
 // DTO (TS types)
 // ============================================================================
 
-export type { IdDTO, RoleDTO, targetUserIdDTO, statusUpdateDTO } from './schemas/base.schema.js';
+export type {
+  idDTO,
+  usernameDTO,
+  IdDTO,
+  RoleDTO,
+  TargetUserIdDTO as targetUserIdDTO,
+  statusUpdateDTO,
+} from './schemas/base.schema.js';
 export type { UserNameDTO, UserRequestDTO } from './schemas/user.schema.js';
-export type { UserDTO } from './schemas/auth.schema.js';
+export type { UserDTO, UserLoginDTO, UserRegisterDTO } from './schemas/auth.schema.js';
 export type {
   FriendshipFullDTO,
   FriendshipUnifiedDTO,
@@ -69,5 +76,6 @@ export type {
   ProfileDTO,
   ProfileAuthDTO,
   ProfileDataDTO,
+  ProfileStoredDTO,
   ProfileCreateInDTO,
 } from './schemas/profile.schema.js';

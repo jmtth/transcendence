@@ -58,7 +58,7 @@ export const umRoutes: FastifyPluginAsyncZod = async (app) => {
   );
 
   app.get(
-    '/:username',
+    '/username/:username',
     { schema: getProfileByUsernameSchema },
     profileController.getProfileByUsername,
   );

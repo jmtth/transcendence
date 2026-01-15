@@ -1,4 +1,4 @@
-import { ProfileAuthDTO, UserDTO } from '@transcendence/core';
+import { ProfileAuthDTO, ProfileStoredDTO, UserDTO } from '@transcendence/core';
 import { ReactNode } from 'react';
 
 export type AvatarSize = 'sm' | 'md' | 'lg';
@@ -23,4 +23,9 @@ export interface AuthContextType {
 
 export interface AuthProviderProps {
   children: ReactNode;
+}
+
+export interface ApiResponse<T> {
+  data: T;
+  message: string;
 }

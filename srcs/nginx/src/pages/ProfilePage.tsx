@@ -3,24 +3,49 @@ import Toggle from '../components/atoms/Toggle';
 import FileUploader from '../components/molecules/FileUploader';
 import { Page } from '../components/organisms/PageContainer';
 import { useAuth } from '../components/helpers/AuthProvider';
-import { ProfileAuthDTO } from '@transcendence/core';
 import Avatar from '../components/atoms/Avatar';
+import { useQuery } from '@tanstack/react-query';
+import { profileApi } from '../api/profile-api';
 
 const loadAvatar = () => {};
 
 const toggle2FA = () => {};
 
+// TODO have auth getUserById endpoint to provide role and email
 export const ProfilePage = () => {
   const params = useParams();
-  const userId = Number(params.userId);
-  const { user: currentUser, isAdmin } = useAuth();
-  const displayedUser = {
-    authId: 2,
-    username: 'titi',
-    avatarUrl: 'bohr_sq.jpg',
-  } as ProfileAuthDTO;
-  const isOwner = currentUser && currentUser.authId === userId;
-  // const isOwner = true;
+  const username = params.username;
+  const { user: authUser } = useAuth();
+  const {
+    data: displayedUser,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ['username', username],
+    queryFn: () => {
+      return profileApi.getProfileByUsername(username!);
+    },
+    enabled: !!username,
+    // enabled: !!username && !!authUser,
+  });
+
+  const isOwner = authUser && authUser.username === username;
+
+  if (isLoading) {
+    return (
+      <Page>
+        <div>Loading...</div>
+      </Page>
+    );
+  }
+
+  if (isError || !displayedUser) {
+    return (
+      <Page>
+        <div>404 not found</div>
+      </Page>
+    );
+  }
 
   return (
     <Page className="flex flex-col">
@@ -35,7 +60,7 @@ export const ProfilePage = () => {
         </div>
 
         {/* Owner or Admin only section */}
-        {(isOwner || isAdmin()) && (
+        {isOwner && (
           <>
             <div className="mb-3">
               <h1 className="m-2 text-gray-600 font-bold text-xl font-quantico">2FA</h1>

@@ -1,4 +1,3 @@
-import type { UserPayload } from './types/types.js';
 import fastify, { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import fastifyCors from '@fastify/cors';
 import fastifyCookie from '@fastify/cookie';
@@ -9,6 +8,7 @@ import { apiRoutes, publicRoutes } from './routes/gateway.routes.js';
 import { logger, optimizeErrorHandler } from './utils/logger.js';
 import { verifyRequestJWT } from './utils/jwt.service.js';
 import { GATEWAY_CONFIG, ERROR_CODES } from './utils/constants.js';
+import { UserPayload } from './types/user.types.js';
 
 const app = fastify({
   logger: false, // Utiliser notre logger
@@ -85,7 +85,7 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
   }
 
   // Attacher les données utilisateur à la requête
-  request.user = verification.user;
+  request.user = verification.user as UserPayload;
   logger.logAuth({ url: request.url, user: request.user?.username }, true);
 });
 
@@ -143,6 +143,7 @@ app.register(fastifyCors, {
   origin: [
     'http://localhost:80', // Dev
     'https://localhost:443', // Dev HTTPS
+    'https://localhost:5173', // Dev Vite
   ],
   credentials: true,
 });

@@ -1,6 +1,6 @@
-import { ProfileAuthDTO, RoleDTO } from '@transcendence/core';
+import { ProfileAuthDTO } from '@transcendence/core';
 import { createContext, useContext, useMemo, useState } from 'react';
-import { AuthContextType, AuthProviderProps, Roles } from '../../types/react-types';
+import { AuthContextType, AuthProviderProps } from '../../types/react-types';
 
 // from https://dev.to/joodi/useauth-hook-in-react-1bp3
 
@@ -43,13 +43,13 @@ export const useAuth = () => {
 
   const isLoggedIn = Boolean(context.user);
 
-  const isAuthorized = (requiredRole: RoleDTO): boolean => {
-    return context.user?.role === requiredRole;
-  };
+  // const isAuthorized = (requiredRole: RoleDTO): boolean => {
+  //   return context.user?.role === requiredRole;
+  // };
 
-  const isAdmin = (): boolean => {
-    return context.user?.role === Roles.ADMIN;
-  };
+  // const isAdmin = (): boolean => {
+  //   return context.user?.role === Roles.ADMIN;
+  // };
 
-  return { ...context, isLoggedIn, isAdmin, isAuthorized };
+  return { ...context, isLoggedIn };
 };

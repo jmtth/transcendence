@@ -5,7 +5,7 @@ import { UserDTO } from './auth.schema.js';
 export const ProfileCreateInSchema = z.object({
   authId: idSchema,
   username: usernameSchema,
-  email: z.string().email().optional(), // API accepts undefined
+  email: z.email().optional(), // API accepts undefined
   avatarUrl: z.string().optional(), // API accepts undefined
 });
 
@@ -15,7 +15,7 @@ export const ProfileDataSchema = z.object({
   createdAt: z.date(),
   email: z.string().nullable(), // Prisma returns null, not undefined
   username: z.string(),
-  avatarUrl: z.string().optional(), // Prisma returns null, not undefined
+  avatarUrl: z.string().nullable(), // Prisma returns null, not undefined
 });
 
 export const ProfileSchema = z.object({
@@ -28,4 +28,5 @@ export const ProfileSchema = z.object({
 export type ProfileCreateInDTO = z.output<typeof ProfileCreateInSchema>;
 export type ProfileDataDTO = z.output<typeof ProfileDataSchema>;
 export type ProfileDTO = z.output<typeof ProfileSchema>;
+export type ProfileStoredDTO = UserDTO & ProfileDTO & { token: string };
 export type ProfileAuthDTO = UserDTO & ProfileDTO;

@@ -18,6 +18,7 @@ services:
       - app-network
     volumes:
       - uploads:/usr/share/nginx/html/uploads
+      # - ./secrets/ssl:/etc/nginx/ssl:ro
     restart: unless-stopped
     depends_on:
       api-gateway:

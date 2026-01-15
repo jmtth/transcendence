@@ -16,7 +16,7 @@ export const Page = ({ children, className }: PageProps) => {
   return (
     <div className={`w-full h-full relative ${className}`}>
       <Background
-        grainIntensity={8}
+        grainIntensity={4}
         baseFrequency={0.28}
         colorStart={colors.start}
         colorEnd={colors.end}
