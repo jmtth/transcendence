@@ -36,7 +36,7 @@ export async function buildApp() {
           description: 'User API',
           version: '0.0.1',
         },
-        servers: [{ url: `http://localhost:8080/users` }],
+        servers: [{ url: `http://localhost:8080` }],
       },
       transform: jsonSchemaTransform,
     });
@@ -45,6 +45,7 @@ export async function buildApp() {
       routePrefix: '/doc',
       configuration: {
         theme: 'purple',
+        baseServerURL: '/doc/users',
       },
     });
   }

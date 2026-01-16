@@ -21,6 +21,18 @@ export const healthCheckSchema = {
   },
 } as const;
 
+export const createProfileSchema = {
+  tags: ['users'],
+  summary: 'Create user profile',
+  description: 'Creates a new user profile linked to an authId',
+  body: ProfileCreateInSchema,
+  response: {
+    201: ProfileSchema,
+    400: ValidationErrorSchema,
+    409: DetailedErrorSchema,
+  },
+} as const;
+
 const getProfileByUsernameSchema = {
   tags: ['users'],
   summary: 'Get user profile by username',
@@ -33,15 +45,28 @@ const getProfileByUsernameSchema = {
   },
 } as const;
 
-export const createProfileSchema = {
+const updateProfileAvatarSchema = {
   tags: ['users'],
-  summary: 'Create user profile',
-  description: 'Creates a new user profile linked to an authId',
-  body: ProfileCreateInSchema,
+  summary: 'Update profile avatar',
+  description: "Updates the profile's avatar",
+  params: UserNameSchema,
+  body: z.object({ avatarUrl: z.string() }),
   response: {
-    201: ProfileSchema,
+    200: ProfileSchema,
     400: ValidationErrorSchema,
-    409: DetailedErrorSchema,
+    404: DetailedErrorSchema,
+  },
+} as const;
+
+const deleteProfileSchema = {
+  tags: ['users'],
+  summary: 'Delete a profile',
+  description: 'Delete a profile',
+  params: UserNameSchema,
+  response: {
+    200: ProfileSchema,
+    400: ValidationErrorSchema,
+    404: DetailedErrorSchema,
   },
 } as const;
 
@@ -57,11 +82,23 @@ export const umRoutes: FastifyPluginAsyncZod = async (app) => {
     },
   );
 
+  app.post('/', { schema: createProfileSchema }, profileController.createProfile);
+
   app.get(
     '/username/:username',
     { schema: getProfileByUsernameSchema },
     profileController.getProfileByUsername,
   );
 
-  app.post('/', { schema: createProfileSchema }, profileController.createProfile);
+  app.patch(
+    '/username/:username',
+    { schema: updateProfileAvatarSchema },
+    profileController.updateProfileAvatar,
+  );
+
+  app.delete(
+    '/username/:username',
+    { schema: deleteProfileSchema },
+    profileController.deleteProfile,
+  );
 };

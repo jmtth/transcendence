@@ -20,4 +20,5 @@ export async function publicRoutes(app: FastifyInstance) {
   app.register(healthRoutes);
   app.get('/', { config: { isPublic: true } }, rootHandler);
   app.get('/help', { config: { isPublic: true } }, helpHandler);
+  // app.get('/doc/users', { config: { isPublic: true } }, docUsersHandler);
 }

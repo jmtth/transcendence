@@ -5,7 +5,7 @@ import fp from 'fastify-plugin';
 
 const authPluginCallback: FastifyPluginAsyncZod = async (app) => {
   app.addHook('onRequest', async (req: FastifyRequest, reply: FastifyReply) => {
-    if (req.url === '/health') {
+    if (req.url === '/health' || req.url.startsWith('/doc')) {
       return;
     }
     const userIdRaw = req.headers['x-user-id'] as string;

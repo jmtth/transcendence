@@ -11,30 +11,6 @@ import { Trace } from '../utils/decorators.js';
 import { logger } from '../utils/logger.js';
 
 export class ProfileRepository {
-  async findProfileByUsername(username: string): Promise<ProfileDTO | null> {
-    const found = await prisma.userProfile.findUnique({
-      where: { username },
-      select: {
-        authId: true,
-        username: true,
-        avatarUrl: true,
-      },
-    });
-    logger.info({ msg: 'found profile in data', found: found });
-    return found;
-  }
-
-  async findProfileById(id: number): Promise<ProfileDTO | null> {
-    return await prisma.userProfile.findUnique({
-      where: { authId: id },
-      select: {
-        authId: true,
-        username: true,
-        avatarUrl: true,
-      },
-    });
-  }
-
   @Trace
   async createProfile(payload: ProfileCreateInDTO): Promise<UserProfile> {
     try {
@@ -60,6 +36,48 @@ export class ProfileRepository {
       }
       throw error;
     }
+  }
+
+  async findProfileByUsername(username: string): Promise<ProfileDTO | null> {
+    const found = await prisma.userProfile.findUnique({
+      where: { username },
+      select: {
+        authId: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+    logger.info({ msg: 'found profile in data', found: found });
+    return found;
+  }
+
+  async findProfileById(id: number): Promise<ProfileDTO | null> {
+    return await prisma.userProfile.findUnique({
+      where: { authId: id },
+      select: {
+        authId: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+  }
+
+  async updateProfileAvatar(id: number, newAvatarUrl: string): Promise<ProfileDTO> {
+    return await prisma.userProfile.update({
+      where: { authId: id },
+      data: { avatarUrl: newAvatarUrl },
+      select: {
+        authId: true,
+        username: true,
+        avatarUrl: true,
+      },
+    });
+  }
+
+  async deleteProfile(id: number): Promise<ProfileDTO> {
+    return await prisma.userProfile.delete({
+      where: { authId: id },
+    });
   }
 }
 

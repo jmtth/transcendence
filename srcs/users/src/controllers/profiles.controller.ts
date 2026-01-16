@@ -1,13 +1,24 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { profileService } from '../services/profiles.service.js';
 import * as mappers from '../utils/mappers.js';
-import { LOG_ACTIONS, LOG_RESOURCES, ProfileCreateInDTO, UserNameDTO } from '@transcendence/core';
+import {
+  LOG_ACTIONS,
+  LOG_RESOURCES,
+  ProfileCreateInDTO,
+  usernameDTO,
+  UserNameDTO,
+} from '@transcendence/core';
 
 export class ProfileController {
-  async getProfileByUsername(
-    req: FastifyRequest<{ Params: { username: string } }>,
-    reply: FastifyReply,
-  ) {
+  async createProfile(req: FastifyRequest, reply: FastifyReply) {
+    req.log.trace({ event: `${LOG_ACTIONS.CREATE}_${LOG_RESOURCES.PROFILE}`, payload: req.body });
+
+    const profile = await profileService.createProfile(req.body as ProfileCreateInDTO);
+    const profileDTO = mappers.mapProfileToDTO(profile);
+    return reply.status(201).send(profileDTO);
+  }
+
+  async getProfileByUsername(req: FastifyRequest, reply: FastifyReply) {
     const { username } = req.params as UserNameDTO;
     req.log.trace({ event: `${LOG_ACTIONS.READ}_${LOG_RESOURCES.PROFILE}`, param: username });
 
@@ -15,12 +26,27 @@ export class ProfileController {
     return reply.status(200).send(profileDTO);
   }
 
-  async createProfile(req: FastifyRequest, reply: FastifyReply) {
-    req.log.trace({ event: `${LOG_ACTIONS.CREATE}_${LOG_RESOURCES.PROFILE}`, payload: req.body });
+  async updateProfileAvatar(req: FastifyRequest, reply: FastifyReply) {
+    const { username } = req.params as {
+      username: usernameDTO;
+    };
+    const { avatarUrl } = req.body as { avatarUrl: string };
+    req.log.trace({
+      event: `${LOG_ACTIONS.UPDATE}_${LOG_RESOURCES.PROFILE}`,
+      param: username,
+      body: avatarUrl,
+    });
+    const profileDTO = await profileService.updateAvatarUrl(username, avatarUrl);
+    return reply.status(200).send(profileDTO);
+  }
 
-    const profile = await profileService.createProfile(req.body as ProfileCreateInDTO);
-    const profileDTO = mappers.mapProfileToDTO(profile);
-    return reply.status(201).send(profileDTO);
+  async deleteProfile(req: FastifyRequest, reply: FastifyReply) {
+    const { username } = req.params as {
+      username: usernameDTO;
+    };
+    req.log.trace({ event: `${LOG_ACTIONS.DELETE}_${LOG_RESOURCES.PROFILE}`, param: username });
+    const profileDTO = await profileService.deleteByUsername(username);
+    return reply.status(200).send(profileDTO);
   }
 }
 
