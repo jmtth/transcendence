@@ -20,9 +20,11 @@ export const authApi = {
   },
 
   login: async (payload: UserLoginDTO): Promise<usernameDTO> => {
+    console.log(`POST /auth/login with payload ${payload}`);
     UserLoginSchema.parse(payload);
     const { data } = await api.post(`/auth/login`, payload);
-    return data.result.username;
+    console.log(`reply from POST /auth/login ${data}`);
+    return data?.user?.username;
   },
 
   me: async (username: usernameDTO): Promise<UserDTO> => {
