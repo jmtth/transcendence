@@ -10,6 +10,7 @@ import {
 import { friendshipRepository } from '../data/friends.data.js';
 import { profileService } from './profiles.service.js';
 import { Friendship } from '@prisma/client';
+import { mapFriendshipToDTO } from '../utils/mappers.js';
 
 export function checkFriendshipAbsence(
   friendship: Friendship | null,
@@ -75,16 +76,8 @@ export class FriendshipService {
 
   async getFriendsByUserId(userId: number): Promise<FriendshipUnifiedDTO[]> {
     const friendships = await friendshipRepository.findFriendshipsByUser(userId);
-
     return friendships.map((f: FriendshipFullDTO) => {
-      const friendProfile = f.receiver.authId === userId ? f.requester : f.receiver;
-      const nickname = f.receiver.authId == userId ? f.nicknameRequester : f.nicknameReceiver;
-      return {
-        id: f.id,
-        status: f.status,
-        nickname: nickname,
-        friend: friendProfile,
-      };
+      return mapFriendshipToDTO(f, userId);
     });
   }
 
