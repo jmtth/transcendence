@@ -57,7 +57,8 @@ describe('Friends Controller unit tests', () => {
   const mockFriendshipFullDTO = {
     id: 1,
     status: 'ACCEPTED',
-    nickname: 'receiverNick',
+    nicknameRequester: 'requesterNick',
+    nicknameReceiver: 'receiverNick',
     requester: mockProfileDTO,
     receiver: mockProfileDTO2,
   };
@@ -65,7 +66,7 @@ describe('Friends Controller unit tests', () => {
   const mockFriendshipUnifiedDTO = {
     id: 1,
     status: 'ACCEPTED',
-    nickname: 'receiverNick',
+    nickname: 'requesterNick',
     friend: mockProfileDTO,
   };
 

@@ -11,7 +11,11 @@ import { friendshipRepository } from '../data/friends.data.js';
 import { profileService } from './profiles.service.js';
 import { Friendship } from '@prisma/client';
 
-function checkFriendshipAbsence(friendship: Friendship | null, userId: number, targetId: number) {
+export function checkFriendshipAbsence(
+  friendship: Friendship | null,
+  userId: number,
+  targetId: number,
+) {
   if (friendship) {
     throw new AppError(ERR_DEFS.RESOURCE_ALREADY_EXIST, {
       userId: userId,
@@ -25,7 +29,7 @@ function checkFriendshipAbsence(friendship: Friendship | null, userId: number, t
   }
 }
 
-function checkFriendshipExistence(
+export function checkFriendshipExistence(
   friendship: Friendship | null,
   userId: number,
   targetId: number,
@@ -74,10 +78,11 @@ export class FriendshipService {
 
     return friendships.map((f: FriendshipFullDTO) => {
       const friendProfile = f.receiver.authId === userId ? f.requester : f.receiver;
+      const nickname = f.receiver.authId == userId ? f.nicknameRequester : f.nicknameReceiver;
       return {
         id: f.id,
         status: f.status,
-        nickname: f.nickname,
+        nickname: nickname,
         friend: friendProfile,
       };
     });
@@ -90,7 +95,7 @@ export class FriendshipService {
   ): Promise<FriendshipFullDTO | null> {
     const friendship = await friendshipRepository.findFriendshipBetween(userId, targetId);
     checkFriendshipExistence(friendship, userId, targetId);
-    return await friendshipRepository.updateFriendshipNickname(friendship.id, nickname);
+    return await friendshipRepository.updateFriendshipNicknameRequester(friendship.id, nickname);
   }
 
   async updateFriendshipStatus(
