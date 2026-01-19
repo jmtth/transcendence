@@ -1,6 +1,7 @@
 colima-dev:
 ifeq ($(COLIMA), true)
 	@echo "Checking Colima status..."
+	@echo "Checking Colima status and mounts..."
 	@if ! colima list 2>/dev/null | grep -q "Running"; then \
 		echo "Starting Colima with mount $(PROJECT_PATH)"; \
 		colima start --arch aarch64 --mount "$(PROJECT_PATH):w" --vm-type vz; \
@@ -14,8 +15,6 @@ ifeq ($(COLIMA), true)
 			echo "Mount already configured: $(PROJECT_PATH)"; \
 		fi; \
 	fi
-else
-	@echo "Skipping Colima start: OS is '$(OS)' (Not Darwin)"
 endif
 
 colima:
