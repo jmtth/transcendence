@@ -12,7 +12,8 @@ import {
 import { Trace } from '../utils/decorators.js';
 import { logger } from '../utils/logger.js';
 import { pipeline } from 'node:stream/promises';
-import fs, { createWriteStream } from 'node:fs';
+import { existsSync, createWriteStream } from 'node:fs';
+import { unlink } from 'node:fs/promises';
 import path from 'node:path';
 import type { MultipartFile } from '@fastify/multipart';
 export class ProfileRepository {
@@ -82,12 +83,13 @@ export class ProfileRepository {
   async deleteOldFile(publicUrl: string): Promise<void> {
     const fileName = publicUrl.replace('/uploads/', '');
     const fullPath = path.join('/app/uploads', fileName);
+    console.log(`${fullPath} : full path`);
     try {
-      if (fs.existsSync(fullPath)) {
-        await fs.promises.unlink(fullPath);
+      if (existsSync(fullPath)) {
+        await unlink(fullPath);
       }
     } catch (err: unknown) {
-      // or thow non blocking error (in error handler)
+      // TODO throw non blocking error (in error handler)
       logger.error(
         {
           event: LOG_EVENTS.APPLICATION.DATA_FAIL,
@@ -103,15 +105,7 @@ export class ProfileRepository {
   async storeOnUploadVolume(file: MultipartFile, uploadPath: string): Promise<void> {
     const writeStream = createWriteStream(uploadPath);
     try {
-      console.log('💾 Saving file to:', uploadPath);
-
       await pipeline(file.file, writeStream);
-      const fs = await import('fs/promises');
-      const exists = await fs
-        .access(uploadPath)
-        .then(() => true)
-        .catch(() => false);
-      console.log('📁 File exists after write:', exists);
     } catch (err: unknown) {
       throw new AppError(ERR_DEFS.SERVICE_GENERIC, { details: 'Disk storage error' }, err);
     }
