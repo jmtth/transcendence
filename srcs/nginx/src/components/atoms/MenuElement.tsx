@@ -15,11 +15,14 @@ const HALO_PATH =
 
 const HOUSE_PATH = 'M 8,2 L 14,7 L 14,14 L 10,14 L 10,10 L 6,10 L 6,14 L 2,14 L 2,7 Z';
 
+const PIE_PATH =
+  'M4.15 3.07a6.33 6.33 0 0 1 0.93-0.52c0.92-0.41 1.38-0.62 1.98-0.22 0.61 0.39 0.61 1.04 0.61 2.33v1c0 1.26 0 1.88 0.39 2.28s1.02 0.39 2.28 0.39h1c1.29 0 1.94 0 2.33 0.61 0.39 0.61 0.19 1.07-0.22 1.98a6.33 6.33 0 0 1-7.02 3.63 6.33 6.33 0 0 1-2.28-11.48 M14.3 4.72a5.35 5.35 0 0 0-3-3c-1.03-0.41-1.97 0.52-1.97 1.62v2.67a0.67 0.67 0 0 0 0.67 0.67h2.67c1.1 0 2.03-0.92 1.63-1.95';
+
 const RACKET_PATH =
   'M8,2.56c3.01,0 5.44,2.43 5.44,5.44c0,0.75 -0.46,1.78 -0.82,2.52l-1.06,-0.89l-0.22,0.26l1.13,0.94l1.54,1.31c0.22,0.22 1.29,1.1 1.06,1.33l-1.54,1.58c-0.28,0.29 -1.1,-0.73 -1.31,-0.97l-0.21,-0.24l-2.1,-2.5l-0.26,0.22l0.94,1.11c-0.76,0.35 -1.84,0.74 -2.58,0.74c-3.01,0 -5.44,-2.43 -5.44,-5.44c0,-3.01 2.43,-5.44 5.44,-5.44z';
 
-const USER_PATH =
-  'M6.667 1.511q5.278 -0.455 4.356 4.8 -0.438 1.41 -1.422 2.489 -0.456 1.592 1.156 2.044a12.16 12.16 0 0 1 2.667 1.067q1.08 0.96 0.889 2.4h-12.8q-0.191 -1.44 0.889 -2.4a12.16 12.16 0 0 1 2.667 -1.067q1.612 -0.452 1.156 -2.044 -2.247 -2.473 -1.244 -5.689 0.641 -1.042 1.689 -1.6';
+// const USER_PATH =
+//   'M6.667 1.511q5.278 -0.455 4.356 4.8 -0.438 1.41 -1.422 2.489 -0.456 1.592 1.156 2.044a12.16 12.16 0 0 1 2.667 1.067q1.08 0.96 0.889 2.4h-12.8q-0.191 -1.44 0.889 -2.4a12.16 12.16 0 0 1 2.667 -1.067q1.612 -0.452 1.156 -2.044 -2.247 -2.473 -1.244 -5.689 0.641 -1.042 1.689 -1.6';
 
 // Props
 
@@ -34,7 +37,7 @@ interface MenuElementProps {
 const paths: Record<MenuActions, string> = {
   [MenuActions.PLAY]: RACKET_PATH,
   [MenuActions.HOME]: HOUSE_PATH,
-  [MenuActions.PROFILE]: USER_PATH,
+  [MenuActions.STATS]: PIE_PATH,
 };
 
 const dropdownStyle = 'shadow-[0_10px_10px_1px_rgba(255,255,255,0.4)] border-white-400/70';
@@ -52,7 +55,7 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
   const titles: Record<MenuActions, string> = {
     [MenuActions.PLAY]: t('navbar.play'),
     [MenuActions.HOME]: t('navbar.home'),
-    [MenuActions.PROFILE]: t('navbar.profile'),
+    [MenuActions.STATS]: t('navbar.stats'),
   };
   const title = titles[action];
   const targetPath = paths[action];

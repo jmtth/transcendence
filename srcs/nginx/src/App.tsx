@@ -13,6 +13,7 @@ export const App = () => {
   return (
     <main className="min-h-screen bd-slate-950 text-slate-100">
       <Routes>
+        <Route path="/" element={<ProfilePage />}></Route>
         <Route path="/me" element={<MeRedirect />}></Route>
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
       </Routes>

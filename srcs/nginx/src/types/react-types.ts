@@ -1,4 +1,4 @@
-import { ProfileAuthDTO, ProfileStoredDTO, UserDTO } from '@transcendence/core';
+import { ProfileAuthDTO } from '@transcendence/core';
 import { ReactNode } from 'react';
 
 export type AvatarSize = 'sm' | 'md' | 'lg';
@@ -6,7 +6,7 @@ export type AvatarSize = 'sm' | 'md' | 'lg';
 export enum MenuActions {
   HOME = 'home',
   PLAY = 'play',
-  PROFILE = 'profile',
+  STATS = 'stats',
 }
 
 export enum Roles {

@@ -3,6 +3,7 @@ import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
 import { useAuth } from '../helpers/AuthProvider';
 import { DevLoginButtons } from '../atoms/DevLogin';
+import { Link } from 'react-router-dom';
 
 const playItems = [
   { label: 'Play with friend', href: '#friends' },
@@ -10,8 +11,7 @@ const playItems = [
   { label: 'Tournament', href: '#tournament' },
 ];
 
-const profileItems = [
-  { label: 'Profile', href: '#profile' },
+const statsItems = [
   { label: 'Statistics', href: '#stats' },
   { label: 'History', href: '#history' },
 ];
@@ -33,9 +33,19 @@ export const NavBar = () => {
         <span>n Pong</span>
       </div>
       <MenuElement action={MenuActions.PLAY} items={playItems}></MenuElement>
-      <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
+      <MenuElement action={MenuActions.STATS} items={statsItems}></MenuElement>
       <DevLoginButtons></DevLoginButtons>
-      {user && isLoggedIn && <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow>}
+      {user && isLoggedIn && (
+        <div className="flex items-center">
+          <Link
+            to="/me"
+            className="hover:opacity-80 transition-opacity"
+            style={{ textDecoration: 'non', color: 'inherit' }}
+          >
+            <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow>
+          </Link>
+        </div>
+      )}
     </nav>
   );
 };

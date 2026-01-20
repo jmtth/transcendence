@@ -20,7 +20,8 @@ COPY srcs/shared/core/ ./srcs/shared/core/
 RUN npm run build -w @transcendence/core
 
 # Copy code and build
-COPY srcs/nginx/. srcs/nginx/.
+COPY srcs/nginx/. ./srcs/nginx/.
+COPY srcs/nginx/src/html/dashboard.html ./srcs/nginx/html/dashboard.html 
 RUN npm run build -w srcs/nginx
 
 # ==========================
@@ -52,6 +53,9 @@ COPY srcs/nginx/conf.d/proxy_headers.conf /etc/nginx/conf.d/proxy_headers.conf
 
 # Copy React app built with Vite
 COPY --from=builder /build/srcs/nginx/dist /usr/share/nginx/src/html/
+
+# Copy dashboard
+COPY --from=builder /build/srcs/nginx/html/dashboard.html /usr/share/nginx/html/
 
 # Create directory for uploads
 RUN mkdir -p /usr/share/nginx/html/uploads \

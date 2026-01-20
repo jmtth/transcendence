@@ -16,8 +16,7 @@ const toggle2FA = () => {};
 export const ProfilePage = () => {
   const params = useParams();
   const queryClient = useQueryClient();
-  const username = params.username;
-  if (!username) throw Error();
+  const username = params.username || 'Toto';
   const { user: authUser, updateUser } = useAuth();
   const {
     data: displayedUser,

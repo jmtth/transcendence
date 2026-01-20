@@ -27,6 +27,6 @@
     "inlineSources": true,
     "typeRoots": ["./node_modules/@types", "../../node_modules/@types"]
   },
-  "include": ["src/**/*", "test/**/*"],
+  "include": ["src/**/*", "test/**/*", "vite.config.mts"],
   "exclude": ["node_modules", "dist"]
 }
