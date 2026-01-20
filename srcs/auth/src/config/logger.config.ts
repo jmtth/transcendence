@@ -58,7 +58,7 @@ export const loggerConfig: LoggerOptions = {
           code: 'Server error',
           statusCode: (err as unknown as ServiceError).statusCode || 500,
           context: (err as unknown as ServiceError).context || '',
-          details: (err as unknown as ServiceError).context.details || '', // Pour tes APP_ERRORS
+          details: (err as unknown as ServiceError).context.details || '',
           originalError: (err as unknown as ServiceError).context.originalError || '',
         };
         if (err instanceof ServiceError) {

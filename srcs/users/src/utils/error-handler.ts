@@ -55,7 +55,7 @@ export async function errorHandler(
       statusCode: error.statusCode,
       error: error.name,
       message: error.message,
-      details: error.context.details,
+      details: error.context?.details,
     });
   }
 
