@@ -3,7 +3,7 @@ import { appenv } from './src/config/env';
 
 import { defineConfig } from 'prisma/config';
 
-const isDocker = process.env.IS_DOCKER === 'true' || path.resolve('/').startsWith('/app');
+// const isDocker = process.env.IS_DOCKER === 'true' || path.resolve('/').startsWith('/app');
 
 export default defineConfig({
   schema: path.join(__dirname, 'prisma', 'schema.prisma'),
@@ -11,6 +11,6 @@ export default defineConfig({
     path: path.join(__dirname, 'prisma', 'migrations'),
   },
   datasource: {
-    url: isDocker ? appenv.UM_DB_URL : 'file:./data/um.db',
+    url: appenv.UM_DB_URL,
   },
 });

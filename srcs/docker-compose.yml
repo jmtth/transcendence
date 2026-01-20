@@ -9,13 +9,6 @@ services:
   # Infrastructure Layer
   # ============================================================================
 
-  init-permissions:
-    image: alpine
-    volumes:
-      - data:/app/data
-      - uploads:/app/uploads
-    command: sh -c "chown -R 1001:204 /app/data /app/uploads && chmod -R 775 /app/data /app/uploads"
-
   redis-broker:
     build:
       context: ./redis

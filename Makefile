@@ -11,7 +11,8 @@ dev: volumes colima-dev build-dev
 
 volumes:
 	@mkdir -p $(DATABASE_PATH) $(UPLOADS_PATH)
-	@docker run --rm -v $(VOLUMES_PATH):/tmp/v alpine sh -c "chown -R 1001:204 /tmp/v && chmod -R 775 /tmp/v"
+	@chmod -R 777 $(VOLUMES_PATH)
+# 	@docker run --rm -v $(VOLUMES_PATH):/tmp/v alpine sh -c "chown -R 1001:204 /tmp/v && chmod -R 775 /tmp/v"
 
 start :
 	$(D_COMPOSE) start
@@ -206,7 +207,11 @@ fclean: clean
 	-$(CONTAINER_CMD) volume prune -f
 	-$(CONTAINER_CMD) network prune -f
 	@echo "Cleaning volume contents with Docker"
-	@docker run --rm -v $(VOLUMES_PATH):/tmp/volumes alpine sh -c "rm -rf /tmp/volumes/data/* /tmp/volumes/uploads/*"
+	rm -rf $(VOLUMES_PATH)
+# 	@if [ -d "$(VOLUMES_PATH)" ] && [ "$(VOLUMES_PATH)" != "/" ]; then \
+# 		find $(VOLUMES_PATH) -mindepth 1 -delete || true; \
+# 	fi
+# 	@docker run --rm -v $(VOLUMES_PATH):/tmp/volumes alpine sh -c "rm -rf /tmp/volumes/data/* /tmp/volumes/uploads/*"
 	@echo "Volume folder cleaned (structure preserved)"
 
 re : fclean all
