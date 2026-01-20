@@ -178,6 +178,7 @@
       __publicField(this, "websocket", null);
       __publicField(this, "pingInterval", null);
       __publicField(this, "settingsTimeout", null);
+      __publicField(this, "player", null);
       this.gameLogs = document.createElement("div");
       this.screen = document.createElement("div");
       this.gameSessions = document.createElement("div");
@@ -197,10 +198,11 @@
       this.buildElements();
     }
     showPanel(panel) {
+      const visiblePanels = panel === "game-sessions" ? ["game-sessions"] : ["settings", "game-logs"];
       ["settings", "game-logs", "game-sessions"].forEach((id) => {
         const el = document.getElementById(id);
         if (el) {
-          el.classList.toggle("hidden", id !== panel);
+          el.classList.toggle("hidden", !visiblePanels.includes(id));
         }
       });
       if (panel === "game-sessions") {
@@ -210,6 +212,20 @@
         this.sessionsInterval = null;
       }
     }
+    // showPanel(panel: 'settings' | 'game-logs' | 'game-sessions') {
+    //   ['settings', 'game-logs', 'game-sessions'].forEach((id) => {
+    //     const el = document.getElementById(id);
+    //     if (el) {
+    //       el.classList.toggle('hidden', id !== panel);
+    //     }
+    //   });
+    //   if (panel === 'game-sessions') {
+    //     this.sessionsInterval = window.setInterval(() => this.loadSessions(), 2000);
+    //   } else if (this.sessionsInterval) {
+    //     clearInterval(this.sessionsInterval);
+    //     this.sessionsInterval = null;
+    //   }
+    // }
     makeResultDialog() {
       this.resultDialog.innerHTML = `
              <h2 class="text-3xl font-bold text-center mb-6 text-white">Game Over!</h2>
@@ -220,7 +236,7 @@
                      <span id="final-score-p1" class="text-2xl font-bold text-blue-400">0</span>
                  </div>
                  <div class="flex justify-between items-center bg-gray-700 p-4 rounded">
-                     <span class="text-lg text-gray-300">Player 2:</span>
+                     <span class="text-lg text-gray-300">Player B:</span>
                      <span id="final-score-p2" class="text-2xl font-bold text-red-400">0</span>
                  </div>
              </div>
@@ -319,7 +335,7 @@
             <div class="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
               <div class="flex justify-around text-white">
                 <div class="text-center">
-                  <p class="text-sm text-purple-300">Player 1</p>
+                  <p class="text-sm text-purple-300">Player A</p>
                   <p id="player1-score" class="text-3xl font-bold">0</p>
                 </div>
                 <div class="text-center">
@@ -327,7 +343,7 @@
                   <p id="game-status-text" class="text-xl font-semibold text-yellow-400">Ready</p>
                 </div>
                 <div class="text-center">
-                  <p class="text-sm text-purple-300">Player 2</p>
+                  <p class="text-sm text-purple-300">Player B</p>
                   <p id="player2-score" class="text-3xl font-bold">0</p>
                 </div>
               </div>
@@ -343,9 +359,6 @@
               <div id="game-log" class="h-24 overflow-y-auto space-y-1 text-left text-sm font-mono text-gray-300"></div>
             </div>
           </div>
-        <button id="stop2-btn" class="flex-1 striped-disabled bg-orange-600 hover:bg-green-700 text-white font-bold rounded transition">
-            STOP
-        </button>
     `;
     }
     buildElements() {
@@ -354,9 +367,9 @@
       this.makeGameArena();
       this.makePanel();
       this.makeGameLogs();
-      this.panel.appendChild(this.gameSessions);
-      this.panel.appendChild(this.settings);
       this.panel.appendChild(this.gameLogs);
+      this.panel.appendChild(this.settings);
+      this.panel.appendChild(this.gameSessions);
       this.main.appendChild(this.panel);
       this.main.appendChild(this.gameArena);
       this.screen.appendChild(this.main);
@@ -365,6 +378,7 @@
     }
     async askForGameSession() {
       if (this.sessionId) return;
+      this.clearGameLogs();
       try {
         const response = await fetch("/api/game/create-session", {
           method: "POST",
@@ -389,10 +403,12 @@
     }
     async joinSession(sessionId) {
       if (this.sessionId) return;
+      this.clearGameLogs();
       try {
         this.sessionId = sessionId;
         await this.openWebSocket(this.sessionId);
         this.showPanel("game-logs");
+        this.gameArena.classList.remove("hidden");
       } catch (error) {
         console.error("Failed to join session (bad session ?):", error);
         this.sessionId = void 0;
@@ -468,7 +484,7 @@
         const target = e.target;
         if (target.id === "create-game-btn") this.askForGameSession();
         if (target.id === "exit-btn") this.exitGame();
-        if (target.id === "stop-btn" || target.id === "stop2-btn") {
+        if (target.id === "stop-btn") {
           this.stopGame();
           this.showPanel("game-sessions");
         }
@@ -484,21 +500,22 @@
       }
       this.stopPingInterval();
       if (this.websocket) {
-        this.websocket.close(1e3, "User exited game");
+        this.websocket.close(4002, "User exited game");
         this.websocket = null;
       }
       this.updateConnectionStatus(false, "Disconnected");
+      this.player = null;
       this.sessionId = void 0;
       this.gameState = null;
       this.drawWaitingScreen();
       console.log("Game stoped");
+      this.clearGameLogs();
     }
     exitGame() {
       var _a;
       this.stopGame();
       (_a = document.getElementById("first-screen")) == null ? void 0 : _a.classList.remove("hidden");
       this.screen.classList.add("hidden");
-      this.addGameLog("Disconnected from game", "warning");
       console.log("Exited game");
       if (this.sessionsInterval) {
         console.log("clear interval");
@@ -539,6 +556,7 @@
       }, 300);
     }
     async startGame() {
+      console.log("trying to start game");
       this.showPanel("game-logs");
       try {
         this.sendWebSocketMessage({ type: "start" });
@@ -547,6 +565,11 @@
         console.error("Failed to start game:", error);
         this.addGameLog(`Error: ${error}`, "error");
       }
+    }
+    clearGameLogs() {
+      const logContainer = document.getElementById("game-log");
+      if (!logContainer) return;
+      logContainer.innerHTML = "";
     }
     addGameLog(message, type = "info") {
       const logContainer = document.getElementById("game-log");
@@ -586,20 +609,23 @@
     handleServerMessage(message) {
       switch (message.type) {
         case "connected":
-          if (message.data) {
-            console.log(message);
-            this.gameState = message.data;
-            console.log("Session ID:", message.sessionId);
+          this.player = message.message;
+          if (message.sessionId) {
             this.sessionId = message.sessionId;
-            this.addGameLog(`Connected to new session: ${this.sessionId}`, "success");
-            if (this.gameState.status === "waiting") {
+          }
+          if (message.data) {
+            this.gameState = message.data;
+            if (this.gameState && this.gameState.status === "waiting") {
               this.drawPreview();
-            } else if (this.gameState.status === "playing") {
+            } else if (this.gameState && this.gameState.status === "playing") {
               this.updateScores(message.data.scores);
               this.renderGame();
             }
-            console.log("URL updated to:", window.location.pathname);
           }
+          this.addGameLog(
+            `Connected to session: ${this.sessionId || "none"} as ${this.player || "undefined"}`,
+            "success"
+          );
           break;
         case "state":
           if (message.data) {
@@ -619,7 +645,7 @@
           }
           break;
         case "gameOver":
-          this.addGameLog(`Game Over! ${message.message || ""}`, "warning");
+          this.addGameLog(`Game over ${message.message || ""}`, "warning");
           const startBtn = document.getElementById("start-game-btn");
           if (startBtn) {
             startBtn.disabled = false;
@@ -740,15 +766,17 @@
           this.addGameLog("WebSocket error occurred", "error");
           this.updateConnectionStatus(false, "Disconnected");
           reject(error);
+          this.player = null;
         };
         this.websocket.onclose = (event) => {
           var _a;
           clearTimeout(connectionTimeout);
-          if (event.code !== 1e3) {
+          if (event.code !== 1e3 && event.code < 4e3) {
             this.addGameLog(
               `Connection closed: ${event.code} - ${event.reason || "Unknown reason"}`,
               "error"
             );
+            this.player = null;
             if (((_a = this.websocket) == null ? void 0 : _a.readyState) !== WebSocket.OPEN) {
               reject(
                 new Error(
@@ -757,7 +785,7 @@
               );
             }
           } else {
-            this.addGameLog("Connection closed normally", "info");
+            this.addGameLog(`Connection closed: ${event.code}: ${event.reason}`, "info");
           }
           this.updateConnectionStatus(false, "Disconnected");
           this.stopPingInterval();
@@ -832,26 +860,30 @@
       );
     }
     handleKeyDown(e) {
-      var _a;
-      if (!this.sessionId || ((_a = this.gameState) == null ? void 0 : _a.status) !== "playing") return;
+      if (!this.sessionId || !this.player) return;
       let paddle = null;
       let direction = null;
-      if (e.key === "w" || e.key === "W") {
-        paddle = "left";
-        direction = "up";
-      } else if (e.key === "s" || e.key === "S") {
-        paddle = "left";
-        direction = "down";
-      } else if (e.key === "ArrowUp") {
-        paddle = "right";
-        direction = "up";
-        e.preventDefault();
-      } else if (e.key === "ArrowDown") {
-        paddle = "right";
-        direction = "down";
-        e.preventDefault();
+      if (this.player === "Player A") {
+        if (e.key === "w" || e.key === "W") {
+          paddle = "left";
+          direction = "up";
+        } else if (e.key === "s" || e.key === "S") {
+          paddle = "left";
+          direction = "down";
+        }
+      } else if (this.player === "Player B") {
+        if (e.key === "ArrowUp") {
+          paddle = "right";
+          direction = "up";
+          e.preventDefault();
+        } else if (e.key === "ArrowDown") {
+          paddle = "right";
+          direction = "down";
+          e.preventDefault();
+        }
       }
       if (paddle && direction) {
+        console.log("Player a move");
         this.sendWebSocketMessage({
           type: "paddle",
           paddle,
@@ -860,14 +892,13 @@
       }
     }
     handleKeyUp(e) {
-      var _a;
-      if (!this.sessionId || ((_a = this.gameState) == null ? void 0 : _a.status) !== "playing") return;
+      if (!this.sessionId || !this.player) return;
       let paddle = null;
-      if (e.key === "w" || e.key === "W" || e.key === "s" || e.key === "S") {
+      if (this.player === "Player A" && (e.key === "w" || e.key === "W" || e.key === "s" || e.key === "S")) {
         paddle = "left";
-      } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-        paddle = "right";
+      } else if (this.player === "Player B" && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
         e.preventDefault();
+        paddle = "right";
       }
       if (paddle) {
         this.sendWebSocketMessage({
