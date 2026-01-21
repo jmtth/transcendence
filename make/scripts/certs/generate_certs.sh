@@ -156,7 +156,7 @@ openssl x509 -req \
 # Permissions
 # ============================================================
 
-chmod 600 "$CERTS_DIR"/**/*.key
+chmod 644 "$CERTS_DIR"/**/*.key
 chmod 644 "$CERTS_DIR"/**/*.crt
 
 echo "✔ All certificates successfully generated"

@@ -9,12 +9,33 @@ import { apiRoutes, publicRoutes } from './routes/gateway.routes.js';
 import { logger, optimizeErrorHandler } from './utils/logger.js';
 import { verifyRequestJWT } from './utils/jwt.service.js';
 import { GATEWAY_CONFIG, ERROR_CODES } from './utils/constants.js';
+import fs from 'fs';
 
 const app = fastify({
+  https: {
+    key: fs.readFileSync('/etc/certs/api-gateway.key'),
+    cert: fs.readFileSync('/etc/certs/api-gateway.crt'),
+    ca: fs.readFileSync('/etc/ca/ca.crt'),
+
+    requestCert: true,
+    rejectUnauthorized: false,
+  },
   logger: false, // Utiliser notre logger
   disableRequestLogging: true, // Désactiver les logs automatiques
 });
-
+app.addHook('onRequest', (request, reply, done) => {
+  const socket = request.raw.socket as any;
+  // Autorise les healthchecks locaux sans mTLS
+  if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
+    return done();
+  }
+  const cert = socket.getPeerCertificate();
+  if (!cert || !cert.subject) {
+    reply.code(401).send({ error: 'Client certificate required' });
+    return;
+  }
+  done();
+});
 // Register fastify-cookie
 app.register(fastifyCookie);
 

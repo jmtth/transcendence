@@ -2,7 +2,7 @@ include make/config.mk
 
 # === Global ===
 
-all : volumes colima build
+all : volumes certs colima build
 	$(D_COMPOSE) up -d
 
 dev: volumes colima-dev build-dev
@@ -240,5 +240,7 @@ ifneq ($(CHIP), arm64)
 endif
 endif
 	rm -rf $(VOLUMES_PATH)
+	@echo "Remove certificates"
+	rm -rf make/scripts/certs/certs
 
 .PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev
