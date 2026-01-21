@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Prisma } from '@prisma/client';
 import { AppError, ERR_DEFS, type ProfileCreateInDTO, type ProfileDTO } from '@transcendence/core';
-import type { MultipartFile } from '@fastify/multipart';
-import { PassThrough } from 'node:stream';
 
 vi.mock('../src/utils/decorators.js', () => ({
   Trace: (_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) => descriptor,
+}));
+
+vi.mock('file-type', () => ({
+  fileTypeFromBuffer: vi.fn(),
 }));
 
 const { dbMocks, fsMocks, streamMocks } = vi.hoisted(() => ({
@@ -19,6 +21,7 @@ const { dbMocks, fsMocks, streamMocks } = vi.hoisted(() => ({
     createWriteStream: vi.fn(),
     existsSync: vi.fn(),
     unlink: vi.fn(),
+    writeFile: vi.fn(),
   },
   streamMocks: {
     pipeline: vi.fn(),
@@ -44,6 +47,7 @@ vi.mock('node:fs', () => ({
 
 vi.mock('node:fs/promises', () => ({
   unlink: fsMocks.unlink,
+  writeFile: fsMocks.writeFile,
 }));
 
 vi.mock('node:stream/promises', () => ({
@@ -63,6 +67,8 @@ const createPayload: ProfileCreateInDTO = {
   username: 'toto',
   email: 'toto@mail.com',
 };
+
+const mockBuffer = Buffer.from('fake-image-data');
 
 describe('ProfileRepository', () => {
   beforeEach(() => {
@@ -167,38 +173,22 @@ describe('ProfileRepository', () => {
   });
 
   describe('storeOnUploadVolume', () => {
-    const makeFile = (mimetype: string): MultipartFile => {
-      const stream = new PassThrough();
-      stream.end('data');
-      return {
-        file: stream as unknown as MultipartFile['file'],
-        filename: 'avatar.png',
-        encoding: '7bit',
-        fieldname: 'file',
-        mimetype,
-        type: 'file',
-        toBuffer: async () => Buffer.from('data'),
-        fields: {},
-      } satisfies MultipartFile;
-    };
-
+    const mockPath = '/app/uploads/avatar.png';
     it('calls pipeline to store file', async () => {
-      streamMocks.pipeline.mockResolvedValue(undefined);
-      fsMocks.createWriteStream.mockReturnValue({});
+      fsMocks.writeFile.mockResolvedValue(undefined);
 
-      await profileRepository.storeOnUploadVolume(makeFile('image/png'), '/app/uploads/avatar.png');
+      await profileRepository.storeOnUploadVolume(mockBuffer, mockPath);
 
-      expect(fsMocks.createWriteStream).toHaveBeenCalledWith('/app/uploads/avatar.png');
-      expect(streamMocks.pipeline).toHaveBeenCalled();
+      expect(fsMocks.writeFile).toHaveBeenCalledWith(mockPath, mockBuffer);
+      expect(fsMocks.writeFile).toHaveBeenCalledTimes(1);
     });
 
     it('wraps errors into AppError', async () => {
-      streamMocks.pipeline.mockRejectedValue(new Error('disk error'));
-      fsMocks.createWriteStream.mockReturnValue({});
+      fsMocks.writeFile.mockRejectedValue(new Error('disk error'));
 
-      await expect(
-        profileRepository.storeOnUploadVolume(makeFile('image/png'), '/app/uploads/avatar.png'),
-      ).rejects.toMatchObject({ code: ERR_DEFS.SERVICE_GENERIC.code });
+      const call = profileRepository.storeOnUploadVolume(mockBuffer, mockPath);
+
+      await expect(call).rejects.toMatchObject({ code: ERR_DEFS.SERVICE_GENERIC.code });
     });
   });
 

@@ -11,11 +11,9 @@ import {
 } from '@transcendence/core';
 import { Trace } from '../utils/decorators.js';
 import { logger } from '../utils/logger.js';
-import { pipeline } from 'node:stream/promises';
-import { existsSync, createWriteStream } from 'node:fs';
-import { unlink } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import type { MultipartFile } from '@fastify/multipart';
 export class ProfileRepository {
   @Trace
   async createProfile(payload: ProfileCreateInDTO): Promise<UserProfile> {
@@ -102,10 +100,9 @@ export class ProfileRepository {
   }
 
   @Trace
-  async storeOnUploadVolume(file: MultipartFile, uploadPath: string): Promise<void> {
-    const writeStream = createWriteStream(uploadPath);
+  async storeOnUploadVolume(buffer: Buffer, uploadPath: string): Promise<void> {
     try {
-      await pipeline(file.file, writeStream);
+      await writeFile(uploadPath, buffer);
     } catch (err: unknown) {
       throw new AppError(ERR_DEFS.SERVICE_GENERIC, { details: 'Disk storage error' }, err);
     }

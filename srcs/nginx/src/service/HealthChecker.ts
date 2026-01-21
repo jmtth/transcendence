@@ -47,7 +47,7 @@ export class HealthChecker {
     const usersLabel = usersDot?.nextElementSibling?.nextElementSibling as HTMLElement;
     try {
       const response = await fetch('/api/users');
-      const data = await response.json();
+      await response.json();
 
       if (response.ok && usersDot) {
         await this.updateStatus(usersDot, usersLabel, true);
@@ -67,7 +67,7 @@ export class HealthChecker {
     const redisLabel = redisDot?.nextElementSibling?.nextElementSibling as HTMLElement;
     try {
       const response = await fetch('/api/redis');
-      const data = await response.json();
+      await response.json();
 
       if (response.ok && redisDot) {
         await this.updateStatus(redisDot, redisLabel, true);
@@ -88,7 +88,7 @@ export class HealthChecker {
 
     try {
       const response = await fetch('/api/health');
-      const data = await response.json();
+      await response.json();
 
       if (response.ok) {
         await this.updateStatus(apiDot, apiLabel, true);
@@ -109,7 +109,7 @@ export class HealthChecker {
 
     try {
       const response = await fetch('/api/game/health');
-      const data = await response.json();
+      await response.json();
 
       if (response.ok) {
         await this.updateStatus(gameDot, gameLabel, true);
@@ -130,7 +130,7 @@ export class HealthChecker {
 
     try {
       const response = await fetch('/api/block/health');
-      const data = await response.json();
+      await response.json();
 
       if (response.ok) {
         await this.updateStatus(blockDot, blockLabel, true);

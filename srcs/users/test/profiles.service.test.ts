@@ -1,8 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { ERR_DEFS, type ProfileCreateInDTO, type ProfileDTO } from '@transcendence/core';
 import { UserProfile } from '@prisma/client';
-import { PassThrough } from 'node:stream';
-import type { MultipartFile } from '@fastify/multipart';
 
 vi.mock('../src/utils/decorators.js', () => ({
   Trace: (_target: unknown, _propertyKey: string, descriptor: PropertyDescriptor) => descriptor,
@@ -19,12 +17,19 @@ vi.mock('../src/data/profiles.data.js', () => ({
   },
 }));
 
+vi.mock('file-type', () => ({
+  fileTypeFromBuffer: vi.fn(),
+}));
+
 vi.mock('node:fs/promises', () => ({
   mkdir: vi.fn(),
 }));
 
 import { profileRepository } from '../src/data/profiles.data.js';
 import { profileService } from '../src/services/profiles.service.js';
+import { MultipartFile } from '@fastify/multipart';
+import { PassThrough } from 'stream';
+import { fileTypeFromBuffer } from 'file-type';
 
 const mockProfile: ProfileDTO = {
   authId: 1,
@@ -130,6 +135,7 @@ describe('ProfileService', () => {
       vi.mocked(profileRepository.storeOnUploadVolume).mockResolvedValue();
       const updated = { ...mockProfile, avatarUrl: '/uploads/new.png' } satisfies ProfileDTO;
       vi.mocked(profileRepository.updateProfileAvatar).mockResolvedValue(updated);
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'png', mime: 'image/png' });
 
       const result = await profileService.updateAvatar('toto', makeFile('image/png'));
 
@@ -144,10 +150,10 @@ describe('ProfileService', () => {
 
     it('throws on invalid mimetype', async () => {
       vi.mocked(profileRepository.findProfileByUsername).mockResolvedValue(mockProfile);
+      vi.mocked(fileTypeFromBuffer).mockResolvedValue({ ext: 'txt', mime: 'text/plain' });
 
-      await expect(
-        profileService.updateAvatar('toto', makeFile('text/plain')),
-      ).rejects.toMatchObject({
+      const call = profileService.updateAvatar('toto', makeFile('text/plain'));
+      await expect(call).rejects.toMatchObject({
         code: ERR_DEFS.RESSOURCE_INVALID_TYPE.code,
         statusCode: ERR_DEFS.RESSOURCE_INVALID_TYPE.statusCode,
       });

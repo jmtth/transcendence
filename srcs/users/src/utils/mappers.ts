@@ -14,7 +14,7 @@ export function mapFriendshipToDTO(
   currentUserId: number,
 ): FriendshipUnifiedDTO {
   const friendProfile = f.receiver.authId === currentUserId ? f.requester : f.receiver;
-  const nickname = f.receiver.authId == currentUserId ? f.nicknameRequester : f.nicknameReceiver;
+  const nickname = f.receiver.authId === currentUserId ? f.nicknameRequester : f.nicknameReceiver;
   return {
     id: f.id,
     status: f.status,

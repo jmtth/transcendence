@@ -11,6 +11,7 @@ import { profileRepository } from '../data/profiles.data.js';
 import path from 'node:path';
 import type { MultipartFile } from '@fastify/multipart';
 import { mkdir } from 'node:fs/promises';
+import { fileTypeFromBuffer } from 'file-type';
 
 async function getProfileOrThrow(username: string): Promise<ProfileDTO> {
   const profile = await profileRepository.findProfileByUsername(username);
@@ -55,20 +56,21 @@ export class ProfileService {
   async updateAvatar(username: string, file: MultipartFile): Promise<ProfileDTO> {
     const profile = await getProfileOrThrow(username);
 
-    // manual validation (can Zod do this ?)
-    const allowedMimeTypes = ['image/png', 'image/jpeg', 'image/webp'];
-    if (!allowedMimeTypes.includes(file.mimetype)) {
+    const data = await file.toBuffer();
+
+    const type = await fileTypeFromBuffer(data);
+    const allowedTypes = ['image/png', 'image/jpeg'];
+    const isValidType = type && allowedTypes.includes(type.mime);
+    if (!isValidType) {
       throw new AppError(ERR_DEFS.RESSOURCE_INVALID_TYPE, { details: 'Invalid file type' });
     }
 
-    const fileExtension = path.extname(file.filename);
-    const uniqueName = `avatar-${username}-${Date.now()}${fileExtension}`;
-
+    const uniqueName = `avatar-${username}-${Date.now()}.${type.ext}`;
     const uploadDir = '/app/uploads';
     const uploadPath = path.join(uploadDir, uniqueName);
     const publicUrl = `/uploads/${uniqueName}`;
     await mkdir(uploadDir, { recursive: true });
-    await profileRepository.storeOnUploadVolume(file, uploadPath);
+    await profileRepository.storeOnUploadVolume(data, uploadPath);
 
     const updatedProfile = await profileRepository.updateProfileAvatar(profile.authId, publicUrl);
     return updatedProfile;
