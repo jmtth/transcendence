@@ -48,6 +48,9 @@ subjectAltName = @alt_names
 [ alt_names ]
 DNS.1 = ${name}
 EOF
+  if [ "$name" = "blockchain-service" ]; then
+    echo "DNS.2 = localhost" >> "$file"
+  fi
 }
 
 # ============================================================
@@ -95,7 +98,11 @@ for SERVICE in "${SERVICES[@]}"; do
     -key "$DIR/$SERVICE.key" \
     -out "$DIR/$SERVICE.csr" \
     -config "$SAN_CONF"
-
+  
+  EXT="server_ext"
+  if [ "$SERVICE" = "api-gateway" ]; then
+    EXT="client_server_ext"
+  fi
   openssl x509 -req \
     -in "$DIR/$SERVICE.csr" \
     -CA "$CA_DIR/ca.crt" \
@@ -105,7 +112,7 @@ for SERVICE in "${SERVICES[@]}"; do
     -days 825 \
     -sha256 \
     -extfile "$OPENSSL_CONF" \
-    -extensions client_ext
+    -extensions "$EXT"
 done
 
 # ============================================================

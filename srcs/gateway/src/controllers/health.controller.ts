@@ -1,12 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { logger } from '../utils/logger.js';
-// import { mtlsAgent } from '../utils/mtlsAgent.js';
-// import { fetch } from 'undici';
+import { fetchOptions } from '../utils/mtlsAgent.js';
 
 const SERVICES: Record<string, { host: string; port: number }> = {
   auth: { host: 'auth-service', port: 3001 },
   user: { host: 'user-service', port: 3002 },
-  // game: { host: 'game-service', port: 3003 },
+  game: { host: 'game-service', port: 3003 },
   blockchain: { host: 'blockchain-service', port: 3005 },
 };
 
@@ -26,7 +25,7 @@ export async function healthByNameHandler(req: FastifyRequest, reply: FastifyRep
   }
 
   try {
-    const res = await fetch(`https://${service.host}:${service.port}/health`);
+    const res = await fetch(`https://${service.host}:${service.port}/health`, fetchOptions);
     const healthy = res.status === 200;
 
     req.log.info({
@@ -58,7 +57,7 @@ export async function healthAllHandler(req: FastifyRequest, reply: FastifyReply)
   await Promise.all(
     Object.entries(SERVICES).map(async ([name, service]) => {
       try {
-        const res = await fetch(`https://${service.host}:${service.port}/health`);
+        const res = await fetch(`https://${service.host}:${service.port}/health`, fetchOptions);
         results[name] = res.status === 200 ? 'healthy' : 'unhealthy';
       } catch (error) {
         results[name] = `unhealthy (error: ${(error as Error).message})`;
