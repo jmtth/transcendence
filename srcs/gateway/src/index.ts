@@ -8,8 +8,7 @@ import { apiRoutes, publicRoutes } from './routes/gateway.routes.js';
 import { logger, optimizeErrorHandler } from './utils/logger.js';
 import { verifyRequestJWT } from './utils/jwt.service.js';
 import { GATEWAY_CONFIG, ERROR_CODES } from './utils/constants.js';
-import { UserPayload } from './types/user.types.js';
-import { registerUsersRoutes } from './controllers/um.controller.js';
+import { UserPayload } from './types/types.d.js';
 
 const app = fastify({
   logger: false, // Utiliser notre logger
@@ -50,26 +49,6 @@ app.register(websocketPlugin);
 
 app.addContentTypeParser('multipart/form-data', function (req, payload, done) {
   done(null, payload); // Pass raw stream through
-});
-
-app.addContentTypeParser('application/json', (request, payload, done) => {
-  // for users routes = streaming
-  if (request.url.includes('/api/users')) {
-    done(null, payload);
-  } else {
-    // for others routes = parsing
-    let data = '';
-    payload.on('data', (chunk) => {
-      data += chunk;
-    });
-    payload.on('end', () => {
-      try {
-        done(null, JSON.parse(data));
-      } catch (e) {
-        done(e as Error);
-      }
-    });
-  }
 });
 
 // Hook verify JWT routes `/api` sauf les routes publiques
@@ -126,29 +105,20 @@ export const getInternalHeaders = (req: FastifyRequest): Record<string, string> 
 app.decorate(
   'fetchInternal',
   async (request: FastifyRequest, url: string, init: RequestInit = {}) => {
-    const headers = getInternalHeaders(request);
+    const userName = request.user?.username || request.headers['x-user-name'] || '';
+    const userId = request.user?.sub || request.user?.id || request.headers['x-user-id'] || '';
 
-    let existingHeaders: Record<string, string> = {};
-    if (init.headers) {
-      if (init.headers instanceof Headers) {
-        init.headers.forEach((value, key) => {
-          existingHeaders[key] = value;
-        });
-      } else {
-        existingHeaders = { ...(init.headers as Record<string, string>) };
-      }
-    }
-    return fetch(url, {
-      ...init,
-      headers: {
-        ...existingHeaders,
-        ...headers,
-      },
+    const headers = Object.assign({}, init.headers || {}, {
+      'x-user-name': userName,
+      'x-user-id': String(userId),
+      'x-user-role': request.user?.role || 'USER',
+      cookie: request.headers?.cookie || '',
     });
+
+    return fetch(url, Object.assign({}, init, { headers }));
   },
 );
 
-// Log request end - duplicate with proxy
 app.addHook('onResponse', async (request: FastifyRequest, reply: FastifyReply) => {
   logger.logRequest(
     {
@@ -191,8 +161,6 @@ app.register(fastifyCors, {
 // Register routes
 app.register(apiRoutes, { prefix: '/api' });
 app.register(publicRoutes);
-
-app.register(registerUsersRoutes, { prefix: '/api/users' });
 
 // Start the server
 app.listen({ host: '0.0.0.0', port: 3000 }, (err: Error | null, address: string) => {
