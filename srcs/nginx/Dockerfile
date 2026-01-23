@@ -3,6 +3,7 @@
 # ==========================
 
 FROM node:20-alpine AS builder
+
 WORKDIR /build
 
 # Copy root package files for workspace resolution
@@ -11,7 +12,7 @@ WORKDIR /build
 # Install dependencies
 COPY package.json package-lock.json ./
 COPY srcs/nginx/package.json ./srcs/nginx/
-RUN npm i
+RUN npm ci
 
 # Copy and build shared core first - done before in Makefile yet 
 COPY srcs/shared/core/package*.json ./srcs/shared/core/
@@ -29,6 +30,17 @@ RUN npm run build -w srcs/nginx
 # ==========================
 
 FROM nginx:alpine
+
+WORKDIR /app
+
+# Copy core artefacts
+# COPY --from=builder /build/srcs/shared/core/dist ./srcs/shared/core/dist
+
+# Copy React app built with Vite
+COPY --from=builder /build/srcs/nginx/dist /usr/share/nginx/src/html/
+
+# Copy dashboard
+COPY --from=builder /build/srcs/nginx/html/dashboard.html /usr/share/nginx/html/
 
 # Installer wget pour health check
 RUN apk add --no-cache wget openssl
@@ -50,12 +62,6 @@ RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 COPY srcs/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY srcs/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY srcs/nginx/conf.d/proxy_headers.conf /etc/nginx/conf.d/proxy_headers.conf
-
-# Copy React app built with Vite
-COPY --from=builder /build/srcs/nginx/dist /usr/share/nginx/src/html/
-
-# Copy dashboard
-COPY --from=builder /build/srcs/nginx/html/dashboard.html /usr/share/nginx/html/
 
 # Create directory for uploads
 RUN mkdir -p /usr/share/nginx/html/uploads \
