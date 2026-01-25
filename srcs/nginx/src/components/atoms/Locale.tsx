@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { NavDropdown } from './NavDropDown';
+import { useHoverMenu } from '../../hooks/HoverMenu';
+import { useTranslation } from 'react-i18next';
 
 interface LocaleProps {
   initialLanguage?: string;
@@ -10,44 +12,44 @@ const countries: Record<string, string> = {
   en: '🇬🇧',
 };
 
-export const Locale = ({ initialLanguage = 'fr', className }: LocaleProps) => {
-  const [language, setLanguage] = useState(initialLanguage);
-  const [isOpen, setIsOpen] = useState(false);
-  const toggleMenu = () => setIsOpen(!isOpen);
+export const Locale = ({ className }: LocaleProps) => {
+  const { i18n } = useTranslation();
+  const { isOpen, onMouseEnter, onMouseLeave } = useHoverMenu();
+  const currentLang = i18n.language.split('-')[0];
+
   const selectLanguage = (code: string) => {
-    setLanguage(code);
-    setIsOpen(false);
+    i18n.changeLanguage(code);
   };
 
   return (
-    <div className={`${className}`}>
-      <div
-        className={`
-          relative inline-block
+    <div
+      className={`
+          relative inline-block ${className}
         `}
-      >
-        <button
-          onClick={toggleMenu}
-          className="w-10 h-10 border-gray-200/80 rounded-full overflow-hidden border-2 shadow-sm flex items-center justify-center hover:bg-white transition-colors"
-        >
-          {countries[language] || '🌐'}
-        </button>
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <button className="w-10 h-10 bg-white/20 border-gray-200/80 rounded-full overflow-hidden border-2 shadow-sm flex items-center justify-center hover:bg-white transition-colors">
+        <span className="text-xl">{countries[currentLang] || '🌐'}</span>
+      </button>
 
-        {isOpen && (
-          <div className="absolute top-12 left-1/2 -translate-x-1/2 bg-white/80 border border-gray-200 rounded-lg shadow-lg py-2 z-10">
-            {Object.entries(countries).map(([code, flag]) => (
+      <NavDropdown isOpen={isOpen} yTranslate={6}>
+        <ul className="flex flex-col items-center space-y-3 w-full">
+          {Object.entries(countries).map(([code, flag]) => (
+            <li key={code} className="w-full">
               <button
-                key={code}
                 onClick={() => selectLanguage(code)}
-                className="flex items-center w-full px-4 py-2 hover:bg-gray-100 text-lg"
+                className={`w-full text-center py-1 text-sm font-medium transition-transform hover:scale-110
+                  ${currentLang === code ? 'text-slate-900' : 'text-slate-300'}`}
               >
-                <span className="mr-2">{flag}</span>
-                <span className="test-sm text-gray-700">{code}</span>
+                {flag} <span className="uppercase ml-1">{code}</span>
               </button>
-            ))}
-          </div>
-        )}
-      </div>
+            </li>
+          ))}
+        </ul>
+      </NavDropdown>
     </div>
   );
+  {
+  }
 };

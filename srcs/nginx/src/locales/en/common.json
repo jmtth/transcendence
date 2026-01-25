@@ -21,7 +21,8 @@
     "home": "Home",
     "about": "About",
     "play": "Play",
-    "stats": "Stats"
+    "stats": "Stats",
+    "profile": "Profile"
   },
   "footer": {
     "copyright": "© 2026 . All rights reserved.",

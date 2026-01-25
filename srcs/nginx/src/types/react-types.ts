@@ -7,6 +7,7 @@ export enum MenuActions {
   HOME = 'home',
   PLAY = 'play',
   STATS = 'stats',
+  PROFILE = 'profile',
 }
 
 export enum Roles {

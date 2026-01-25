@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'framer-motion';
+import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { MenuActions } from '../../types/react-types';
 import { interpolate, Shape } from 'flubber';
 import { useTranslation } from 'react-i18next';
+import { NavDropdown } from './NavDropDown';
 
 type Color = 'white' | 'cyan';
 interface Item {
@@ -23,8 +24,8 @@ const RACKET_PATH2 =
 // const RACKET_PATH =
 //   'M8,2.56c3.01,0 5.44,2.43 5.44,5.44c0,0.75 -0.46,1.78 -0.82,2.52l-1.06,-0.89l-0.22,0.26l1.13,0.94l1.54,1.31c0.22,0.22 1.29,1.1 1.06,1.33l-1.54,1.58c-0.28,0.29 -1.1,-0.73 -1.31,-0.97l-0.21,-0.24l-2.1,-2.5l-0.26,0.22l0.94,1.11c-0.76,0.35 -1.84,0.74 -2.58,0.74c-3.01,0 -5.44,-2.43 -5.44,-5.44c0,-3.01 2.43,-5.44 5.44,-5.44z';
 
-// const USER_PATH =
-//   'M6.667 1.511q5.278 -0.455 4.356 4.8 -0.438 1.41 -1.422 2.489 -0.456 1.592 1.156 2.044a12.16 12.16 0 0 1 2.667 1.067q1.08 0.96 0.889 2.4h-12.8q-0.191 -1.44 0.889 -2.4a12.16 12.16 0 0 1 2.667 -1.067q1.612 -0.452 1.156 -2.044 -2.247 -2.473 -1.244 -5.689 0.641 -1.042 1.689 -1.6';
+const USER_PATH =
+  'M6.667 1.511q5.278 -0.455 4.356 4.8 -0.438 1.41 -1.422 2.489 -0.456 1.592 1.156 2.044a12.16 12.16 0 0 1 2.667 1.067q1.08 0.96 0.889 2.4h-12.8q-0.191 -1.44 0.889 -2.4a12.16 12.16 0 0 1 2.667 -1.067q1.612 -0.452 1.156 -2.044 -2.247 -2.473 -1.244 -5.689 0.641 -1.042 1.689 -1.6';
 
 // Props
 
@@ -40,9 +41,8 @@ const paths: Record<MenuActions, string> = {
   [MenuActions.PLAY]: RACKET_PATH2,
   [MenuActions.HOME]: HOUSE_PATH,
   [MenuActions.STATS]: PIE_PATH,
+  [MenuActions.PROFILE]: USER_PATH,
 };
-
-const dropdownStyle = 'shadow-[0_10px_10px_1px_rgba(255,255,255,0.4)] border-white-400/70';
 
 const fadeTransition = {
   duration: 0.3,
@@ -58,6 +58,7 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
     [MenuActions.PLAY]: t('navbar.play'),
     [MenuActions.HOME]: t('navbar.home'),
     [MenuActions.STATS]: t('navbar.stats'),
+    [MenuActions.PROFILE]: t('navbar.profile'),
   };
   const title = titles[action];
   const targetPath = paths[action];
@@ -67,10 +68,10 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
   useEffect(() => {
     const controls = animate(progress, isHovered ? 1 : 0, {
       duration: 0.8,
-      ease: 'easeInOut', // or [0.4, 0, 0.2, 1]
+      ease: 'easeInOut',
     });
     return controls.stop;
-  }, [isHovered, targetPath]); //
+  }, [isHovered, targetPath]);
 
   return (
     <motion.div
@@ -89,7 +90,6 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
           transition={{ duration: 0.8, ease: 'easeInOut' }}
           className="absolute inset-0 rounded-full bg-white"
           style={{
-            // Le dégradé radial est mathématiquement circulaire, pas de coins carrés
             background:
               'radial-gradient(circle, rgba(255,255,255,0.9) 60%, rgba(255,255,255,0.5) 20%, rgba(255,255,255,0) 70%)',
           }}
@@ -121,40 +121,20 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
       >
         {title}
       </motion.span>
-
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className={`
-            absolute top-full left-1/2 -translate-x-1/2 
-            mt-5 
-            w-64 pt-6 pb-10 px-4
-            bg-slate-100/80 backdrop-blur-xl 
-            border-t-0 border-b-0 border-x-0 rounded-t-none rounded-b-[8rem]
-            flex flex-col items-center justify-start
-            z-50 ${dropdownStyle}
-            `}
-          >
-            <div className="absolute top-0 left-0 w-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
-            <ul className="flex flex-col items center space-y-2 w-full">
-              {items.map((item, index) => (
-                <li key={index} className="w-full text-center">
-                  <a
-                    href={item.href}
-                    className="block py-1 px-x text-slate-900 hover:text-white hover:scale-110 transition-all text-sm font-medium tracking-wide"
-                  >
-                    {item.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <NavDropdown isOpen={isHovered}>
+        <ul className="flex flex-col items-center space-y-2 w-full">
+          {items.map((item, index) => (
+            <li key={index} className="w-full text-center">
+              <a
+                href={item.href}
+                className="block py-1 px-x text-slate-900 hover:text-slate-600 hover:scale-110 transition-all text-sm font-medium tracking-wide"
+              >
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </NavDropdown>
     </motion.div>
   );
 };

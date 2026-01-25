@@ -1,9 +1,10 @@
-import { UserRow } from './UserRow';
+// import { UserRow } from './UserRow';
 import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
 import { Link } from 'react-router-dom';
 import { Locale } from '../atoms/Locale';
 import { useAuth } from '../../providers/AuthProvider';
+import Avatar from '../atoms/Avatar';
 
 const playItems = [
   { label: 'Play with friend', href: '#friends' },
@@ -14,6 +15,11 @@ const playItems = [
 const statsItems = [
   { label: 'Statistics', href: '#stats' },
   { label: 'History', href: '#history' },
+];
+
+const profileItems = [
+  { label: 'Profile', href: '#profile' },
+  { label: 'Logout', href: '#logout' },
 ];
 
 // const homeItems = [{ label: 'Home', href: '#' }];
@@ -36,18 +42,20 @@ export const NavBar = () => {
         <>
           <MenuElement action={MenuActions.PLAY} items={playItems} scale={0.7}></MenuElement>
           <MenuElement action={MenuActions.STATS} items={statsItems}></MenuElement>
-          <div className="flex items-center">
+          <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
+          <div className="flex flex-col items-center justify-around">
             <Link
               to="/me"
               className="hover:opacity-80 transition-opacity"
               style={{ textDecoration: 'non', color: 'inherit' }}
             >
-              <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow>
+              <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
+              {/* <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow> */}
             </Link>
+            <Locale className="flex items-center" />
           </div>
         </>
       )}
-      <Locale className="ml-2 flex items-center" />
     </nav>
   );
 };
