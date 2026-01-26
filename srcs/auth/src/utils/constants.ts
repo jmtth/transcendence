@@ -5,7 +5,7 @@
 
 export const UM_SERVICE_NAME = process.env['UM_SERVICE_NAME'] || 'user-service';
 export const UM_SERVICE_PORT = process.env['UM_SERVICE_PORT'] || '3002';
-export const UM_SERVICE_URL = `http://${UM_SERVICE_NAME}:${UM_SERVICE_PORT}`;
+export const UM_SERVICE_URL = `https://${UM_SERVICE_NAME}:${UM_SERVICE_PORT}`;
 
 export const AUTH_CONFIG = {
   // JWT Configuration

@@ -26,7 +26,7 @@ export function registerAuthRoutes(app: FastifyInstance) {
       const rawPath = request.params['*'];
       const cleanPath = rawPath.startsWith('/') ? rawPath.substring(1) : rawPath;
       const url = `${AUTH_SERVICE_URL}/${cleanPath}`;
-      const queryString = new URL(request.url, 'http://localhost').search;
+      const queryString = new URL(request.url, 'https://localhost').search;
       const fullUrl = `${url}${queryString}`;
 
       // Configuration de la requête avec l'agent mTLS

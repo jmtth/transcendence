@@ -46,6 +46,7 @@ openssl x509 -req -in service.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out 
 > Ce fichier est la base de configuration pour OpenSSL. Il définit les règles et les caractéristiques techniques des certificats que nous créons.
 
 - Rôles et Permissions : définition des sections spécifiques (extensions) pour s'assurer que chaque certificat ne peut faire que ce pour quoi il est prévu :
+
   - `ca_ext` : Autorise un certificat à signer d'autres certificats (réservé à ton AC interne).
   - `server_ext` : Destiné aux microservices (Auth, Users) pour qu'ils prouvent leur identité de serveur.
   - `client_ext` : Destiné à un client pour prouver son identité.
@@ -145,6 +146,7 @@ ssl_verify_client optional;
 
 > [!WARNING]
 > Si vous créez un nouveau microservice, n'oubliez pas d'ajouter son volume de certificats dans le docker-compose.yml et d'utiliser le mtlsAgent pour vos appels API.
+> Vous pouvez aller voir le code des controller dans le service api-gateway
 
 ## Rappel du sujet:
 
