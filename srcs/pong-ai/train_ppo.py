@@ -29,9 +29,9 @@ def train_moderate_agent(
     
     device = "cuda" if use_gpu else "cpu"
     
-    print(f"🎮 Training on {device}")
-    print(f"📊 Steps: {total_timesteps:,}")
-    print(f"⏱️  Time: ~{total_timesteps // 2000} minutes")
+    print(f"Training on {device}")
+    print(f"Steps: {total_timesteps:,}")
+    print(f"Time: ~{total_timesteps // 2000} minutes")
     print("-" * 50)
     
     model = PPO(
@@ -74,11 +74,11 @@ def train_moderate_agent(
         )
         
         model.save(f"{save_path}/pong_moderate_final")
-        print(f"\n✅ Training complete!")
-        print(f"💾 Model saved: {save_path}/pong_moderate_final.zip")
+        print(f"\nTraining complete!")
+        print(f"Model saved: {save_path}/pong_moderate_final.zip")
         
     except KeyboardInterrupt:
-        print("\n⚠️  Training interrupted")
+        print("\nTraining interrupted")
         model.save(f"{save_path}/pong_moderate_interrupted")
     
     finally:
@@ -96,7 +96,7 @@ def test_agent(model_path, episodes=5, render=True):
     total_scores_ai = []
     total_scores_player = []
     
-    print(f"\n🎮 Testing agent: {episodes} episodes")
+    print(f"\nTesting agent: {episodes} episodes")
     print("-" * 50)
     
     for episode in range(episodes):
@@ -122,12 +122,12 @@ def test_agent(model_path, episodes=5, render=True):
     env.close()
     
     print("-" * 50)
-    print(f"📊 Mean reward: {np.mean(total_rewards):.2f} ± {np.std(total_rewards):.2f}")
-    print(f"🎯 Mean AI score: {np.mean(total_scores_ai):.2f}")
-    print(f"🎯 Mean player score: {np.mean(total_scores_player):.2f}")
+    print(f"Mean reward: {np.mean(total_rewards):.2f} ± {np.std(total_rewards):.2f}")
+    print(f"Mean AI score: {np.mean(total_scores_ai):.2f}")
+    print(f"Mean player score: {np.mean(total_scores_player):.2f}")
     
     win_rate = np.mean([ai > player for ai, player in zip(total_scores_ai, total_scores_player)])
-    print(f"🏆 AI win rate: {win_rate * 100:.1f}%")
+    print(f"AI win rate: {win_rate * 100:.1f}%")
 
 
 if __name__ == "__main__":
