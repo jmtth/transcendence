@@ -14,18 +14,24 @@ WORKDIR /app
 
 # all package files to get necessary node modules
 COPY package.json package-lock.json ./
-COPY srcs/shared/core/package.json ./srcs/shared/core/package.json
-COPY srcs/users/package.json ./srcs/users/package.json
+COPY srcs/shared/core/package*.json ./srcs/shared/core/
+COPY srcs/users/package*.json ./srcs/users/
 RUN npm ci
 
 COPY srcs/shared/core/src ./srcs/shared/core/src
 COPY srcs/users/ ./srcs/users/
+COPY srcs/users/prisma ./srcs/users/prisma
+COPY srcs/users/prisma.config.ts ./srcs/users/
 
-WORKDIR /app/srcs/users
-RUN npx prisma generate
-RUN npx vite build
+RUN ls -la /app/node_modules/@prisma/client/runtime/ || echo "Dossier runtime n'existe pas"
+RUN find /app/node_modules/@prisma -name "*.wasm*" || echo "Aucun fichier WASM trouvé"
 
-WORKDIR /app
+
+
+RUN npx prisma generate --schema=./srcs/users/prisma/schema.prisma
+
+RUN cd srcs/users && npx vite build
+
 RUN npm prune --omit=dev
 
 # ==========================
