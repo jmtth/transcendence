@@ -19,18 +19,8 @@ export async function createUserProfile(payload: CreateProfileDTO): Promise<User
         'x-user-name': (payload.username as string) || '',
       },
       body: JSON.stringify(payload),
-      dispatcher: mtlsAgent, // Injection cruciale pour le mTLS
+      dispatcher: mtlsAgent,
     };
-    // const response = await fetch(`${UM_SERVICE_URL}/`, {
-    // method:
-    // headers: {
-    // 'Content-Type': 'application/json',
-    // 'x-user-id': String(payload.authId),
-    // 'x-user-name': payload.username,
-    // },
-    // body: JSON.stringify(payload),
-    // dispatcher: mtlsAgent,
-    // });
     const response = await fetch(`${UM_SERVICE_URL}/`, init);
 
     if (!response.ok) {

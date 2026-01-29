@@ -50,7 +50,7 @@ export function registerAuthRoutes(app: FastifyInstance) {
       };
 
       const rawUser = request.headers['x-user-name'] as string | string[] | undefined;
-      const user = Array.isArray(rawUser) ? rawUser[0] : rawUser ?? null;
+      const user = Array.isArray(rawUser) ? rawUser[0] : (rawUser ?? null);
 
       logger.info({
         event: 'auth_proxy_request',
@@ -58,11 +58,6 @@ export function registerAuthRoutes(app: FastifyInstance) {
         method: request.method,
         user,
       });
-
-      // const init: RequestInit = {
-      //   method: request.method,
-      //   headers: {},
-      // };
 
       if (request.method !== 'GET' && request.method !== 'HEAD' && request.body) {
         // (init.headers as Record<string, string>)['content-type'] =
