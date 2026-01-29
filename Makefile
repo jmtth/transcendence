@@ -72,38 +72,40 @@ install:
 
 # --- Builds Node ---
 build-core: install
-	$(N_BUILD_WK)/shared/core
-build-nginx: install
-	$(N_BUILD_WK)/nginx
-build-auth: install
-	$(N_BUILD_WK)/auth
-build-game: install
-	$(N_BUILD_WK)/game
-build-block: install
-	$(N_BUILD_WK)/blockchain
-build-api: install
-	$(N_BUILD_WK)/gateway
-build-user: install
-	$(N_BUILD_WK)/users
+	npm run build --workspace @transcendence/core
+
+# build-nginx: install
+# 	$(N_BUILD_WK)/nginx
+# build-auth: install
+# 	$(N_BUILD_WK)/auth
+# build-game: install
+# 	$(N_BUILD_WK)/game
+# build-block: install
+# 	$(N_BUILD_WK)/blockchain
+# build-api: install
+# 	$(N_BUILD_WK)/gateway
+# build-user: install
+# 	$(N_BUILD_WK)/users
 # 	cd srcs/users && npm install && npm run build
 
 # --- Builds Images ---
-nginx: build-core
+nginx:
 	$(D_COMPOSE) up -d --build $(PROXY_SERVICE_NAME)
 redis: build-core
 	$(D_COMPOSE) up -d --build $(REDIS_SERVICE_NAME)
-api: build-core build-api
+api:
 	$(D_COMPOSE) up -d --build $(API_GATEWAY_NAME)
-auth: build-core build-auth
-	$(D_COMPOSE) up -d --build $(AUTH_SERVICE_NAME)
-user: build-core build-user
+auth:
+	$(D_COMPOSE) build $(AUTH_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(AUTH_SERVICE_NAME)
+user:
 	$(D_COMPOSE) build $(UM_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
-game: build-core build-game
+game:
 	$(D_COMPOSE) up -d --build $(GAME_SERVICE_NAME)
-block: build-core build-block
+block:
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
-build: build-core
+build:
 	$(D_COMPOSE) build
 build-dev: build-core
 	$(D_COMPOSE_DEV) build

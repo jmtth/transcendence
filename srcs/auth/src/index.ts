@@ -6,9 +6,10 @@ import { authRoutes } from './routes/auth.routes.js';
 import { initAdminUser, initInviteUser } from './utils/init-users.js';
 import * as totpService from './services/totp.service.js';
 import { loggerConfig } from './config/logger.config.js';
-import { AUTH_CONFIG, ERROR_CODES, EVENTS, REASONS } from './utils/constants.js';
+import { AUTH_CONFIG, EVENTS, REASONS } from './utils/constants.js';
 import { AppBaseError } from './types/errors.js';
 import { JWT_SECRET } from './config/env.js';
+import { ERROR_CODES } from '@transcendence/core';
 
 // Validation du JWT_SECRET au démarrage (CRITIQUE)
 if (!JWT_SECRET || JWT_SECRET === 'supersecretkey') {

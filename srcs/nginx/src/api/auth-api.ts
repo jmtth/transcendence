@@ -26,7 +26,7 @@ export const authApi = {
 
   me: async (username: usernameDTO): Promise<UserDTO> => {
     usernameSchema.parse(username);
-    // const response = await api.get(`/auth/me/${username}`);
+    // const response = await api.get(`/auth/me/`);
     const response = {
       data: {
         authId: 1,

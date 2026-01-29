@@ -12,15 +12,25 @@
 // Constants
 // ============================================================================
 
-export { RequestStatus, CONFIG } from './constants/index.js';
+export { RequestStatus, CONFIG, HTTP_STATUS } from './constants/index.js';
 
 // ============================================================================
 // Errors
 // ============================================================================
 
 export { ERR_DEFS } from './errors/error-catalog.js';
+export { ERROR_CODES } from './errors/error-codes.js';
 
-export { AppError, type ErrorDefinition, type ErrorCode } from './errors/error-types.js';
+export {
+  AppError,
+  FrontendError,
+  type ErrorDetail,
+  type ErrorDefinition,
+  type ErrorCode,
+  type HttpStatus,
+  mapZodIssuesToErrorDetails,
+  mapToFrontendError,
+} from './errors/error-types.js';
 
 // ============================================================================
 // Logging

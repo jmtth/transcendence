@@ -4,12 +4,13 @@ import { Input } from '../atoms/Input';
 import { Link, useNavigate } from 'react-router-dom';
 import { useActionState, useEffect } from 'react';
 import { useAuth } from '../../providers/AuthProvider';
-import { emailSchema, usernameSchema } from '@transcendence/core';
+import { emailSchema, FrontendError, HTTP_STATUS } from '@transcendence/core';
 import { authApi } from '../../api/auth-api';
 
 interface LoginState {
   fields?: {
     identifier: string;
+    username: string;
   };
   errors?: {
     identifier?: string;
@@ -21,34 +22,37 @@ interface LoginState {
 
 async function loginAction(prevState: LoginState | null, formData: FormData) {
   const data = Object.fromEntries(formData);
+  let username = '';
   const { identifier, password } = data as Record<string, string>;
-
-  const errors: Record<string, string> = {};
-
   const isEmail = emailSchema.safeParse(identifier).success;
-  const emailVal = emailSchema.safeParse(identifier);
-  const userVal = usernameSchema.safeParse(identifier);
-
-  if (!emailVal.success && !userVal.success) errors.identifier = 'Invalid identifier format';
-
-  if (Object.keys(errors).length > 0) {
-    return {
-      fields: { identifier },
-      errors,
-    };
-  }
-
   try {
-    const response = await authApi.login(
+    username = await authApi.login(
       isEmail ? { email: identifier, password } : { username: identifier, password },
     );
-    return { success: true, username: response };
+    return { success: true, fields: { identifier, username } };
   } catch (err: unknown) {
-    console.error('Login error:', err);
-    return {
-      fields: { identifier },
-      errors: { form: err instanceof Error ? err.message : 'Server error' },
+    const nextState: LoginState = {
+      fields: { identifier, username },
+      errors: {},
+      success: false,
     };
+    if (err instanceof FrontendError) {
+      if (err.statusCode === HTTP_STATUS.BAD_REQUEST && err.details) {
+        if (err.details) {
+          err.details.forEach((d) => {
+            if (d.field && d.field in nextState.errors!) {
+              const key = d.field as keyof NonNullable<LoginState['errors']>;
+              nextState.errors![key] = d.reason;
+            } else if (d.field) {
+              nextState.errors!.form = d.reason;
+            }
+          });
+        }
+      } else {
+        (nextState.errors as Record<string, string>)['form'] = err.message;
+      }
+    }
+    return nextState;
   }
 }
 
@@ -58,13 +62,12 @@ export const LoginForm = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   useEffect(() => {
-    if (state?.success && state?.username) {
-      const username = state.username;
+    if (state?.success && state.fields) {
+      const username = state.fields.username;
       login({ username: username, avatarUrl: null });
-
       navigate(`/profile/${username}`);
     }
-  }, [state?.success, state?.username, navigate]);
+  }, [state?.success, navigate]);
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <Input

@@ -38,7 +38,7 @@ export const AnimationPage = ({ className = '' }: AnimationPageProps) => {
       >
         <AnimatedLogo
           className="max-w-100 lg::w-full"
-          duration={12000}
+          duration={5000}
           onComplete={handleComplete}
         />
       </Background>

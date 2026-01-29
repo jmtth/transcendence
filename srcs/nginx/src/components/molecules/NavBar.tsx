@@ -6,22 +6,6 @@ import { Locale } from '../atoms/Locale';
 import { useAuth } from '../../providers/AuthProvider';
 import Avatar from '../atoms/Avatar';
 
-const playItems = [
-  { label: 'Play with friend', href: '#friends' },
-  { label: 'Play with AI', href: '#ai' },
-  { label: 'Tournament', href: '#tournament' },
-];
-
-const statsItems = [
-  { label: 'Statistics', href: '#stats' },
-  { label: 'History', href: '#history' },
-];
-
-const profileItems = [
-  { label: 'Profile', href: '#profile' },
-  { label: 'Logout', href: '#logout' },
-];
-
 // const homeItems = [{ label: 'Home', href: '#' }];
 
 // interface NavbarProps {
@@ -29,7 +13,23 @@ const profileItems = [
 // }
 
 export const NavBar = () => {
-  const { user, isLoggedIn } = useAuth();
+  const { user, isLoggedIn, logout } = useAuth();
+
+  const playItems = [
+    { label: 'Play with friend', to: '/friends' },
+    { label: 'Play with AI', to: '/ai' },
+    { label: 'Tournament', to: '/tournament' },
+  ];
+
+  const statsItems = [
+    { label: 'Statistics', to: '/stats' },
+    { label: 'History', to: '/history' },
+  ];
+
+  const profileItems = [
+    { label: 'Profile', to: '/profile' },
+    { label: 'Logout', onClick: logout },
+  ];
 
   return (
     <nav className="mb-3 bg-teal-800/30 p-2 w-full flex flex-row justify-evenly">

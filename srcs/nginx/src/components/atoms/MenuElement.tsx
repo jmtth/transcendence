@@ -4,11 +4,13 @@ import { MenuActions } from '../../types/react-types';
 import { interpolate, Shape } from 'flubber';
 import { useTranslation } from 'react-i18next';
 import { NavDropdown } from './NavDropDown';
+import { Link } from 'react-router-dom';
 
 type Color = 'white' | 'cyan';
 interface Item {
   label: string;
-  href: string;
+  to?: string;
+  onClick?: () => void;
 }
 
 const HALO_PATH =
@@ -125,12 +127,24 @@ const MenuElement = ({ action, items, scale = 1, className = '', ...props }: Men
         <ul className="flex flex-col items-center space-y-2 w-full">
           {items.map((item, index) => (
             <li key={index} className="w-full text-center">
-              <a
-                href={item.href}
-                className="block py-1 px-x text-slate-900 hover:text-slate-600 hover:scale-110 transition-all text-sm font-medium tracking-wide"
-              >
-                {item.label}
-              </a>
+              {item.onClick ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    item.onClick?.();
+                  }}
+                  className="block w-full py-1 px-2 text-slate-900 hover:text-slate-600 hover:scale-110 transition-all text-sm font-medium"
+                >
+                  {item.label}
+                </button>
+              ) : (
+                <Link
+                  to={item.to || '#'}
+                  className="block py-1 px-x text-slate-900 hover:text-slate-600 hover:scale-110 transition-all text-sm font-medium tracking-wide"
+                >
+                  {item.label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>

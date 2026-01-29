@@ -4,7 +4,14 @@ import { Input } from '../atoms/Input';
 import { Link, useNavigate } from 'react-router-dom';
 import { useActionState, useEffect } from 'react';
 import { authApi } from '../../api/auth-api';
-import { passwordSchema, emailSchema, usernameSchema } from '@transcendence/core';
+import {
+  passwordSchema,
+  emailSchema,
+  usernameSchema,
+  FrontendError,
+  HTTP_STATUS,
+  ERROR_CODES,
+} from '@transcendence/core';
 import { useAuth } from '../../providers/AuthProvider';
 
 interface SignupState {
@@ -25,6 +32,8 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
   const data = Object.fromEntries(formData);
   const { email, username, password } = data as Record<string, string>;
 
+  // const { t } = useTranslation();
+
   const errors: Record<string, string> = {};
 
   const emailVal = emailSchema.safeParse(email);
@@ -39,6 +48,7 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
     return {
       fields: { email, username },
       errors,
+      success: false,
     };
   }
 
@@ -47,11 +57,40 @@ async function signupAction(prevState: SignupState | null, formData: FormData) {
     await authApi.login({ username: username, password: password });
     return { success: true, fields: { username, email } };
   } catch (err: unknown) {
-    console.error('Signup or Login error:', err);
-    return {
+    const nextState: SignupState = {
       fields: { email, username },
-      errors: { form: err instanceof Error ? err.message : 'Server error' },
+      errors: {},
+      success: false,
     };
+    if (err instanceof FrontendError) {
+      if (err.statusCode === HTTP_STATUS.BAD_REQUEST && err.details) {
+        err.details.forEach((d) => {
+          if (d.field && d.field in nextState.errors!) {
+            const key = d.field as keyof NonNullable<SignupState['errors']>;
+            nextState.errors![key] = d.reason;
+          } else if (d.field) {
+            // If field is not part of state, error will be in form
+            nextState.errors!.form = d.reason;
+          }
+        });
+      }
+
+      if (err.statusCode === HTTP_STATUS.CONFLICT && err.details) {
+        err.details.forEach((d) => {
+          if (d.field && d.field in nextState.fields!) {
+            const key = d.field as keyof NonNullable<SignupState['fields']>;
+            nextState.errors![key] = err.message;
+          } else if (d.field) {
+            nextState.errors!.form = err.message;
+          }
+        });
+      } else {
+        (nextState.errors as Record<string, string>)['form'] = err.message;
+      }
+    } else {
+      (nextState.errors as Record<string, string>)['form'] = 'CONNFFF';
+    }
+    return nextState;
   }
 }
 
@@ -59,7 +98,14 @@ export const RegisterForm = () => {
   const { t } = useTranslation();
   const [state, formAction, isPending] = useActionState(signupAction, null);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { user, login, isLoggedIn } = useAuth();
+
+  useEffect(() => {
+    if (user && isLoggedIn) {
+      navigate(`/profile/${user.username}`);
+    }
+  }, [user, isLoggedIn]);
+
   useEffect(() => {
     if (state?.success && state.fields?.username) {
       const username = state.fields?.username;

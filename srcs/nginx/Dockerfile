@@ -14,7 +14,6 @@ RUN npm ci
 
 COPY srcs/shared/core/src ./srcs/shared/core/src
 COPY srcs/nginx/. ./srcs/nginx/.
-COPY srcs/nginx/src/html/dashboard.html ./srcs/nginx/html/dashboard.html 
 
 WORKDIR /app/srcs/nginx
 RUN npm run build
@@ -37,7 +36,7 @@ WORKDIR /app
 COPY --from=builder /app/srcs/nginx/dist /usr/share/nginx/src/html/
 
 # Copy dashboard
-COPY --from=builder /app/srcs/nginx/html/dashboard.html /usr/share/nginx/html/
+# COPY --from=builder /app/srcs/nginx/html/dashboard.html /usr/share/nginx/html/
 
 # Installer wget pour health check
 RUN apk add --no-cache wget openssl

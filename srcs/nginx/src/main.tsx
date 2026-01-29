@@ -5,6 +5,7 @@ import { App } from './App';
 import './i118n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './providers/AuthProvider';
+import { AxiosInterceptor } from './hooks/AxiosInterceptor';
 
 const queryClient = new QueryClient();
 
@@ -12,9 +13,11 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AuthProvider>
-          <App></App>
-        </AuthProvider>
+        <AxiosInterceptor>
+          <AuthProvider>
+            <App></App>
+          </AuthProvider>
+        </AxiosInterceptor>
       </BrowserRouter>
     </QueryClientProvider>
   </StrictMode>,

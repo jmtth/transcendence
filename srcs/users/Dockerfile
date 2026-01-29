@@ -12,21 +12,18 @@ FROM node:20-alpine AS builder
 RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
-# all package files to get necessary node modules
-COPY package.json package-lock.json ./
+COPY package*.json ./
 COPY srcs/shared/core/package*.json ./srcs/shared/core/
 COPY srcs/users/package*.json ./srcs/users/
 RUN npm ci
 
-COPY srcs/shared/core/src ./srcs/shared/core/src
-COPY srcs/users/ ./srcs/users/
+COPY srcs/shared/core ./srcs/shared/core
+COPY srcs/users ./srcs/users
 COPY srcs/users/prisma ./srcs/users/prisma
 COPY srcs/users/prisma.config.ts ./srcs/users/
 
-RUN ls -la /app/node_modules/@prisma/client/runtime/ || echo "Dossier runtime n'existe pas"
-RUN find /app/node_modules/@prisma -name "*.wasm*" || echo "Aucun fichier WASM trouvé"
-
-
+RUN ls -la /app/node_modules/@prisma/client/runtime/ || echo "No runtime directory for prisma client"
+RUN find /app/node_modules/@prisma -name "*.wasm*" || echo "No .wasm file found"
 
 RUN npx prisma generate --schema=./srcs/users/prisma/schema.prisma
 
@@ -41,9 +38,12 @@ RUN npm prune --omit=dev
 FROM node:20-alpine AS runner
 
 WORKDIR /app
+ENV NODE_ENV=production
+ENV HUSKY=0
 
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
+COPY --from=builder /app/srcs/shared/core/dist ./srcs/shared/core/dist
+COPY --from=builder /app/srcs/shared/core/package.json ./srcs/shared/core/package.json
 
 WORKDIR /app/srcs/users
 COPY --from=builder /app/srcs/users/package.json ./
@@ -54,11 +54,8 @@ COPY --from=builder /app/srcs/users/prisma ./prisma
 COPY --from=builder /app/srcs/users/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/srcs/users/entrypoint.sh ./entrypoint.sh
 
-# Skip husky in production
-ENV HUSKY=0
-ENV NODE_ENV=production
-
 RUN chmod +x ./entrypoint.sh && mkdir -p /app/data /app/uploads
+RUN apk add --no-cache openssl
 
 WORKDIR /app/srcs/users
 

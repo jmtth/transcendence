@@ -17,6 +17,18 @@
   "form": {
     "processing": "processing..."
   },
+  "errors": {
+    "validation_error": "Invalid format. Please check the submitted fields and try again.",
+    "unauthorized": "Authentication required. Please log in to access this resource.",
+    "invalid_credentials": "Invalid credentials. Please check your email/username and password and try again.",
+    "forbidden": "Access denied. You do not have the necessary permissions for this action.",
+    "not-found": "Resource not found. Please verify the ID or URL and try again.",
+    "conflict": "This identifier already exists. Please use a unique identifier.",
+    "rate_limit_exceeded": "Rate limit exceeded. Please try again in a few minutes",
+    "mfa_required": "Multi-factor authentication required. Please set up or enter your MFA code",
+    "invalid_mfa_code": "Invalid MFA code. Please check the code and try again",
+    "internal_error": "Internal server error. Please try again later."
+  },
   "navbar": {
     "home": "Home",
     "about": "About",

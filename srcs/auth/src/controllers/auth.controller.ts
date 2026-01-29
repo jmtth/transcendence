@@ -2,11 +2,15 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import * as authService from '../services/auth.service.js';
 import { ValidationSchemas } from '../utils/validation.js';
 import { AUTH_CONFIG, UserRole } from '../utils/constants.js';
-import { ServiceError } from '../types/errors.js';
 import * as totpService from '../services/totp.service.js';
 import { logger } from '../index.js';
 import { generateJWT } from '../services/jwt.service.js';
-
+import {
+  AppError,
+  ERROR_CODES,
+  mapToFrontendError,
+  mapZodIssuesToErrorDetails,
+} from '@transcendence/core';
 /**
  * Configuration des cookies avec security enforcée en production
  */
@@ -60,8 +64,8 @@ export async function registerHandler(
       return reply.code(409).send({
         error: {
           message: 'Username is already taken',
-          code: 'USERNAME_EXISTS',
-          field: 'username',
+          code: ERROR_CODES.CONFLICT,
+          details: [{ field: 'username' }],
         },
       });
     }
@@ -70,8 +74,8 @@ export async function registerHandler(
       return reply.code(409).send({
         error: {
           message: 'Email is already taken',
-          code: 'EMAIL_EXISTS',
-          field: 'email',
+          code: ERROR_CODES.CONFLICT,
+          details: [{ field: 'email' }],
         },
       });
     }
@@ -86,7 +90,9 @@ export async function registerHandler(
       return reply.code(500).send({
         error: {
           message: "Erreur lors de la vérification du nom d'utilisateur. Veuillez réessayer.",
-          code: 'DB_FIND_USER_BY_USERNAME_ERROR',
+          // code: 'DB_FIND_USER_BY_USERNAME_ERROR',
+          code: ERROR_CODES.INTERNAL_ERROR,
+          details: [{ field: 'username' }],
         },
       });
     }
@@ -94,7 +100,9 @@ export async function registerHandler(
       return reply.code(500).send({
         error: {
           message: "Erreur lors de la vérification de l'email. Veuillez réessayer.",
-          code: 'DB_FIND_USER_BY_EMAIL_ERROR',
+          // code: 'DB_FIND_USER_BY_EMAIL_ERROR',
+          code: ERROR_CODES.INTERNAL_ERROR,
+          details: [{ field: 'email' }],
         },
       });
     }
@@ -117,14 +125,9 @@ export async function registerHandler(
     });
   } catch (err: any) {
     req.log.error({ event: 'register_error', username, email, err: err?.message || err });
-    if (err instanceof ServiceError) {
-      return reply.code(err.statusCode || 502).send({
-        error: {
-          message: err.message,
-          code: err.context?.event,
-          reason: err.context?.reason,
-          upstream: err.context?.originalError,
-        },
+    if (err instanceof AppError) {
+      return reply.code(err.statusCode).send({
+        error: mapToFrontendError(err),
       });
     }
     // Add errors handling
@@ -132,8 +135,8 @@ export async function registerHandler(
       return reply.code(409).send({
         error: {
           message: err.message || 'Username is already taken',
-          code: 'USERNAME_EXISTS',
-          field: 'username',
+          code: ERROR_CODES.CONFLICT,
+          details: [{ field: 'username' }],
         },
       });
     }
@@ -141,8 +144,8 @@ export async function registerHandler(
       return reply.code(409).send({
         error: {
           message: err.message || 'Email is already taken',
-          code: 'EMAIL_EXISTS',
-          field: 'email',
+          code: ERROR_CODES.CONFLICT,
+          details: [{ field: 'email' }],
         },
       });
     }
@@ -150,7 +153,7 @@ export async function registerHandler(
       return reply.code(500).send({
         error: {
           message: 'Impossible de créer votre compte pour le moment. Veuillez réessayer.',
-          code: 'DB_CREATE_USER_ERROR',
+          code: ERROR_CODES.INTERNAL_ERROR,
         },
       });
     }
@@ -159,7 +162,7 @@ export async function registerHandler(
         error: {
           message:
             "Ces informations sont déjà utilisées. Veuillez vérifier votre nom d'utilisateur et email.",
-          code: 'UNIQUE_VIOLATION',
+          code: ERROR_CODES.CONFLICT,
         },
       });
     }
@@ -167,7 +170,7 @@ export async function registerHandler(
     return reply.code(500).send({
       error: {
         message: "Une erreur s'est produite lors de la création du compte. Veuillez réessayer.",
-        code: 'INTERNAL_SERVER_ERROR',
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -184,71 +187,68 @@ export async function loginHandler(
     this.log.warn({ event: 'login_validation_failed', errors: validation.error.issues });
 
     // Formater les erreurs de validation
-    const fieldErrors: Record<string, string[]> = {};
-    validation.error.issues.forEach((issue: any) => {
-      const field = (issue.path[0] as string) || 'general';
-      if (!fieldErrors[field]) fieldErrors[field] = [];
-      fieldErrors[field].push(issue.message);
-    });
+    // const fieldErrors: Record<string, string[]> = {};
+    // validation.error.issues.forEach((issue: any) => {
+    //   const field = (issue.path[0] as string) || 'general';
+    //   if (!fieldErrors[field]) fieldErrors[field] = [];
+    //   fieldErrors[field].push(issue.message);
+    // });
 
     return reply.code(400).send({
       error: {
-        message: "Veuillez fournir un nom d'utilisateur (ou email) et un mot de passe valides.",
-        code: 'VALIDATION_ERROR',
-        details: validation.error.issues,
-        fields: fieldErrors,
+        code: ERROR_CODES.VALIDATION_ERROR,
+        details: mapZodIssuesToErrorDetails(validation.error.issues),
       },
     });
+    // fields: fieldErrors,
   }
 
   const { username, email, password } = validation.data;
   const identifier = username || email;
 
   // TypeScript safety check
-  if (!identifier) {
-    logger.warn({ event: 'login_failed', reason: 'missing_identifier' });
-    return reply.code(400).send({
-      error: {
-        message: "Veuillez entrer votre nom d'utilisateur ou votre adresse email.",
-        code: 'MISSING_IDENTIFIER',
-      },
-    });
-  }
+  // if (!identifier) {
+  //   logger.warn({ event: 'login_failed', reason: 'missing_identifier' });
+  //   return reply.code(400).send({
+  //     error: {
+  //       message: "Veuillez entrer votre nom d'utilisateur ou votre adresse email.",
+  //       code: 'MISSING_IDENTIFIER',
+  //     },
+  //   });
+  // }
 
-  if (!password) {
-    logger.warn({ event: 'login_failed', reason: 'missing_password' });
-    return reply.code(400).send({
-      error: {
-        message: 'Veuillez entrer votre mot de passe.',
-        code: 'MISSING_PASSWORD',
-      },
-    });
-  }
+  // if (!password) {
+  //   logger.warn({ event: 'login_failed', reason: 'missing_password' });
+  //   return reply.code(400).send({
+  //     error: {
+  //       message: 'Veuillez entrer votre mot de passe.',
+  //       code: 'MISSING_PASSWORD',
+  //     },
+  //   });
+  // }
 
   req.log.info({ event: 'login_attempt', identifier });
 
   try {
-    const user = authService.findUser(identifier);
+    const user = authService.findUser(identifier!);
 
     if (!user) {
       logger.warn({ event: 'login_failed', identifier, reason: 'user_not_found' });
       return reply.code(401).send({
         error: {
-          message: "Nom d'utilisateur ou mot de passe incorrect. Veuillez réessayer.",
-          code: 'INVALID_CREDENTIALS',
-          hint: 'Vérifiez que vous avez bien saisi vos identifiants.',
+          code: ERROR_CODES.INVALID_CREDENTIALS,
+          details: [{ field: 'identifier' }],
         },
       });
     }
 
-    const valid = authService.validateUser(identifier, password);
+    const valid = authService.validateUser(identifier!, password);
     if (!valid) {
       logger.warn({ event: 'login_failed', identifier, reason: 'invalid_password' });
       return reply.code(401).send({
         error: {
-          message: 'Mot de passe incorrect. Veuillez réessayer.',
-          code: 'INVALID_CREDENTIALS',
-          hint: 'Mot de passe oublié ? Contactez un administrateur.',
+          code: ERROR_CODES.INVALID_CREDENTIALS,
+          details: [{ field: 'password' }],
         },
       });
     }
@@ -303,15 +303,14 @@ export async function loginHandler(
     if (err && err.code === 'DB_FIND_USER_BY_IDENTIFIER_ERROR') {
       return reply.code(500).send({
         error: {
-          message: 'Erreur lors de la recherche de votre compte. Veuillez réessayer.',
-          code: 'DB_FIND_USER_BY_IDENTIFIER_ERROR',
+          message: 'Error recovering account',
+          code: ERROR_CODES.INTERNAL_ERROR,
         },
       });
     }
     return reply.code(500).send({
       error: {
-        message: "Une erreur s'est produite lors de la connexion. Veuillez réessayer.",
-        code: 'INTERNAL_SERVER_ERROR',
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -340,7 +339,7 @@ export async function verifyHandler(
     return reply.code(401).send({
       error: {
         message: 'No token provided',
-        code: 'TOKEN_MISSING',
+        code: ERROR_CODES.UNAUTHORIZED,
       },
     });
   }
@@ -356,7 +355,7 @@ export async function verifyHandler(
       return reply.code(401).send({
         error: {
           message: 'User not found',
-          code: 'USER_NOT_FOUND',
+          code: ERROR_CODES.INVALID_TOKEN,
         },
       });
     }
@@ -374,7 +373,7 @@ export async function verifyHandler(
     return reply.code(401).send({
       error: {
         message: 'Invalid or expired token',
-        code: 'INVALID_TOKEN',
+        code: ERROR_CODES.INVALID_TOKEN,
       },
     });
   }
@@ -393,7 +392,7 @@ export async function meHandler(this: FastifyInstance, req: FastifyRequest, repl
     return reply.code(401).send({
       error: {
         message: 'Authentication required',
-        code: 'UNAUTHORIZED',
+        code: ERROR_CODES.UNAUTHORIZED,
       },
     });
   }
@@ -407,7 +406,7 @@ export async function meHandler(this: FastifyInstance, req: FastifyRequest, repl
       return reply.code(404).send({
         error: {
           message: 'User not found',
-          code: 'USER_NOT_FOUND',
+          code: ERROR_CODES.UNAUTHORIZED,
         },
       });
     }
@@ -432,7 +431,7 @@ export async function meHandler(this: FastifyInstance, req: FastifyRequest, repl
     return reply.code(500).send({
       error: {
         message: 'Internal server error',
-        code: 'INTERNAL_SERVER_ERROR',
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -456,7 +455,7 @@ export async function listAllUsers(
     return reply.code(403).send({
       error: {
         message: 'Forbidden - Admin role required',
-        code: 'FORBIDDEN',
+        code: ERROR_CODES.FORBIDDEN,
       },
     });
   }
@@ -490,7 +489,7 @@ export async function listAllUsers(
     return reply.code(500).send({
       error: {
         message: 'Internal server error',
-        code: 'INTERNAL_SERVER_ERROR',
+        code: ERROR_CODES.INTERNAL_ERROR,
       },
     });
   }
@@ -512,7 +511,7 @@ export async function notFoundHandler(
   return reply.code(404).send({
     error: {
       message: `Route not found: ${request.method} ${request.url}`,
-      code: 'ROUTE_NOT_FOUND',
+      code: ERROR_CODES.NOT_FOUND,
     },
   });
 }

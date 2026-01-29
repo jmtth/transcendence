@@ -24,6 +24,18 @@ export default {
   },
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        dashboard: path.resolve(__dirname, 'src/html/dashboard.html'),
+      },
+      output: {
+        // Force un nom prédictible pour le script du dashboard
+        entryFileNames: (chunkInfo: { name: string }) => {
+          return chunkInfo.name === 'dashboard' ? 'assets/app.js' : 'assets/[name]-[hash].js';
+        },
+      },
+    },
   },
   css: {
     modules: {

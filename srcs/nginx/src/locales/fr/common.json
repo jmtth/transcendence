@@ -17,6 +17,18 @@
   "form": {
     "processing": "traitement..."
   },
+  "errors": {
+    "validation_error": "Format invalide. Veuillez vérifier les champs soumis et réessayer.",
+    "unauthorized": "Authentification requise. Veuillez vous connecter pour accéder à cette ressource",
+    "invalid_credentials": "Identifiants invalides. Vérifiez votre email/nom d'utilisateur et mot de passe et réessayez.",
+    "forbidden": "Accès refusé. Vous n'avez pas les permissions nécessaires pour cette action.",
+    "not-found": "Ressource introuvable. Vérifiez l'ID ou l'URL et réessayez.",
+    "conflict": "Cette ressource existe déjà. Utilisez un identifiant unique.",
+    "rate_limit_exceeded": "Limite de requêtes dépassée. Réessayez dans quelques minutes.",
+    "mfa_required": "Authentification à deux facteurs requise. Veuillez configurer ou saisir votre code MFA.",
+    "invalid_mfa_code": "Code MFA invalide. Vérifiez le code et réessayez.",
+    "internal_error": "Erreur interne du serveur. Veuillez réessayer plus tard."
+  },
   "navbar": {
     "home": "Accueil",
     "about": "A propos",

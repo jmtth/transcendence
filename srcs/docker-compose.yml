@@ -59,8 +59,8 @@ services:
 
   auth-service:
     build:
-      context: ./auth
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: srcs/auth/Dockerfile
     container_name: ${AUTH_SERVICE_NAME}
     expose:
       - '${AUTH_SERVICE_PORT}'
