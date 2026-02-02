@@ -76,46 +76,26 @@ lint-fix:
 
 # === Services ===
 
-# --- Installs Node ---
-install:
-	npm i
-
-# --- Builds Node ---
-build-core: install
-	$(N_BUILD_WK)/shared/core
-build-nginx: install
-	$(N_BUILD_WK)/nginx
-build-auth: install
-	$(N_BUILD_WK)/auth
-build-game: install
-	$(N_BUILD_WK)/game
-build-block: install
-	$(N_BUILD_WK)/blockchain
-build-api: install
-	$(N_BUILD_WK)/gateway
-build-user: install
-	$(N_BUILD_WK)/users
-# 	cd srcs/users && npm install && npm run build
 
 # --- Builds Images ---
-nginx: build-core
+nginx:
 	$(D_COMPOSE) up -d --build $(PROXY_SERVICE_NAME)
-redis: build-core
+redis:
 	$(D_COMPOSE) up -d --build $(REDIS_SERVICE_NAME)
-api: build-core build-api
+api:
 	$(D_COMPOSE) up -d --build $(API_GATEWAY_NAME)
-auth: build-core build-auth
+auth:
 	$(D_COMPOSE) up -d --build $(AUTH_SERVICE_NAME)
-user: build-core build-user
+user:
 	$(D_COMPOSE) build $(UM_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
-game: build-core build-game
+game:
 	$(D_COMPOSE) up -d --build $(GAME_SERVICE_NAME)
-block: build-core build-block
+block:
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
-build: build-core
+build:
 	$(D_COMPOSE) build
-build-dev: build-core
+build-dev:
 	$(D_COMPOSE_DEV) build
 
 # --- Test ---
@@ -123,10 +103,14 @@ test: certs install test-user
 
 test-coverage: certs install test-coverage-user
 
-test-user: build-core
-	cd srcs/users && npm install && npx vitest run --config vite.config.mjs
-test-coverage-user: build-core
-	cd srcs/users && npx vitest run --coverage --config vite.config.mjs
+test-user:
+	$(D_COMPOSE) run --rm user-service \
+		node ./node_modules/vitest/vitest.mjs run --config vite.config.mjs
+test-coverage-user:
+	$(D_COMPOSE) run --rm user-service \
+		node ./node_modules/vitest/vitest.mjs run \
+		--coverage \
+		--config vite.config.mjs
 
 test-block:
 	@gnome-terminal -- bash -c "cd srcs/blockchain/src/SmartContract && npx hardhat node" &

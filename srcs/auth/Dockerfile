@@ -5,38 +5,39 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Installer les deps (dev + prod)
+# Copy ROOT workspace manifests
 COPY package.json package-lock.json ./
-RUN npm install
 
-# Copier le code source
-COPY tsconfig.json ./
-COPY src ./src
+# les manisfests du service
+COPY srcs/auth/package.json ./srcs/auth/package.json
 
-# Compiler TypeScript → dist/
-RUN npm run build
+# Install full workspace deps
+RUN npm ci
 
+# Copy full monorepo
+COPY . .
+
+# Build auth-service only
+RUN npm run build --workspace srcs/auth
 
 
 # ==========================
-# Stage 2 — Production
+# Stage 2 — Runner
 # ==========================
-FROM node:20-alpine AS runner
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Installer wget pour health check
+ENV NODE_ENV=production
+
+# Install runtime-only system deps (wget for healthcheck)
 RUN apk add --no-cache wget
-RUN apk add --no-cache python3 make g++
-# Copier uniquement package.json pour installer deps prod
-COPY package.json package-lock.json ./
 
-# Installer uniquement les deps nécessaires en runtime
-RUN npm install --omit=dev
-
-# Copier build compilé depuis le builder
-COPY --from=builder /app/dist ./dist
+# Copy runtime deps and built artefacts
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/srcs/auth/dist ./dist
 
 EXPOSE 3001
 
 CMD ["node", "dist/index.js"]
+

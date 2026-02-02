@@ -1,46 +1,50 @@
 # ==========================
 # Stage 1 — Builder
 # ==========================
-FROM node:22-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
+
+# Native deps for sqlite / crypto libs
 RUN apk add --no-cache python3 make g++
-# Installer les deps (dev + prod)
+
+# Copy ROOT workspace manifests
 COPY package.json package-lock.json ./
-RUN npm install
 
-# Copier le code source
-COPY tsconfig.json ./
-COPY src ./src
+# Workspace manifests
+COPY srcs/blockchain/package.json ./srcs/blockchain/package.json
 
-# Compiler TypeScript → dist/
-RUN npm run build
+# Install full workspace deps
+RUN npm ci
+
+# Copy full monorepo
+COPY . .
+
+# Build blockchain-service only
+RUN npm run build --workspace srcs/blockchain
+
 
 # ==========================
-# Stage 2 — Production
+# Stage 2 — Runner
 # ==========================
-FROM node:22-alpine AS runner
+FROM node:20-alpine
 
 WORKDIR /app
 
-# Installer wget pour health check
+ENV NODE_ENV=production
+
+# Runtime-only tools
 RUN apk add --no-cache wget
 
-# Copier uniquement package.json pour installer deps prod
-COPY package.json package-lock.json ./
+# Copy runtime deps and built artefacts
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/srcs/blockchain/dist ./dist
 
-# Installer uniquement les deps nécessaires en runtime
-RUN apk add --no-cache --virtual .gyp python3 make g++ \
-    && npm install --omit=dev \
-    && apk del .gyp
-
-# Copier build compilé depuis le builder
-COPY --from=builder /app/dist ./dist
-# Copier les fichiers statiques et les vues qui ne sont pas compilés par TSC
-COPY src/views ./dist/views
-COPY src/public ./dist/public
-
+# Copy static assets (not compiled by tsc)
+COPY --from=builder /app/srcs/blockchain/src/views ./dist/views
+COPY --from=builder /app/srcs/blockchain/src/public ./dist/public
 
 EXPOSE 3005
 
 CMD ["node", "dist/server.js"]
+

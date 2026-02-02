@@ -1,65 +1,57 @@
 # ==========================
-# Stage 1 — Builder
+# Stage 1 — Builder (frontend only)
 # ==========================
-
 FROM node:20-alpine AS builder
-WORKDIR /build
 
-# Copy root package files for workspace resolution
-# Copy shared core package files
-# Copy nginx service package files
-# Install dependencies
+WORKDIR /app
+
+# Copy ROOT workspace manifests
 COPY package.json package-lock.json ./
-COPY srcs/nginx/package.json ./srcs/nginx/
-RUN npm i
 
-# Copy and build shared core first - done before in Makefile yet
-COPY srcs/shared/core/package*.json ./srcs/shared/core/
-COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/
+
+# Workspace manifests (OBLIGATOIRE avant npm ci)
+COPY srcs/shared/core/package.json ./srcs/shared/core/package.json
+COPY srcs/nginx/package.json ./srcs/nginx/package.json
+
+# Install deps once (workspace-aware)
+RUN npm ci
+
+# Build shared core (types/constants)
+COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
 COPY srcs/shared/core/src ./srcs/shared/core/src
 RUN npm run build --workspace srcs/shared/core
 
-# Copy code and build
-COPY srcs/nginx/. ./srcs/nginx/.
-COPY srcs/nginx/src/html/dashboard.html ./srcs/nginx/html/dashboard.html
-RUN npm run build -w srcs/nginx
+# Copy only nginx frontend sources
+COPY srcs/nginx ./srcs/nginx
 
-# Copy admin.html to the correct directory
-COPY srcs/nginx/src/html/admin.html ./srcs/nginx/html/admin.html
+# Build frontend (Vite)
+RUN npm run build --workspace srcs/nginx
+
 
 # ==========================
-# Stage 2 — Production
+# Stage 2 — Production (nginx)
 # ==========================
-
 FROM nginx:alpine
 
-# Installer wget pour health check
+# Runtime tools (healthcheck / TLS)
 RUN apk add --no-cache wget openssl
 
-# Remove default nginx conf
-RUN rm /etc/nginx/conf.d/default.conf || true
+# Remove default nginx config
+RUN rm -f /etc/nginx/conf.d/default.conf
 
-# Remove official entrypoint scripts
-RUN rm -f /docker-entrypoint.d/*
-
-
-# Copy nginx config
+# Copy nginx configuration
 COPY srcs/nginx/nginx.conf /etc/nginx/nginx.conf
 COPY srcs/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 COPY srcs/nginx/conf.d/proxy_headers.conf /etc/nginx/conf.d/proxy_headers.conf
 
-# Copy React app built with Vite
-COPY --from=builder /build/srcs/nginx/dist /usr/share/nginx/src/html/
+# Copy built frontend
+COPY --from=builder /app/srcs/nginx/dist /usr/share/nginx/html
 
-# Copy dashboard
-COPY --from=builder /build/srcs/nginx/html/dashboard.html /usr/share/nginx/html/
-
-# Copy admin page
-COPY --from=builder /build/srcs/nginx/html/admin.html /usr/share/nginx/html/
-
-# Create directory for uploads
+# Create uploads directory
 RUN mkdir -p /usr/share/nginx/html/uploads \
-  && chmod 755 /usr/share/nginx/html/uploads
+ && chmod 755 /usr/share/nginx/html/uploads
 
 EXPOSE 80 443
+
 CMD ["nginx", "-g", "daemon off;"]
+

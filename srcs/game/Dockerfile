@@ -1,29 +1,40 @@
-# Use official Node.js LTS
-FROM node:20-alpine
+# ==========================
+# Stage 1 — Builder
+# ==========================
+FROM node:20-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install any required packages (sqlite removed unless needed)
-# RUN apk add --no-cache sqlite sqlite-dev bash su-exec
+# Copy ROOT workspace manifests
+COPY package.json package-lock.json ./
 
-# Copy package.json files first to benefit from Docker cache
-COPY package*.json ./
+# Workspace manifests
+COPY srcs/game/package.json ./srcs/game/package.json
 
-# Install production dependencies
-RUN npm install
+# Install full workspace deps (deterministic)
+RUN npm ci
 
-# Copy app source code
-COPY src ./src
-COPY tsconfig.json .
+# Copy full monorepo
+COPY . .
 
-RUN npm run build
+# Build game-service only
+RUN npm run build --workspace srcs/game
 
-# Remove dev dependencies after build to reduce image size
-RUN npm prune --production
 
-# Expose WebSocket/HTTP port
+# ==========================
+# Stage 2 — Runner
+# ==========================
+FROM node:20-alpine
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+# Copy runtime deps and built artefacts
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/srcs/game/dist ./dist
+
 EXPOSE 3003
 
-# Default command (your file is game.js, not index.js)
 CMD ["node", "dist/server.js"]
+

@@ -10,32 +10,20 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy root package files for workspace resolution
+# 1. Copier UNIQUEMENT les manifests racine
 COPY package.json package-lock.json ./
 
-# Copy shared core package files
-COPY srcs/shared/core/package.json ./srcs/shared/core/package.json
-COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
-
-# Copy service package files
+# les manisfest du service
 COPY srcs/gateway/package.json ./srcs/gateway/package.json
-COPY srcs/gateway/package-lock.json ./srcs/gateway/package-lock.json
 
-# Install dependencies for workspace (this links @transcendence/core)
+# 2. Installation déterministe du monorepo
 RUN npm ci
 
-# Copy and build shared core first
-COPY srcs/shared/core/src ./srcs/shared/core/src
-RUN npm run build --workspace srcs/shared/core
+# 3. Copier tout le code
+COPY . .
 
-# Copy service source files
-COPY srcs/gateway/tsconfig.json ./srcs/gateway/tsconfig.json
-COPY srcs/gateway/src ./srcs/gateway/src
-
-WORKDIR /app/srcs/gateway
-
-# Build → dist/
-RUN npm run build
+# 4. Build uniquement la gateway
+RUN npm run build --workspace srcs/gateway
 
 # ==========================
 # Stage 2 — Production
@@ -46,27 +34,12 @@ FROM node:20-alpine AS runner
 # Keep the same workspace root as builder
 WORKDIR /app
 
-# Copy root workspace files
-COPY --from=builder /app/package.json /app/package-lock.json ./
+ENV NODE_ENV=production
 
-# Copy shared core (built artifacts + package.json for workspace resolution)
-COPY --from=builder /app/srcs/shared/core/package.json ./srcs/shared/core/package.json
-COPY --from=builder /app/srcs/shared/core/dist ./srcs/shared/core/dist
-
-# Copy service package files
-COPY --from=builder /app/srcs/gateway/package.json ./srcs/gateway/package.json
-COPY --from=builder /app/srcs/gateway/package-lock.json ./srcs/gateway/package-lock.json
-
-# Copy built artifacts
-COPY --from=builder /app/srcs/gateway/dist ./srcs/gateway/dist
-
-# Skip husky in production
-ENV HUSKY=0
-
-# Installer uniquement les deps nécessaires en runtime
-RUN npm ci --omit=dev
-
-WORKDIR /app/srcs/gateway
+# 5. Copier uniquement ce qui est nécessaire à la gateway
+COPY --from=builder /app/srcs/gateway/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3000
 
