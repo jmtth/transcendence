@@ -41,7 +41,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # 6) Installer UNIQUEMENT les dépendances runtime du workspace users
-# COPY package.json package-lock.json ./
 COPY package-lock.json ./package-lock.json
 COPY srcs/users/package.json ./package.json
 # audit and fund are done in builder
