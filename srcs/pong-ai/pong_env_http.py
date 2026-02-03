@@ -96,7 +96,6 @@ class PongEnv(gym.Env):
             ball = backend_state["ball"]
             paddles = backend_state["paddles"]
             
-            # Возвращаем: [ball_x, ball_y, left_paddle_center_y, right_paddle_center_y]
             left_paddle_y = paddles["left"]["y"] + paddles["left"]["height"] / 2
             right_paddle_y = paddles["right"]["y"] + paddles["right"]["height"] / 2
             
