@@ -304,19 +304,16 @@ export class GameDisplay {
 
       this.sessionId = data.sessionId;
       this.gameArena.classList.remove('hidden');
-      await this.openWebSocket(this.sessionId);
+      await this.openWebSocket(data.sessionId);
       this.showPanel('settings');
 
-      const aiResponse = await fetch('/api/pong-ai/join-game', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const aiResponse = await fetch(
+        `/api/pong-ai/join-game?sessionId=${encodeURIComponent(data.sessionId)}`,
+        {
+          method: 'GET',
+          credentials: 'include',
         },
-        credentials: 'include',
-        body: JSON.stringify({
-          sessionId: this.sessionId,
-        }),
-      });
+      );
 
       if (!aiResponse.ok) {
         throw new Error(`Failed to invite AI: ${aiResponse.status}`);
