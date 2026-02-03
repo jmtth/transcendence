@@ -8,7 +8,7 @@ const SERVICES: Record<string, { host: string; port: number }> = {
   blockchain: { host: 'blockchain-service', port: 3005 },
 };
 
-export async function healthHandler(request: FastifyRequest, reply: FastifyReply) {
+export async function healthHandler(requesFt: FastifyRequest, reply: FastifyReply) {
   return { status: 'healthy' };
 }
 
@@ -51,15 +51,18 @@ export async function healthByNameHandler(req: FastifyRequest, reply: FastifyRep
 }
 
 export async function healthAllHandler(req: FastifyRequest, reply: FastifyReply) {
+  const services = Object.values(SERVICES);
+
   const results: Record<string, string> = {};
 
   await Promise.all(
-    Object.entries(SERVICES).map(async ([name, service]) => {
+    services.map(async (service) => {
+      const serviceKey = `${service.host}:${service.port}`;
       try {
         const res = await fetch(`http://${service.host}:${service.port}/health`);
-        results[name] = res.status === 200 ? 'healthy' : 'unhealthy';
+        results[serviceKey] = res.status === 200 ? 'healthy' : 'unhealthy';
       } catch (error) {
-        results[name] = `unhealthy (error: ${(error as Error).message})`;
+        results[serviceKey] = `unhealthy (error: ${(error as Error).message})`;
       }
     }),
   );
