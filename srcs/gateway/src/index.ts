@@ -13,7 +13,7 @@ import { gatewayenv, UM_SERVICE_URL } from './config/env.js';
 import { UserPayload } from './types/types.d.js';
 import replyFrom from '@fastify/reply-from';
 import { mtlsAgent } from './utils/mtlsAgent.js';
-import { request, setGlobalDispatcher } from 'undici';
+import { setGlobalDispatcher } from 'undici';
 
 setGlobalDispatcher(mtlsAgent);
 const app = fastify({

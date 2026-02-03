@@ -39,14 +39,13 @@ openssl req -new -key service.key -out service.csr
 openssl x509 -req -in service.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out service.crt -days 365 -sha256
 ```
 
-## Gestion de notre infrastrure:
+## Gestion de notre infracstrure:
 
 ### 📄 1. `openssl.cnf` : Le "Plan d'Architecte"
 
 > Ce fichier est la base de configuration pour OpenSSL. Il définit les règles et les caractéristiques techniques des certificats que nous créons.
 
 - Rôles et Permissions : définition des sections spécifiques (extensions) pour s'assurer que chaque certificat ne peut faire que ce pour quoi il est prévu :
-
   - `ca_ext` : Autorise un certificat à signer d'autres certificats (réservé à ton AC interne).
   - `server_ext` : Destiné aux microservices (Auth, Users) pour qu'ils prouvent leur identité de serveur.
   - `client_ext` : Destiné à un client pour prouver son identité.
