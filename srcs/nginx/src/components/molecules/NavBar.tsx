@@ -32,7 +32,7 @@ export const NavBar = () => {
   ];
 
   return (
-    <nav className="mb-3 bg-teal-800/30 p-2 w-full flex flex-row justify-evenly">
+    <nav className="mb-3 bg-teal-800/30 p-5 w-full flex flex-row justify-between">
       <div className="lg:text-3xl text-xl group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
         <span>Sp</span>
         <span className="lowercase inline-block duration-500 group-hover:rotate-180">i</span>
@@ -43,19 +43,22 @@ export const NavBar = () => {
           <MenuElement action={MenuActions.PLAY} items={playItems} scale={0.7}></MenuElement>
           <MenuElement action={MenuActions.STATS} items={statsItems}></MenuElement>
           <MenuElement action={MenuActions.PROFILE} items={profileItems}></MenuElement>
-          <div className="flex flex-col items-center justify-around">
-            <Link
-              to="/me"
-              className="hover:opacity-80 transition-opacity"
-              style={{ textDecoration: 'non', color: 'inherit' }}
-            >
-              <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
-              {/* <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow> */}
-            </Link>
-            <Locale className="flex items-center" />
-          </div>
         </>
       )}
+
+      <div className="flex flex-col items-center justify-around">
+        {user && isLoggedIn && (
+          <Link
+            to="/me"
+            className="hover:opacity-80 transition-opacity"
+            style={{ textDecoration: 'non', color: 'inherit' }}
+          >
+            <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
+            {/* <UserRow key={user.avatarUrl} avatarSize="sm" user={user}></UserRow> */}
+          </Link>
+        )}
+        <Locale className="flex items-center" />
+      </div>
     </nav>
   );
 };
