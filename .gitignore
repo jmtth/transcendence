@@ -168,13 +168,13 @@ vite.config.ts.timestamp-*
 **/*.js
 
 srcs/pong-ai/__pycache__/
-srcs/pong-ai/models/
 srcs/pong-ai/.venv
 *.csh
 *.fish
 *.ps1
 *.pyc
 __pycache__
+
 output.css
 **/src/SmartContract/ignition/deployments/chain-31337
 **/srcs/blockchain/src/SmartContract/ignition/deployments/
