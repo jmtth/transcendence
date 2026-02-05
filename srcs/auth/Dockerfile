@@ -37,19 +37,6 @@ FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/srcs/shared/core/dist ./srcs/shared/core/dist
-COPY --from=builder /app/srcs/shared/core/package.json ./srcs/shared/core/package.json
-
-WORKDIR /app/srcs/auth
-COPY --from=builder /app/srcs/auth/package.json ./
-COPY --from=builder /app/srcs/auth/dist ./dist
-
-ENV HUSKY=0
-ENV NODE_ENV=production
-
-ENV NODE_ENV=production
-
 # Install runtime-only system deps (wget for healthcheck)
 RUN apk add --no-cache wget
 
