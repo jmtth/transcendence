@@ -10,10 +10,10 @@ import {
   usernameDTO,
   UserRegisterDTO,
   UserRegisterSchema,
+  FrontendReasonValue,
 } from '@transcendence/core';
 import api from './api-client';
 import i18next from 'i18next';
-import { FrontendReasonValue } from '../../../shared/core/src/errors/error-types';
 
 export const authApi = {
   register: async (payload: UserRegisterDTO): Promise<usernameDTO> => {
