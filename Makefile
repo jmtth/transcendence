@@ -93,7 +93,7 @@ game:
 	$(D_COMPOSE) up -d --build $(GAME_SERVICE_NAME)
 block:
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
-pong:
+pong-ai:
 	$(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
 build:
 	$(D_COMPOSE) build
@@ -110,6 +110,14 @@ test-user:
 		-f srcs/docker-compose.yml \
 		-f srcs/docker-compose.test.yml \
 		run --rm test-runner
+
+test-pong-ai:
+	@echo "Running pong-ai tests..."
+	@cd srcs/pong-ai && \
+		python3 -m venv .venv 2>/dev/null || true && \
+		. .venv/bin/activate && \
+		pip install -q pytest numpy && \
+		python -m pytest test_pong_server.py -v
 
 test-coverage-user:
 	$(COMPOSE_CMD) \

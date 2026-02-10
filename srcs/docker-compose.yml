@@ -49,7 +49,16 @@ services:
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--no-check-certificate', '--spider', 'https://127.0.0.1:${UM_SERVICE_PORT}/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--no-check-certificate',
+          '--spider',
+          'https://127.0.0.1:${UM_SERVICE_PORT}/health',
+        ]
 
   auth-service:
     build:
@@ -73,7 +82,16 @@ services:
         condition: service_healthy
     healthcheck:
       <<: *healthcheck-template
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--no-check-certificate', '--spider', 'https://127.0.0.1:${AUTH_SERVICE_PORT}/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--no-check-certificate',
+          '--spider',
+          'https://127.0.0.1:${AUTH_SERVICE_PORT}/health',
+        ]
 
   blockchain-service:
     build:
@@ -94,7 +112,16 @@ services:
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--no-check-certificate', '--spider', 'https://127.0.0.1:${BK_SERVICE_PORT}/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--no-check-certificate',
+          '--spider',
+          'https://127.0.0.1:${BK_SERVICE_PORT}/health',
+        ]
 
   game-service:
     build:
@@ -117,7 +144,16 @@ services:
         condition: service_healthy
     healthcheck:
       <<: *healthcheck-template
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--no-check-certificate', '--spider', 'https://127.0.0.1:${GAME_SERVICE_PORT}/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--no-check-certificate',
+          '--spider',
+          'https://127.0.0.1:${GAME_SERVICE_PORT}/health',
+        ]
 
   # ============================================================================
   # API Gateway Layer
@@ -144,7 +180,16 @@ services:
         condition: service_healthy
     healthcheck:
       <<: *healthcheck-template
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--no-check-certificate', '--spider', 'https://127.0.0.1:${API_GATEWAY_PORT}/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--no-check-certificate',
+          '--spider',
+          'https://127.0.0.1:${API_GATEWAY_PORT}/health',
+        ]
 
   # ============================================================================
   # Reverse Proxy Layer
@@ -182,7 +227,7 @@ services:
           '--no-check-certificate',
           'https://localhost/health',
         ]
-        
+
   pong-ai-service:
     build:
       context: ./pong-ai
@@ -191,7 +236,7 @@ services:
     expose:
       - '${PONG_AI_SERVICE_PORT}'
     environment:
-      - MODEL_PATH=/app/models/pong_moderate/pong_moderate_final
+      - MODEL_PATH=/app/models/pong_500000/pong_moderate_final
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - ./pong-ai/models:/app/models
@@ -200,7 +245,7 @@ services:
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
-      test: ["CMD", "curl", "-f", "http://localhost:${PONG_AI_SERVICE_PORT}/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:${PONG_AI_SERVICE_PORT}/health']
 
 networks:
   app-network:

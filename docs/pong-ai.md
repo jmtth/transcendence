@@ -101,10 +101,10 @@ Located in `models/` directory:
 
 ## Environment Variables
 
-| Variable     | Default                                    | Description           |
-| ------------ | ------------------------------------------ | --------------------- |
-| `MODEL_PATH` | `models/pong_moderate/pong_moderate_final` | Path to trained model |
-| `PORT`       | `3006`                                     | Server port           |
+| Variable     | Default                                  | Description           |
+| ------------ | ---------------------------------------- | --------------------- |
+| `MODEL_PATH` | `models/pong_500000/pong_moderate_final` | Path to trained model |
+| `PORT`       | `3006`                                   | Server port           |
 
 ## Integration with Game Service
 

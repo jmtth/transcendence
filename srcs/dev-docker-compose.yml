@@ -230,7 +230,7 @@ services:
     expose:
       - '${PONG_AI_SERVICE_PORT}'
     environment:
-      - MODEL_PATH=/app/models/pong_moderate/pong_moderate_final
+      - MODEL_PATH=/app/models/pong_500000/pong_moderate_final
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - ./pong-ai/models:/app/models
