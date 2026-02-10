@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 import { proxyRequest, webSocketProxyRequest } from '../utils/proxy.js';
 
 export function registerAiRoutes(app: FastifyInstance) {
