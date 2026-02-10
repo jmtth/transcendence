@@ -30,7 +30,7 @@ export const passwordSchema = z
   .regex(/^(?=.*\d)/, 'Password must contain at least one number')
   .regex(/^(?=.*[!@#$%^&*])/, 'Password must contain at least one special character (!@#$%^&*)');
 
-export const roleShema = z.enum(['GUEST', 'USER', 'ADMIN']);
+export const roleShema = z.enum(['GUEST', 'USER', 'MODERATOR', 'ADMIN']);
 
 export const emailSchema = z.email();
 

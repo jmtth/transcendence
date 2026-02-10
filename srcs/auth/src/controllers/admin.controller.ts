@@ -77,7 +77,8 @@ export async function updateUserHandler(
     });
   }
 
-  if (role !== UserRole.USER && role !== UserRole.ADMIN) {
+  const validRoles = Object.values(UserRole);
+  if (!validRoles.includes(role)) {
     return reply.code(HTTP_STATUS.BAD_REQUEST).send({
       error: {
         message: ERROR_MESSAGES.INVALID_ROLE,
