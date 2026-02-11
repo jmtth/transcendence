@@ -29,8 +29,8 @@ const statusColor: Record<Tournament['status'], string> = {
 export function TournamentTableDesktop({ tournaments, onJoin }: tournamentsProps) {
   const { t } = useTranslation();
   return (
-    <div className="w-[70%] max-w-5xl mx-auto mt-12">
-      <div className="backdrop-blur-xl bg-white/70 rounded-3xl shadow-2xl p-8">
+    <div className="w-[70%] max-w-5xl mx-auto my-12">
+      <div className="bg-white/70 rounded-3xl shadow-2xl p-8 border border-cyan-300">
         <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700 font-quantico">
           {t('game.tournament_available')}
         </h2>
@@ -63,7 +63,7 @@ export function TournamentTableDesktop({ tournaments, onJoin }: tournamentsProps
                     {tour.status === 'WAITING' ? (
                       <button
                         onClick={() => onJoin(tour.id)}
-                        className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-medium hover:bg-teal-600 transition"
+                        className="px-5 py-2 rounded-full bg-teal-500 text-white text-sm font-medium hover:bg-teal-600 hover:scale-105 active:scale-100 transition"
                       >
                         {t('game.join')}
                       </button>

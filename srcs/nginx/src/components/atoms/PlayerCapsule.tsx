@@ -3,8 +3,15 @@ import Avatar from './Avatar';
 
 export function PlayerCapsule({ player }: { player: Player }) {
   const isOnline = player.online === true;
+  const isWaiting = player.status === 'waiting';
   return (
-    <div className="flex items-center gap-3 px-4 py-2 rounded-full border border-cyan-300 bg-white/80 shadow-sm backdrop-blur">
+    <div
+      className={`
+        flex items-center gap-3 px-4 py-2 rounded-full
+        border backdrop-blur overflow-hidden
+          ${isWaiting ? 'border-gray-400 bg-white/10 opacity-95' : 'border-cyan-300 bg-white/80'}
+        `}
+    >
       {/* Avatar + status */}
       <div className="relative">
         <Avatar src={player.avatar} size="sm" />

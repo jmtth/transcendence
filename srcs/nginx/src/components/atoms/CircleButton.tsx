@@ -10,10 +10,7 @@ export const CircleButton = ({ children }: CircleButtonProps) => (
   <motion.div
     whileHover={{ scale: 1.1, color: '#029c8a' }}
     whileTap={{ scale: 0.95, color: '#ff0088' }}
-    initial={{ opacity: 0, y: -10 }}
-    animate={{ opacity: 1, y: 0 + 1 }}
-    exit={{ opacity: 0, y: 0 }}
-    transition={{ duration: 0.2 }}
+    transition={{ duration: 0.3 }}
     className={`
       basis-50
       h-56 m-10 p-6    

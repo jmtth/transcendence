@@ -21,6 +21,7 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
   const semiLeftRef = useRef<HTMLDivElement>(null);
   const semiRightRef = useRef<HTMLDivElement>(null);
   const finalRef = useRef<HTMLDivElement>(null);
+  const littleFinalRef = useRef<HTMLDivElement>(null);
 
   const connections: BracketConnection[] = [
     { from: p1Ref, to: semiLeftRef },
@@ -28,7 +29,8 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
     { from: p3Ref, to: semiRightRef },
     { from: p4Ref, to: semiRightRef },
     { from: semiLeftRef, to: finalRef },
-    { from: semiRightRef, to: finalRef },
+    { from: littleFinalRef, to: finalRef },
+    { from: semiRightRef, to: littleFinalRef },
   ];
   return (
     <div ref={containerRef} className="relative w-[70%] max-w-6xl mx-auto py-12">
@@ -61,6 +63,14 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
               highlight
               status="pending"
               onStart={() => console.log(`startFinal()`)}
+            />
+          </div>
+          <div ref={littleFinalRef}>
+            <MatchNode
+              label={t('game.little_final')}
+              highlight
+              status="pending"
+              onStart={() => console.log(`startLittleFinal()`)}
             />
           </div>
 

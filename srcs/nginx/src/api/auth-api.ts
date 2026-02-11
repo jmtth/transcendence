@@ -72,5 +72,5 @@ export const authApi = {
       withCredentials: true,
     });
     return data;
-  }:w
+  },
 };

@@ -33,11 +33,14 @@ export interface ClientMessage {
   direction?: 'up' | 'down' | 'stop';
 }
 
+export type PlayerStatus = 'waiting' | 'connected';
+
 export type Player = {
   id: string;
   name: string;
   avatar: string | null;
-  online?: boolean;
+  online: boolean;
+  status: PlayerStatus;
 };
 
 export type MatchStatus = 'pending' | 'ready' | 'running' | 'finished';

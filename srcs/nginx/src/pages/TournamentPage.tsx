@@ -8,10 +8,11 @@ import {
   Tournament,
 } from '../components/atoms/TournamentList';
 import { TournamentBracket } from '../components/molecules/TournamentBracket';
-import { Player } from '../types/types';
 import Background from '../components/atoms/Background';
 import Circle from '../components/atoms/Circle';
 import { NavBar } from '../components/molecules/NavBar';
+import { Player } from '../types/types';
+import { FriendsList } from '../components/molecules/FriendsList';
 
 const MOCK_TOURNAMENTS: Tournament[] = [
   {
@@ -34,13 +35,15 @@ const MOCK_TOURNAMENTS: Tournament[] = [
 interface LoginRegisterPageProps {
   isRegister: boolean;
 }
-
-const MOCK_PLAYERS: [Player, Player, Player, Player] = [
-  { id: '1', name: 'johnny', avatar: null, online: true },
-  { id: '2', name: 'eddy', avatar: null, online: false },
-  { id: '3', name: 'khaled', avatar: null, online: true },
-  { id: '4', name: 'danny', avatar: null, online: false },
-] as const;
+export function createWaitingPlayer(label: string): Player {
+  return {
+    id: 'waiting',
+    name: label,
+    avatar: null,
+    online: false,
+    status: 'waiting',
+  };
+}
 
 // const login = async () => {};
 const colors = {
@@ -51,6 +54,13 @@ const colors = {
 export const TournamentPage = () => {
   // const [currentUser, formAction, isPending] = useActionState(login, {});
   const { t } = useTranslation();
+  const MOCK_PLAYERS: [Player, Player, Player, Player] = [
+    { id: '1', name: 'johnny', avatar: null, online: true, status: 'connected' },
+    { id: '2', name: 'eddy', avatar: null, online: false, status: 'connected' },
+    { id: '3', name: 'khaled', avatar: null, online: true, status: 'connected' },
+    createWaitingPlayer('waiting...'),
+    // { id: '4', name: 'danny', avatar: null, online: false },
+  ] as const;
   const title = t('game.tournament').toUpperCase();
   const participate = t('game.participate');
   const create = t('game.create');
@@ -67,6 +77,7 @@ export const TournamentPage = () => {
             <NavBar></NavBar>
           </div>
         }
+        {MOCK_PLAYERS.length > 0 && <FriendsList friends={MOCK_PLAYERS} />}
         <div className=" flex flex-1 items-center justify-center">
           <div className="flex flex-col sm:flex-row gap-4">
             <CircleButton>{participate}</CircleButton>

@@ -84,7 +84,9 @@
     "finished": "Terminé",
     "no_tournament": "Aucune vendetta disponible",
     "final": "Combat final",
-    "semi_final": "Pour les petits joueurs",
-    "start": "C'est parti"
+    "semi_final": "On prends du Galon",
+    "little_final": "Les loosers c'est ici",
+    "start": "C'est parti",
+    "friends": "Les potes"
   }
 }

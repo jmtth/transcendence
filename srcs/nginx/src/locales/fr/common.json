@@ -85,6 +85,8 @@
     "no_tournament": "Aucun tournoi disponible",
     "final": "Finale",
     "semi_final": "Demi-Finale",
-    "start": "Jouer"
+    "little_final": "Petite-Finale",
+    "start": "Jouer",
+    "friends": "Amis"
   }
 }

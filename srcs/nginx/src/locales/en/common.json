@@ -85,6 +85,8 @@
     "no_tournament": "No tournament",
     "final": "Final",
     "semi_final": "Semi-Final",
-    "start": "Start"
+    "little_final": "Little-Finale",
+    "start": "Start",
+    "friends": "Friends"
   }
 }

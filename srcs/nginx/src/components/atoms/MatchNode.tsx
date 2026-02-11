@@ -46,7 +46,7 @@ export function MatchNode({ label, status, highlight = false, onStart }: MatchNo
           transition-all
           ${
             canStart
-              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+              ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 active:scale-100'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }
         `}
