@@ -139,7 +139,7 @@ export const ERROR_MESSAGES = {
   INVALID_USER_ID: 'Invalid user ID',
 
   // Role errors
-  INVALID_ROLE: 'Role must be either "user" or "admin"',
+  INVALID_ROLE: 'Role must be either "user" or "admin" or "moderator"',
 
   // Field errors
   MISSING_FIELDS: 'Username, email, and role are required',
