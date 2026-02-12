@@ -25,7 +25,7 @@ app.add_middleware(
 class AIService:
     """Manages AI model loading and readiness checks."""
     
-    def __init__(self, model_path: str = "models/pong_500000/pong_moderate_final"):
+    def __init__(self, model_path: str = "best_model"):
         self.model_path = model_path
         self.model: Optional[PPO] = None
         self.load_error: Optional[str] = None
@@ -89,7 +89,7 @@ async def join_game(request: Request):
         }
     
     # Create AI player
-    model_path = "models/pong_500000/pong_moderate_final"
+    model_path = "best_model"
     ai_player = AIPlayer(model_path)
     active_ai_players[session_id] = ai_player
     

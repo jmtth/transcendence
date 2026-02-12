@@ -17,7 +17,7 @@ COPY pong_env.py .
 COPY pong_server.py .
 COPY ai_player.py .
 
-RUN mkdir -p /app/models/pong_500000/pong_moderate_final
+RUN mkdir -p /app/best_model
 
 EXPOSE 3006
 

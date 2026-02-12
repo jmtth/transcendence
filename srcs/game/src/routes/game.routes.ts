@@ -5,9 +5,6 @@ import {
   newGameSession,
   healthCheck,
   gameSettings,
-  resetGame,
-  stepGame,
-  getGameState,
 } from '../controllers/game.controller.js';
 
 export async function gameRoutes(app: FastifyInstance) {

@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { proxyRequest, webSocketProxyRequest } from '../utils/proxy.js';
+import { proxyRequest } from '../utils/proxy.js';
 
 export function registerAiRoutes(app: FastifyInstance) {
   // GET version - accepts sessionId as query param
