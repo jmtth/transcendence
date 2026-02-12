@@ -238,6 +238,8 @@ services:
     environment:
       - MODEL_PATH=/app/models/pong_500000/pong_moderate_final
       - LOG_LEVEL=${LOG_LEVEL:-info}
+      - GAME_SERVICE_NAME=${GAME_SERVICE_NAME}
+      - GAME_SERVICE_PORT=${GAME_SERVICE_PORT}
     volumes:
       - ./pong-ai/models:/app/models
     networks:

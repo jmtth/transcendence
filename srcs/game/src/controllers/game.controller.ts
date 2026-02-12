@@ -171,7 +171,9 @@ export async function stepGame(this: FastifyInstance, req: FastifyRequest) {
 
 // RL API: Get current state
 export async function getGameState(this: FastifyInstance, req: FastifyRequest) {
-  const sessionId = (req.query as any).sessionId || (req.body as any)?.sessionId;
+  const sessionId =
+    (req.query as { sessionId?: string }).sessionId ||
+    (req.body as { sessionId?: string }).sessionId;
   if (!sessionId) {
     return { status: 'failure', message: 'sessionId is required' };
   }
