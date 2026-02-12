@@ -90,7 +90,7 @@ export class ProfileService {
       throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, {
         details: {
           resource: LOG_RESOURCES.PROFILE,
-          authId: authId,
+          id: authId,
         },
       });
     }

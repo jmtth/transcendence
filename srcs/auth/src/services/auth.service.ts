@@ -245,7 +245,7 @@ export async function deleteUser(userId: number): Promise<void> {
     }
 
     if (error instanceof DataError) {
-      throw new AppError(ERR_DEFS.LOGIN_USER_NOT_FOUND, { userId });
+      throw new AppError(ERR_DEFS.RESOURCE_NOT_FOUND, { userId });
     }
 
     throw new AppError(ERR_DEFS.SERVICE_GENERIC, {
