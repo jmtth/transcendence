@@ -4,15 +4,21 @@
   "type": "module",
   "description": "School 42 Transcendence project",
   "private": true,
-  "workspaces": [
-    "srcs/shared/core",
-    "srcs/gateway",
-    "srcs/nginx",
-    "srcs/auth",
-    "srcs/users",
-    "srcs/game",
-    "srcs/blockchain"
-  ],
+  "workspaces": {
+    "packages": [
+      "srcs/shared/core",
+      "srcs/gateway",
+      "srcs/nginx",
+      "srcs/auth",
+      "srcs/users",
+      "srcs/game",
+      "srcs/blockchain"
+    ],
+    "nohoist": [
+      "**/vite",
+      "**/@vitejs/**"
+    ]
+  },
   "main": "index.js",
   "directories": {
     "doc": "docs"
@@ -20,7 +26,7 @@
   "scripts": {
     "test": "",
     "prepare": "husky || true",
-    "clean": "rm -rf node_modules package-lock.json && rm -rf srcs/*/dist srcs/shared/core/dist node_modules srcs/*/node_modules",
+    "clean": "rm -rf node_modules package-lock.json && find srcs -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find srcs -name 'dist' -type d -prune -exec rm -rf '{}' +",
     "lint:report": "eslint --output-file eslint_report.json --format json srcs"
   },
   "repository": {
