@@ -16,9 +16,9 @@ const colors = {
   end: '#0088ff',
 };
 
-interface LoginRegisterPageProps {
-  isRegister: boolean;
-}
+// interface LoginRegisterPageProps {
+//   isRegister: boolean;
+// }
 export const WelcomePage = () => {
   const { t } = useTranslation();
   const [isRegister, setIsRegister] = useState(false);
@@ -47,7 +47,7 @@ export const WelcomePage = () => {
         )}
         {/* Logged in - show 3 game options */}
         {isLoggedIn && (
-          <Scrollable>
+          <Scrollable isAnimated={true}>
             <Link to="/game/pong-ai">
               <CircleButton isMoving={true}>{ai}</CircleButton>
             </Link>

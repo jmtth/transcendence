@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Button from '../atoms/Button';
 import { Input } from '../atoms/Input';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useActionState, useEffect } from 'react';
 import { authApi } from '../../api/auth-api';
 import {

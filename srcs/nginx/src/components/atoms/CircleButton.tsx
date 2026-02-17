@@ -1,6 +1,8 @@
-import { motion, useAnimation } from 'framer-motion';
+import { HTMLMotionProps, motion, useAnimation } from 'framer-motion';
+import React from 'react';
 
-interface CircleButtonProps {
+interface CircleButtonProps extends HTMLMotionProps<'button'> {
+  className?: string;
   isGrowing?: boolean;
   isMoving: boolean;
   children?: React.ReactNode;
@@ -10,8 +12,10 @@ const dropdownStyle = 'shadow-[0_10px_10px_1px_rgba(205,205,205,0.4)] ';
 
 export const CircleButton = ({
   children,
+  className = '',
   isGrowing = true,
   isMoving = false,
+  ...props
 }: CircleButtonProps) => {
   const controls = useAnimation();
   const handleMouseMove = () => {
@@ -29,12 +33,13 @@ export const CircleButton = ({
   };
 
   return (
-    <motion.div
+    <motion.button
+      {...props}
       animate={isMoving ? controls : { x: 0, y: 0 }}
       onMouseEnter={handleMouseMove}
       onMouseLeave={resetPosition}
       whileHover={isGrowing ? { scale: 1.1, color: '#029c8a' } : {}}
-      whileTap={{ scale: 0.95, color: '#ff0088' }}
+      whileTap={{ scale: 0.95, color: '#11ccbb' }}
       transition={{ duration: 0.3 }}
       className={`
       basis-50
@@ -46,10 +51,13 @@ export const CircleButton = ({
       font-quantico border border-cyan-300
       text-2xl 
       text-gray-700
+      cursor-pointer
+      disabled:opacity-50 disabled:cursor-not-allowed
       ${dropdownStyle}
-                  `}
+      ${className}
+`}
     >
-      <p className="text-2xl text-center whitespace-nowrap">{children}</p>
-    </motion.div>
+      <span className="text-2xl text-center whitespace-nowrap">{children}</span>
+    </motion.button>
   );
 };

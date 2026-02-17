@@ -19,15 +19,16 @@ const Halo = ({ className = '', size = 80, isRegister, onToggleForm }: HaloProps
 
   return (
     <div
-      className={`absolute ${className}`}
+      className={`mt-5 absolute ${className} w-[80vw]`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <Circle size={isHovered ? (isLoggedIn ? 40 : size) : 30} className="cursor-pointer p-8">
         {/* PLAY text */}
-        <span className={`text-5xl font-bold ${isHovered ? 'hidden' : 'block'}`}>PLAY</span>
+        <span className={`text-3xl font-bold ${isHovered ? 'hidden' : 'block'}`}>PLAY</span>
 
         {/* Forms */}
+        <h1 className={isHovered ? 'block' : 'hidden'}>{title}</h1>
         <div className={`min-h-[100px] ${isHovered ? 'block' : 'hidden'}`}>
           {isRegister ? (
             <RegisterForm onToggleForm={onToggleForm} />

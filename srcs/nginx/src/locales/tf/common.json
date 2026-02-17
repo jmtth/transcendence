@@ -70,6 +70,27 @@
   "game": {
     "playWithAI": "No friends? Joue avec un ROBOT",
     "playWithFriends": "Joue avec ton copaing",
-    "tournament": "Defi tes potes en tournois"
+    "tournament": "Vendetta",
+    "game": "La mort ou la vie",
+    "participate": "Tu cherches des embrouilles!",
+    "create": "Je vous mets au défi!",
+    "tournament_available": "Vendetta disponibles",
+    "name": "Blaz",
+    "players": "Nb truands",
+    "status": "Statut",
+    "action": "Action",
+    "join": "Rejoindre",
+    "unavailable": "Indisponible",
+    "waiting": "En attente",
+    "in_progress": "Contrat en cours",
+    "finished": "Terminé",
+    "no_tournament": "Aucune vendetta disponible",
+    "final": "Combat final",
+    "semi_final": "On prends du Galon",
+    "little_final": "Les loosers c'est ici",
+    "start": "C'est parti",
+    "friends": "Les potes",
+    "waitiing": "On t'attend...",
+    "creating": "Création de la vendetta..."
   }
 }

@@ -70,6 +70,27 @@
   "game": {
     "playWithAI": "Joue avec un ROBOT (no friends?)",
     "playWithFriends": "Joue avec ton copaing",
-    "tournament": "Defi tes potes en tournois"
+    "tournament": "Tournoi",
+    "game": "Jeu",
+    "participate": "Participer",
+    "create": "Créer",
+    "tournament_available": "Tournois disponibles",
+    "name": "Pseudo",
+    "players": "Nb joueurs",
+    "status": "Statut",
+    "action": "Action",
+    "join": "Rejoindre",
+    "unavailable": "Indisponible",
+    "waiting": "En attente",
+    "in_progress": "En cours",
+    "finished": "Terminé",
+    "no_tournament": "Aucun tournoi disponible",
+    "final": "Finale",
+    "semi_final": "Demi-Finale",
+    "little_final": "Petite-Finale",
+    "start": "Jouer",
+    "friends": "Amis",
+    "waitiing": "Attente...",
+    "creating": "Création du tournoi..."
   }
 }
