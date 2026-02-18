@@ -142,9 +142,10 @@ export function addMatch(match: MatchDTO): number {
   }
 }
 
-export function createTournament(player: number): number {
+export function createTournament(player_id: number): number {
   try {
-    const idtournament = createTournamentStmt.run(player, Date.now());
+    const idtournament = createTournamentStmt.run(player_id, Date.now());
+    addPlayerTournament(player_id, Number(idtournament.lastInsertRowid));
     return Number(idtournament.lastInsertRowid);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
@@ -159,7 +160,9 @@ export function addPlayerTournament(player: number, tournament: number) {
     addPlayerTournamentStmt.run(player, tournament);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    const error = new Error(`Add Player to a tournament failed: ${message}`) as Error & {
+    const error = new Error(
+      `Add Player(${player}) to a tournament(${tournament}) failed: ${message}`,
+    ) as Error & {
       code: string;
     };
     error.code = 'GAME_DB_UPDATE_TOURNAMENT_ERROR';

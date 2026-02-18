@@ -16,6 +16,7 @@ import { appenv } from './config/env.js';
 import { friendsRoutes } from './routes/friends.routes.js';
 import { loggerConfig } from './config/logger.config.js';
 import redisPlugin from './plugins/ioredis.plugins.js';
+import { initRedisSubscriber } from './events/redis.subscriber.js';
 
 export async function buildApp() {
   const isTest = appenv.NODE_ENV === 'test';
@@ -92,6 +93,9 @@ export async function buildApp() {
   }
   app.register(umRoutes, { prefix: '' });
   app.register(friendsRoutes, { prefix: '/friends' });
+  app.ready(() => {
+    initRedisSubscriber(app);
+  });
 
   return app;
 }

@@ -1,7 +1,7 @@
 import { env } from '../config/env.js';
 import type { Redis } from 'ioredis';
 import { FastifyInstance } from 'fastify';
-import { UserEvent, UserEventType } from '@transcendence/core';
+import { UserEvent, USER_EVENT } from '@transcendence/core';
 import { upsertUser, deleteUser } from './game.database.js';
 
 const STREAM = 'user.events';
@@ -89,12 +89,12 @@ async function processMessage(
     const data = JSON.parse(fields[1]) as UserEvent;
 
     switch (data.type) {
-      case UserEventType.CREATED:
-      case UserEventType.UPDATED:
+      case USER_EVENT.CREATED:
+      case USER_EVENT.UPDATED:
         await upsertUser(data);
         break;
 
-      case UserEventType.DELETED:
+      case USER_EVENT.DELETED:
         await deleteUser(data.id);
         break;
 

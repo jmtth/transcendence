@@ -109,5 +109,5 @@ export type {
 // ================================
 
 export type { UserEvent } from './schemas/user.schema.js';
-export { UserEventType } from './schemas/user.schema.js';
+export { USER_EVENT } from './schemas/user.schema.js';
 export type { TournamentDTO } from './schemas/game.schema.js';

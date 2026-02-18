@@ -14,14 +14,14 @@ export interface UserRequestDTO {
 
 export type UserNameDTO = z.output<typeof UserNameSchema>;
 
-export enum UserEventType {
+export enum USER_EVENT {
   CREATED = 'USER_CREATED',
   UPDATED = 'USER_UPDATED',
   DELETED = 'USER_DELETED',
 }
 
 export interface UserEvent {
-  type: UserEventType;
+  type: USER_EVENT;
   id: number;
   username: string;
   timestamp: number;
