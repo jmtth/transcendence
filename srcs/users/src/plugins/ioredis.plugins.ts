@@ -9,7 +9,7 @@ export default fp(async (app) => {
     app.log.warn('REDIS_URL not set, redis plugin disabled');
     return;
   }
-  // conf to avoir infinity loop in test env
+  // conf to avoid infinity loop in test env
   const redis = new Redis(url, {
     maxRetriesPerRequest: 1,
     retryStrategy(times) {
