@@ -124,4 +124,7 @@ export async function newTournament(req: FastifyRequest, reply: FastifyReply) {
   return reply.code(200).send(tournament_id);
 }
 
-export async function listTournament(req: FastifyRequest, reply: FastifyReply) {}
+export async function listTournament(req: FastifyRequest, reply: FastifyReply) {
+  const tournaments = db.listTournaments();
+  return reply.code(200).send(tournaments);
+}

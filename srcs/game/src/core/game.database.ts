@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { MatchDTO } from '../types/game.dto.js';
 import { env } from '../config/env.js';
-import { UserEvent } from '@transcendence/core';
+import { UserEvent, TournamentDTO } from '@transcendence/core';
 
 // DB path
 const DEFAULT_DIR = path.join(process.cwd(), 'data');
@@ -91,12 +91,12 @@ SET
   final_position = ?
 WHERE tournament_id = ? and player_id = ?
   `);
-
+//COALESCE avoid null if username not synchronised
 const listTournamentsStmt = db.prepare(`
 SELECT 
   t.id,
   t.status,
-  p.username as creator_username,
+  COALESCE(p.username, 'unknown') as username,
   COUNT(tp.player_id) as player_count
 FROM tournament t
 LEFT JOIN tournament_player tp 
@@ -104,7 +104,7 @@ LEFT JOIN tournament_player tp
 LEFT JOIN player p 
   ON p.id = t.creator_id
 WHERE t.status IN ('PENDING', 'STARTED')
-GROUP BY t.id;
+GROUP BY t.id, t.status, p.username;
 `);
 
 const upsertUserStmt = db.prepare(`
@@ -196,6 +196,18 @@ export async function deleteUser(id: number) {
     const message = err instanceof Error ? err.message : String(err);
     const error = new Error(`Delete user failed: ${message}`) as Error & { code: string };
     error.code = 'GAME_DB_DELETE_USER_FAILED';
+    throw error;
+  }
+}
+
+export function listTournaments(): TournamentDTO[] {
+  try {
+    const rows = listTournamentsStmt.all() as TournamentDTO[];
+    return rows;
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    const error = new Error(`Failed to list tournaments: ${message}`) as Error & { code: string };
+    error.code = 'GAME_DB_TOURNAMENT_LIST_ERROR';
     throw error;
   }
 }
