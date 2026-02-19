@@ -40,6 +40,12 @@ export class ProfileService {
   }
 
   @Trace
+  async getByUsernameQuery(query: string): Promise<ProfileSimpleDTO[] | null> {
+    const rawProfiles = await profileRepository.findProfilesByUsernameQuery(query);
+    return rawProfiles?.map((p) => mapProfileToDTO(p));
+  }
+
+  @Trace
   async getById(authId: number): Promise<ProfileSimpleDTO | null> {
     const profile = await profileRepository.findProfileById(authId);
     if (!profile) {

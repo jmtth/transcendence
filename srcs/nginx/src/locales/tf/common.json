@@ -17,6 +17,10 @@
   "form": {
     "processing": "On gère ça, mon pote…"
   },
+  "search": {
+    "no_results": "no results",
+    "user": "Search for a user"
+  },
   "global": {
     "loading": "Laisse nous gérer ça...",
     "not_found": "Que dalle",

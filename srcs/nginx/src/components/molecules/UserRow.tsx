@@ -21,7 +21,7 @@ const actionProps: Record<UserActions, { icon: LucideIcon; color: string; labelK
   [UserActions.CHANGE]: { icon: UserRoundMinus, color: 'text-red-300', labelKey: 'friends.remove' },
 };
 
-export const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
+const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
   const { t } = useTranslation();
   const xOffset = 20;
   // const baseRadius = 90;
@@ -44,11 +44,11 @@ export const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
       )}
       <div
         onClick={toggleMenu}
-        className={`group relative z-40   flex flex-row items-center gap-3 p-2 my-4 rounded-full cursor-pointer transition-all duration-300
-        ${isOpen ? 'bg-slate-700 w-[80vw] md:w-[55vw]' : 'bg-slate-700/20 w-[80vw] md:w-[80vw]'}
+        className={`group relative z-40 w-[100%] flex flex-row justify-center items-center gap-3 p-2 my-4 rounded-full cursor-pointer transition-all duration-300
+        ${isOpen ? 'bg-slate-700 w-[100%] md:w-[55%]' : 'bg-slate-700/20 w-[100%] md:w-[100%]'}
         hover:bg-slate-700`}
       >
-        <div className="flex w-full flex-row items-center justify-between gap 2">
+        <div className="flex w-[100%] flex-row items-center justify-between gap 2">
           <div className="flex flex-row items-center gap-2">
             <Avatar alt="user avatar" size={avatarSize} src={user.avatarUrl}></Avatar>
             <span className="text-white text-md font-quantico font-semibold ml-1 mt-1 tracking-widest">
@@ -124,3 +124,5 @@ export const UserRow = ({ user, avatarSize = 'md', actions }: Props) => {
     </>
   );
 };
+
+export default UserRow;

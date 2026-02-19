@@ -48,6 +48,21 @@ const getProfileByUsernameSchema = {
   },
 } as const;
 
+const getProfilesbyUsernameQuerySchema = {
+  tags: ['users'],
+  summary: 'Find profiles matching query',
+  description:
+    'Returns a list of profiles containing query string in username. Returns an empty list if no result',
+  queryString: z.string().min(2).describe('pattern to look at in usernames'),
+  header: z.object({
+    'x-user-name': z.string().optional(),
+  }),
+  response: {
+    200: z.array(ProfileSimpleSchema),
+    400: ValidationErrorSchema,
+  },
+} as const;
+
 const updateProfileAvatarSchema = {
   tags: ['users'],
   summary: 'Update profile avatar',
@@ -105,6 +120,12 @@ export const umRoutes: FastifyPluginAsyncZod = async (app) => {
     '/username/:username',
     { schema: getProfileByUsernameSchema },
     profileController.getProfileByUsername,
+  );
+
+  app.get(
+    '/',
+    { schema: getProfilesbyUsernameQuerySchema },
+    profileController.getProfilesbyUsernameQuery,
   );
 
   app.patch(

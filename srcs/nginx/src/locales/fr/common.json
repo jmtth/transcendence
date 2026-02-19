@@ -17,6 +17,10 @@
   "form": {
     "processing": "traitement..."
   },
+  "search": {
+    "no_results": "no results",
+    "user": "Search for a user"
+  },
   "global": {
     "loading": "Chargement...",
     "not_found": "Non trouvé",
