@@ -91,18 +91,18 @@ describe('Friends Controller unit tests', () => {
         method: 'POST',
         url: '/friends',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: 2 },
+        payload: { targetUsername: 'tata' },
       });
 
       expect(response.statusCode).toBe(201);
     });
 
-    test('Should return 400 for invalid targetId', async () => {
+    test('Should return 400 for invalid body', async () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: -1 },
+        payload: { targetUsername: '' },
       });
 
       expect(response.statusCode).toBe(400);
@@ -117,7 +117,7 @@ describe('Friends Controller unit tests', () => {
         method: 'POST',
         url: '/friends',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: 999 },
+        payload: { targetUsername: 'idontexist' },
       });
 
       expect(response.statusCode).toBe(404);
@@ -132,7 +132,7 @@ describe('Friends Controller unit tests', () => {
         method: 'POST',
         url: '/friends',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: 2 },
+        payload: { targetUsername: 'tata' },
       });
 
       expect(response.statusCode).toBe(409);
@@ -147,14 +147,14 @@ describe('Friends Controller unit tests', () => {
         method: 'POST',
         url: '/friends',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
-        payload: { id: 1 },
+        payload: { targetUsername: 'toto' },
       });
 
       expect(response.statusCode).toBe(422);
     });
   });
 
-  describe('DELETE /friends/:id', () => {
+  describe('DELETE /friends/:targetusername', () => {
     test('Should delete friendship - 200', async () => {
       vi.spyOn(friendshipService, 'removeFriend').mockResolvedValue(
         mockFriendshipFullDTO as FriendshipFullDTO,
@@ -162,7 +162,7 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/friends/2',
+        url: '/friends/tata',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
       });
 
@@ -182,7 +182,7 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/friends/3',
+        url: '/friends/tata',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
       });
 
@@ -202,7 +202,7 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'DELETE',
-        url: '/friends/2',
+        url: '/friends/unknown',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
       });
 
@@ -238,7 +238,7 @@ describe('Friends Controller unit tests', () => {
     });
   });
 
-  describe('PATCH /friends/:id/nickname', () => {
+  describe('PATCH /friends/:targetusername/nickname', () => {
     test('Should update friend nickname - 200', async () => {
       const updatedFriendship = { ...mockFriendshipFullDTO, nickname: 'newNick' };
       vi.mocked(friendshipService.updateFriendshipNickname).mockResolvedValue(
@@ -247,7 +247,7 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'PATCH',
-        url: `/friends/2/nickname`,
+        url: `/friends/tata/nickname`,
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
         payload: { nickname: 'newNick' },
       });
@@ -258,7 +258,7 @@ describe('Friends Controller unit tests', () => {
     test('Should return 400 for invalid nickname', async () => {
       const response = await app.inject({
         method: 'PATCH',
-        url: '/friends/2/nickname',
+        url: '/friends/tata/nickname',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
         payload: { nickname: 'a'.repeat(51) },
       });
@@ -273,7 +273,7 @@ describe('Friends Controller unit tests', () => {
 
       const response = await app.inject({
         method: 'PATCH',
-        url: '/friends/2/nickname',
+        url: '/friends/tata/nickname',
         headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
         payload: { nickname: 'newNick' },
       });

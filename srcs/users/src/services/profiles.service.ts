@@ -34,9 +34,14 @@ export class ProfileService {
   }
 
   @Trace
-  async getByUsername(username: string): Promise<ProfileSimpleDTO | null> {
+  async getByUsername(username: string): Promise<ProfileSimpleDTO> {
     const profileData = await getProfileOrThrow(username);
     return mapProfileToDTO(profileData);
+  }
+
+  async getByUsernameRaw(username: string): Promise<UserProfile> {
+    const profileData = await getProfileOrThrow(username);
+    return profileData;
   }
 
   @Trace

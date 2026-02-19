@@ -46,23 +46,30 @@ export function checkFriendshipExistence(
   }
 }
 export class FriendshipService {
-  async createFriend(userId: number, targetId: number): Promise<FriendshipFullDTO> {
-    if (userId === targetId) {
+  async createFriend(
+    username: string,
+    userId: number,
+    targetUsername: string,
+  ): Promise<FriendshipFullDTO> {
+    if (username === targetUsername) {
       throw new AppError(ERR_DEFS.RESOURCE_INVALID_STATE, {
         details: {
           resource: LOG_RESOURCES.FRIEND,
           issue: 'self binding relation',
-          userId,
-          targetId,
+          username,
+          targetUsername,
         },
       });
     }
 
     await profileService.getById(userId);
-    await profileService.getById(targetId);
+    const fullTarget = await profileService.getByUsernameRaw(targetUsername);
 
-    const existingFriendship = await friendshipRepository.findFriendshipBetween(userId, targetId);
-    checkFriendshipAbsence(existingFriendship, userId, targetId);
+    const existingFriendship = await friendshipRepository.findFriendshipBetween(
+      userId,
+      fullTarget.authId,
+    );
+    checkFriendshipAbsence(existingFriendship, userId, fullTarget.authId);
 
     const friendCount = await friendshipRepository.countFriendships(userId);
     if (friendCount >= CONFIG.MAX_FRIENDS) {
@@ -71,7 +78,7 @@ export class FriendshipService {
       });
     }
 
-    return await friendshipRepository.createFriendship(userId, targetId);
+    return await friendshipRepository.createFriendship(userId, fullTarget.authId);
   }
 
   async getFriendsByUserId(userId: number): Promise<FriendshipUnifiedDTO[]> {
@@ -83,27 +90,30 @@ export class FriendshipService {
 
   async updateFriendshipNickname(
     userId: number,
-    targetId: number,
+    targetUsername: string,
     nickname: string,
   ): Promise<FriendshipFullDTO | null> {
-    const friendship = await friendshipRepository.findFriendshipBetween(userId, targetId);
-    checkFriendshipExistence(friendship, userId, targetId);
+    const fullTarget = await profileService.getByUsernameRaw(targetUsername);
+    const friendship = await friendshipRepository.findFriendshipBetween(userId, fullTarget.authId);
+    checkFriendshipExistence(friendship, userId, fullTarget.authId);
     return await friendshipRepository.updateFriendshipNicknameRequester(friendship.id, nickname);
   }
 
   async updateFriendshipStatus(
     userId: number,
-    targetId: number,
+    targetUsername: string,
     status: statusUpdateDTO,
   ): Promise<FriendshipFullDTO | null> {
-    const friendship = await friendshipRepository.findFriendshipBetween(userId, targetId);
-    checkFriendshipExistence(friendship, userId, targetId);
+    const fullTarget = await profileService.getByUsernameRaw(targetUsername);
+    const friendship = await friendshipRepository.findFriendshipBetween(userId, fullTarget.authId);
+    checkFriendshipExistence(friendship, userId, fullTarget.authId);
     return await friendshipRepository.updateFriendshipStatus(friendship.id, status);
   }
 
-  async removeFriend(userId: number, targetId: number): Promise<FriendshipFullDTO> {
-    const friendship = await friendshipRepository.findFriendshipBetween(userId, targetId);
-    checkFriendshipExistence(friendship, userId, targetId);
+  async removeFriend(userId: number, targetUsername: string): Promise<FriendshipFullDTO> {
+    const fullTarget = await profileService.getByUsernameRaw(targetUsername);
+    const friendship = await friendshipRepository.findFriendshipBetween(userId, fullTarget.authId);
+    checkFriendshipExistence(friendship, userId, fullTarget.authId);
     return await friendshipRepository.deleteFriendshipById(friendship.id);
   }
 }
