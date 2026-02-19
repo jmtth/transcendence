@@ -236,12 +236,12 @@ services:
     expose:
       - '${PONG_AI_SERVICE_PORT}'
     environment:
-      - MODEL_PATH=/app/models/best_model.zip
+      - MODEL_PATH=/app/models/best_model
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - GAME_SERVICE_NAME=${GAME_SERVICE_NAME}
       - GAME_SERVICE_PORT=${GAME_SERVICE_PORT}
     volumes:
-      - ./srcs/pong-ai/models:/app/models
+      - ./pong-ai/models:/app/models
     networks:
       - app-network
     restart: unless-stopped

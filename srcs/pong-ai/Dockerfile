@@ -11,13 +11,15 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --force-reinstall --upgrade "numpy<2" && \
+    pip install --force-reinstall torch stable-baselines3
 
 COPY pong_env.py .
 COPY pong_server.py .
 COPY ai_player.py .
 
-RUN mkdir -p /app/best_model
+RUN mkdir -p /app/models/best_model
 
 EXPOSE 3006
 

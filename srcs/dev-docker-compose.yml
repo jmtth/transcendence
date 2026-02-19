@@ -232,7 +232,7 @@ services:
     env_file:
       - path: ./.env
     environment:
-      - MODEL_PATH=/app/best_model
+      - MODEL_PATH=/app/models/best_model
       - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - ./pong-ai/models:/app/models
@@ -241,7 +241,7 @@ services:
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
-      test: ["CMD", "curl", "-f", "http://localhost:${PONG_AI_SERVICE_PORT}/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:${PONG_AI_SERVICE_PORT}/health']
 
 networks:
   app-network:

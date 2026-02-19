@@ -200,7 +200,7 @@ class AIPlayer:
         self.playing = False
 
 
-async def join_game_as_ai(session_id: str, model_path: str = "best_model"):
+async def join_game_as_ai(session_id: str, model_path: str = "models/best_model"):
 
     player = AIPlayer(model_path)
     await player.play(session_id)
@@ -214,7 +214,7 @@ if __name__ == "__main__":
         sys.exit(1)
     
     session_id = sys.argv[1]
-    model_path = sys.argv[2] if len(sys.argv) > 2 else "best_model"
+    model_path = sys.argv[2] if len(sys.argv) > 2 else "models/best_model"
     
     print(f"Starting AI player for session: {session_id}")
     asyncio.run(join_game_as_ai(session_id, model_path))

@@ -25,7 +25,7 @@ app.add_middleware(
 class AIService:
     """Manages AI model loading and readiness checks."""
     
-    def __init__(self, model_path: str = "best_model"):
+    def __init__(self, model_path: str = "models/best_model"):
         self.model_path = model_path
         self.model: Optional[PPO] = None
         self.load_error: Optional[str] = None
@@ -33,12 +33,10 @@ class AIService:
     
     def load_model(self):
         model_file = f"{self.model_path}.zip"
-        
         if not os.path.exists(model_file):
             self.load_error = f"AI model not found: {model_file}"
             print(f"❌ {self.load_error}")
             return
-        
         try:
             self.model = PPO.load(self.model_path)
             print(f"✅ Model loaded: {self.model_path}")
@@ -89,7 +87,7 @@ async def join_game(request: Request):
         }
     
     # Create AI player
-    model_path = "best_model"
+    model_path = "models/best_model"
     ai_player = AIPlayer(model_path)
     active_ai_players[session_id] = ai_player
     
