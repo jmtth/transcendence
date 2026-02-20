@@ -2,7 +2,7 @@ include make/config.mk
 
 # === Global ===
 
-all : volumes certs colima build
+all : volumes certs colima install build
 	npm i
 	$(D_COMPOSE) up -d
 
@@ -91,8 +91,14 @@ api:
 	$(D_COMPOSE) up -d --build $(API_GATEWAY_NAME)
 auth:
 	$(D_COMPOSE) up -d --build $(AUTH_SERVICE_NAME)
+auth-nc:
+	$(D_COMPOSE) build --no-cache $(AUTH_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(AUTH_SERVICE_NAME)
 user:
 	$(D_COMPOSE) build $(UM_SERVICE_NAME)
+	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
+user-nc:
+	$(D_COMPOSE) build --no-cache $(UM_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(UM_SERVICE_NAME)
 game:
 	$(D_COMPOSE) up -d --build $(GAME_SERVICE_NAME)
