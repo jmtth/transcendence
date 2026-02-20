@@ -22,6 +22,8 @@ import {
   LOG_RESOURCES,
 } from '@transcendence/core';
 
+const authHeaders = { 'x-user-id': '1', 'x-user-name': 'toto', 'x-user-role': 'USER' };
+
 describe('Friends Controller unit tests', () => {
   let app: FastifyInstance;
 
@@ -90,7 +92,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
         payload: { targetUsername: 'tata' },
       });
 
@@ -101,7 +103,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
         payload: { targetUsername: '' },
       });
 
@@ -116,7 +118,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
         payload: { targetUsername: 'idontexist' },
       });
 
@@ -131,7 +133,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
         payload: { targetUsername: 'tata' },
       });
 
@@ -146,7 +148,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
         payload: { targetUsername: 'toto' },
       });
 
@@ -163,7 +165,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: '/friends/tata',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(200);
@@ -183,7 +185,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: '/friends/tata',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(404);
@@ -203,7 +205,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'DELETE',
         url: '/friends/unknown',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(404);
@@ -219,7 +221,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(200);
@@ -231,7 +233,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'GET',
         url: '/friends',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
       });
 
       expect(response.statusCode).toBe(200);
@@ -248,7 +250,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'PATCH',
         url: `/friends/tata/nickname`,
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
         payload: { nickname: 'newNick' },
       });
 
@@ -259,7 +261,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'PATCH',
         url: '/friends/tata/nickname',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
         payload: { nickname: 'a'.repeat(51) },
       });
 
@@ -274,7 +276,7 @@ describe('Friends Controller unit tests', () => {
       const response = await app.inject({
         method: 'PATCH',
         url: '/friends/tata/nickname',
-        headers: { 'x-user-id': '1', 'x-user-name': 'toto' },
+        headers: authHeaders,
         payload: { nickname: 'newNick' },
       });
 
