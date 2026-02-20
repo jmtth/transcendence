@@ -37,7 +37,6 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
   };
 
   const handleActionClick = (e: React.MouseEvent, action: UserActions) => {
-    console.log('clicked action');
     e.stopPropagation();
     if (user) onAction?.(action, user);
     setIsOpen(false);
@@ -57,7 +56,7 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
         ${isOpen ? 'bg-slate-700 w-[100%] md:w-[55%]' : 'bg-slate-700/20 w-[100%] md:w-[100%]'}
         hover:bg-slate-700`}
       >
-        <div className="flex w-[100%] flex-row items-center justify-between gap 2">
+        <div className="flex w-[100%] flex-row items-center justify-between gap-2">
           <div className="flex flex-row items-center gap-2">
             <Avatar
               alt="user avatar"
@@ -97,7 +96,7 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
             return (
               <div
                 key={actionType}
-                className={`absolute left-0 top-1/2  z-60 flex items-center gap-3 hover:cursor-pointer transition-all duration-300
+                className={`absolute left-0 top-1/2  z-50 flex items-center gap-3 hover:cursor-pointer transition-all duration-300
               `}
                 style={{
                   transform: `translate(${xOffset - Math.abs(relPos) * arcIntensity}px, calc(-50% + ${relPos * verticalSpacing}px))`,
@@ -120,7 +119,7 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
       </div>
 
       <div
-        className={`md:hidden flex flex-row justify-center gap-6 overflow-hidden transition-all duration-300 z-20
+        className={`md:hidden flex flex-row justify-center gap-6 overflow-hidden transition-all duration-300 z-40
         ${isOpen ? 'max-h-24 opacity-100 mt-4' : 'max-h-0 opacity-0 mt-0'}`}
       >
         {actions.map((actionType) => {
@@ -129,7 +128,7 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
             <button
               onClick={(e) => handleActionClick(e, actionType)}
               key={actionType}
-              className="w-14 h-14 z-60 rounded-full bg-slate-700 flex items-center justify-center shadow-lg active:scale-90 border border-slate-600"
+              className="w-14 h-14 z-50 rounded-full bg-slate-700 flex items-center justify-center shadow-lg active:scale-90 border border-slate-600"
             >
               <config.icon className={config.color} size={26} />
             </button>

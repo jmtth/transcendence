@@ -22,6 +22,7 @@ const useUserSearch = (query: string) => {
     const fetchProfiles = async () => {
       if (query.length < 2) {
         setResults([]);
+        setError(null);
         return;
       }
       setIsLoading(true);
@@ -29,6 +30,7 @@ const useUserSearch = (query: string) => {
         const data = await profileApi.getLike(query);
         if (isMounted) {
           setResults(Array.isArray(data) ? data : []);
+          setError(null);
         }
       } catch (err) {
         if (!isMounted) return;

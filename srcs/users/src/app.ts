@@ -49,16 +49,37 @@ export async function buildApp() {
     done();
   });
 
-  app.addHook('preHandler', async (req) => {
-    const userId = req.headers['x-user-id'];
-
-    if (userId) {
-      req.user = {
-        id: Number(userId),
-        username: req.headers['x-user-name'] as string,
-        role: req.headers['x-user-role'] as string,
-      };
+  app.addHook('preHandler', async (req, reply) => {
+    const userIdHeader = req.headers['x-user-id'];
+    const usernameHeader = req.headers['x-user-name'];
+    const roleHeader = req.headers['x-user-role'];
+    // If no auth headers are present, leave req.user undefined (public route or unauthenticated request)
+    if (
+      typeof userIdHeader === 'undefined' &&
+      typeof usernameHeader === 'undefined' &&
+      typeof roleHeader === 'undefined'
+    ) {
+      return;
     }
+    // If some auth headers are present but not all required ones, treat as invalid
+    if (
+      typeof userIdHeader === 'undefined' ||
+      typeof usernameHeader === 'undefined' ||
+      typeof roleHeader === 'undefined'
+    ) {
+      reply.code(400).send({ error: 'Invalid authentication headers' });
+      return;
+    }
+    const id = Number(userIdHeader);
+    if (!Number.isFinite(id)) {
+      reply.code(400).send({ error: 'Invalid authentication headers' });
+      return;
+    }
+    req.user = {
+      id,
+      username: String(usernameHeader),
+      role: String(roleHeader),
+    };
   });
 
   await app.setValidatorCompiler(validatorCompiler);

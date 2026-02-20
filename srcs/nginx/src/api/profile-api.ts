@@ -15,7 +15,7 @@ export const profileApi = {
   },
 
   getLike: async (query: string): Promise<ProfileSimpleDTO[]> => {
-    const { data } = await api.get(`/users?query=${query}`);
+    const { data } = await api.get(`/users`, { params: { query } });
     return data;
   },
 

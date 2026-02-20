@@ -40,6 +40,7 @@ const UserSearchInput = ({
       <ul className="flex flex-col gap-1">
         {suggestions.map((u) => (
           <li
+            role="button"
             key={u.username}
             onClick={() => onSelect(u)}
             className="cursor-pointer hover:bg-white/10 p-1 rounded"

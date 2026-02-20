@@ -53,8 +53,10 @@ const getProfilesbyUsernameQuerySchema = {
   summary: 'Find profiles matching query',
   description:
     'Returns a list of profiles containing query string in username. Returns an empty list if no result',
-  queryString: z.string().min(2).describe('pattern to look at in usernames'),
-  header: z.object({
+  querystring: z.object({
+    query: z.string().min(2).describe('pattern to look at in usernames'),
+  }),
+  headers: z.object({
     'x-user-name': z.string().optional(),
   }),
   response: {

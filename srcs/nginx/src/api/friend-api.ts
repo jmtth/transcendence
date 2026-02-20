@@ -7,7 +7,7 @@ import {
 import api from './api-client';
 
 export const friendApi = {
-  addFriend: async (friendUsername: string): Promise<FriendshipFullDTO> => {
+  addFriend: async (friendUsername: usernameDTO): Promise<FriendshipFullDTO> => {
     usernameSchema.parse(friendUsername);
     const { data } = await api.post(`/users/friends`, {
       targetUsername: friendUsername,
@@ -22,7 +22,7 @@ export const friendApi = {
 
   removeFriend: async (friendUsername: usernameDTO): Promise<FriendshipFullDTO> => {
     usernameSchema.parse(friendUsername);
-    const { data } = await api.delete(`/users/friends/${friendUsername}`);
+    const { data } = await api.delete(`/users/friends/${encodeURIComponent(friendUsername)}`);
     return data;
   },
 };

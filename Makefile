@@ -189,7 +189,6 @@ shell-pong-ai:
 # --- Logs and status ---
 
 USERS_DIR = ./srcs/users
-SCHEMA_PATH = $(USERS_DIR)/prisma/schema.prisma
 
 .PHONY: studio-users
 studio-users:
@@ -271,4 +270,4 @@ endif
 	@echo "Remove certificates"
 	rm -rf make/scripts/certs/certs
 
-.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev prisma-user
+.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev studio-user

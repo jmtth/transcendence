@@ -58,7 +58,6 @@ export class ProfileRepository {
         },
       },
     });
-    logger.info({ msg: 'found profiles in data', found: found });
     return found;
   }
 

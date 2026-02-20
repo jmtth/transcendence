@@ -39,7 +39,8 @@ export const createFriendSchema = {
 export const removeFriendSchema = {
   tags: ['friends'],
   summary: 'Remove a friend',
-  description: 'Remove a friendship associating current user and an user identified by target id',
+  description:
+    'Remove a friendship associating current user and an user identified by target username',
   params: z.object({
     targetUsername: usernameSchema,
   }),
@@ -53,7 +54,8 @@ export const removeFriendSchema = {
 export const updateFriendStatusSchema = {
   tags: ['friends'],
   summary: 'Update friendship status',
-  description: 'Update friendship status between current user and an user identified by target id',
+  description:
+    'Update friendship status between current user and an user identified by target username',
   params: z.object({
     targetUsername: usernameSchema,
   }),
@@ -68,7 +70,7 @@ export const updateFriendStatusSchema = {
 export const updateFriendNicknameSchema = {
   tags: ['friends'],
   summary: 'Update friend nickname',
-  description: 'Update nickname given by current user to an user identified by target id',
+  description: 'Update nickname given by current user to an user identified by target username',
   params: z.object({
     targetUsername: usernameSchema,
   }),
