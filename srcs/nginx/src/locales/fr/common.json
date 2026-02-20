@@ -43,7 +43,8 @@
     "mfa_required": "Authentification à deux facteurs requise. Veuillez configurer ou saisir votre code MFA.",
     "invalid_mfa_code": "Code MFA invalide. Vérifiez le code et réessayez.",
     "internal_error": "Erreur interne du serveur. Veuillez réessayer plus tard.",
-    "friend_self_add": "Choisissez un autre utilisateur que vous-même"
+    "friend_self_add": "Choisissez un autre utilisateur que vous-même",
+    "friend_already": "You are already friends"
   },
   "navbar": {
     "home": "Accueil",

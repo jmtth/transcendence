@@ -33,7 +33,7 @@ import {
   checkFriendshipExistence,
   friendshipService,
 } from '../src/services/friends.service.js';
-import { mockProfileDTO2, mockFullProfileDTO2 } from './fixtures/profiles.fixtures.js';
+import { mockFullProfileDTO2 } from './fixtures/profiles.fixtures.js';
 
 const baseFriendship = {
   id: 42,

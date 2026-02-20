@@ -1,5 +1,4 @@
 import {
-  ERROR_CODES,
   FriendshipUnifiedDTO,
   FrontendError,
   HTTP_STATUS,
@@ -12,13 +11,13 @@ import { UserActions } from '../types/react-types';
 import UserSearchContainer from '../components/molecules/UserSearchContainer';
 import { friendApi } from '../api/friend-api';
 import { useEffect, useState } from 'react';
-import { STATUS_CODES } from 'http';
 
 export const FriendsPage = () => {
   const { t } = useTranslation();
   const [friends, setFriends] = useState<FriendshipUnifiedDTO[]>([]);
   const [isLoading, setLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSearch, setIsSearch] = useState<boolean>(true);
 
   const allowedActions: UserActions[] = [UserActions.PLAY, UserActions.REMOVE];
 
@@ -32,6 +31,7 @@ export const FriendsPage = () => {
         if (err instanceof FrontendError) {
           setErrorMessage(err.message);
         }
+        setIsSearch(true);
       } finally {
         setLoading(false);
       }
@@ -58,6 +58,8 @@ export const FriendsPage = () => {
       if (err instanceof FrontendError) {
         if (err.statusCode === HTTP_STATUS.UNPROCESSABLE_ENTITY) {
           setErrorMessage(t('errors.friend_self_add'));
+        } else if (err.statusCode === HTTP_STATUS.CONFLICT) {
+          setErrorMessage(t('errors.friend_already'));
         } else {
           setErrorMessage(err.message);
         }
@@ -72,6 +74,7 @@ export const FriendsPage = () => {
       </div>
       <div className="mb-4 w-[100%]">
         <UserSearchContainer
+          isSearch={isSearch}
           actions={[UserActions.ADD]}
           onAction={handleUserAction}
         ></UserSearchContainer>

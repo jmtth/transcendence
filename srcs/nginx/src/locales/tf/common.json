@@ -43,7 +43,8 @@
     "mfa_required": "Faut un double contrôle, mon gars. Sors ton code MFA ou configure-le, sinon c’est mort.",
     "invalid_mfa_code": "Ton code MFA, il est foireux. Vérifie et retente.",
     "internal_error": "Putain, y’a un truc qui cloche chez nous. Reviens plus tard, on va régler ça entre nous.",
-    "friend_self_add": "Tu peux pas t'ajouter toi-meme, vieux. Choisis un autre tandem."
+    "friend_self_add": "Tu peux pas t'ajouter toi-meme, vieux. Choisis un autre tandem.",
+    "friend_already": "You are already friends"
   },
   "navbar": {
     "home": "Le bercail",

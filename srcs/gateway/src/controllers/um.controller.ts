@@ -1,7 +1,6 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { CatchAllParams } from '../types/params.types.js';
 import { fastStreamProxy } from '../utils/proxy.js';
-import { fastifyReplyFrom } from '@fastify/reply-from';
 
 const UM_SERVICE_URL = 'https://user-service:3002';
 

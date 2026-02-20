@@ -4,12 +4,13 @@ import Avatar from '../atoms/Avatar';
 import { Gamepad2, Plus, UserRoundMinus, UserRoundPlus, LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
+import defaultAvatar from '../../assets/avatars/default.png';
 
 /**
  * @todo guards for avatar url format
  */
 interface Props {
-  user: ProfileSimpleDTO;
+  user: ProfileSimpleDTO | null;
   avatarSize?: AvatarSize;
   actions: UserActions[];
   onAction?: (action: UserActions, user: ProfileSimpleDTO) => void;
@@ -38,7 +39,7 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
   const handleActionClick = (e: React.MouseEvent, action: UserActions) => {
     console.log('clicked action');
     e.stopPropagation();
-    onAction?.(action, user);
+    if (user) onAction?.(action, user);
     setIsOpen(false);
   };
 
@@ -58,9 +59,13 @@ const UserRow = ({ user, avatarSize = 'md', actions, onAction }: Props) => {
       >
         <div className="flex w-[100%] flex-row items-center justify-between gap 2">
           <div className="flex flex-row items-center gap-2">
-            <Avatar alt="user avatar" size={avatarSize} src={user.avatarUrl}></Avatar>
+            <Avatar
+              alt="user avatar"
+              size={avatarSize}
+              src={user?.avatarUrl || defaultAvatar}
+            ></Avatar>
             <span className="text-white text-md font-quantico font-semibold ml-1 mt-1 tracking-widest">
-              {user.username}
+              {user?.username}
             </span>
           </div>
           <div

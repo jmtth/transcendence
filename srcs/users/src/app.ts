@@ -37,8 +37,7 @@ export async function buildApp() {
   const app = fastify(options).withTypeProvider<ZodTypeProvider>();
 
   app.addHook('onRequest', (request, reply, done) => {
-    const socket = request.raw.socket as any;
-    // Allow local healthchecks without mTLS
+    const socket = request.raw.socket;
     if (socket.remoteAddress === '127.0.0.1' || socket.remoteAddress === '::1') {
       return done();
     }
