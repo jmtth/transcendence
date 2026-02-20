@@ -3,7 +3,6 @@ import { friendshipService } from '../services/friends.service.js';
 import {
   FriendshipUpdateNicknameDTO,
   FriendshipUpdateStatusDTO,
-  IdDTO,
   LOG_ACTIONS,
   LOG_RESOURCES,
 } from '@transcendence/core';
