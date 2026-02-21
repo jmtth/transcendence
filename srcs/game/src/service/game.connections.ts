@@ -15,7 +15,7 @@ export function cleanupConnection(
   if (socket) {
     socket.close(code, message);
   } else {
-    currentSession.players.forEach((id, socket) => socket.close(code, message));
+    currentSession.players.forEach((id, s) => s.close(code, message));
     currentSession.players.clear();
   }
   if (currentSession.players.size === 0) {
@@ -32,35 +32,37 @@ export function addPlayerConnection(this: FastifyInstance, socket: WebSocket, se
 
   const players = currentSession.players;
 
-  // players is Map<WebSocket, 'A' | 'B'>
-  // Check existing player IDs via values(), not keys()
-  const existingIds = Array.from(players.values()); // ['A'] or ['A', 'B'] etc.
+  // players is Map<any, 'A' | 'B'> — check IDs via .values(), not .keys()
+  const existingIds = Array.from(players.values());
+  const currentSize = players.size; // capture before mutating
 
-  if (players.size >= 2) {
+  if (currentSize >= 2) {
     socket.close(WS_CLOSE.SESSION_FULL, 'Session full');
     return false;
   }
 
-  if (players.size === 1 && existingIds.includes('A')) {
-    // Second player: assign B
+  // Track whether this socket completed the pair
+  let isSecondPlayer = false;
+
+  if (currentSize === 1 && existingIds.includes('A')) {
     players.set(socket, 'B');
     socket.send(JSON.stringify({ type: 'connected', message: 'Player B' }));
-  } else if (players.size === 0) {
-    // First player: assign A
+    isSecondPlayer = true;
+  } else if (currentSize === 0) {
     players.set(socket, 'A');
     socket.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
   } else {
-    // Fallback: session has 1 player but not 'A' (shouldn't happen)
+    // Unexpected state (e.g. size===1 but player 'A' not present)
     socket.close(WS_CLOSE.SESSION_FULL, 'Session full');
     return false;
   }
 
   this.log.info(
-    `[${sessionId}] Player ${ players.get(socket) } connected. Total: ${currentSession.players.size}`,
+    `[${sessionId}] Player ${players.get(socket)} connected. Total: ${players.size}`,
   );
 
-  // Once both players connected, send start automatically
-  if (players.size === 2) {
+  // Auto-start the game once both players are in
+  if (isSecondPlayer) {
     const game = currentSession.game;
     if (game && game.status === 'waiting') {
       game.start();
@@ -68,7 +70,7 @@ export function addPlayerConnection(this: FastifyInstance, socket: WebSocket, se
     }
   }
 
-  // Handle connection close
+  // Handle disconnection
   socket.on('close', (code: number, reason: string) => {
     this.log.info(`[${sessionId}] Player disconnected: ${code} - ${reason}`);
     players.delete(socket);
