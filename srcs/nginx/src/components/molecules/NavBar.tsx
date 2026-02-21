@@ -33,8 +33,10 @@ export const NavBar = () => {
   ];
 
   return (
-    <nav className="mb-3 bg-teal-800/30 p-5 w-full flex flex-row justify-between">
-      <div className="lg:text-3xl text-xl group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
+    <nav
+      className={`mb-3 bg-teal-800/30 p-5 w-full flex flex-row ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
+    >
+      <div className="lg:text-3xl hidden sm:block group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
         <span>Sp</span>
         <span className="lowercase inline-block duration-500 group-hover:rotate-180">i</span>
         <span>n Pong</span>
@@ -57,7 +59,10 @@ export const NavBar = () => {
             <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
           </Link>
         )}
-        <Locale className="flex items-center" />
+
+        <div className="flex flex-row items-center justify-center">
+          <Locale className="mt-1 flex justify-center items-center" />
+        </div>
       </div>
     </nav>
   );

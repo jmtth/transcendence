@@ -185,3 +185,5 @@ make/scripts/certs/certs
 
 # Snyk Security Extension - AI Rules (auto-generated)
 .github/instructions/snyk_rules.instructions.md
+*.ai
+docs/welcomPage.jpg
