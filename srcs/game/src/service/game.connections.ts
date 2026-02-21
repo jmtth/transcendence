@@ -23,8 +23,6 @@ export function cleanupConnection(
       clearInterval(currentSession.interval);
       currentSession.interval = null;
     }
-    // gameSessions.delete(sessionId) 	// let the game finish to determine a winner even if everybody left.
-    // (Should not loop infinite because of forcefield, the game should find a winer)
   }
 }
 
@@ -34,20 +32,41 @@ export function addPlayerConnection(this: FastifyInstance, socket: WebSocket, se
 
   const players = currentSession.players;
 
-  if (players.size === 1 && Array.from(players.values())[0] === 'A') {
+  // players is Map<WebSocket, 'A' | 'B'>
+  // Check existing player IDs via values(), not keys()
+  const existingIds = Array.from(players.values()); // ['A'] or ['A', 'B'] etc.
+
+  if (players.size >= 2) {
+    socket.close(WS_CLOSE.SESSION_FULL, 'Session full');
+    return false;
+  }
+
+  if (players.size === 1 && existingIds.includes('A')) {
+    // Second player: assign B
     players.set(socket, 'B');
     socket.send(JSON.stringify({ type: 'connected', message: 'Player B' }));
-  } else if (players.size === 1 || players.size === 0) {
+  } else if (players.size === 0) {
+    // First player: assign A
     players.set(socket, 'A');
     socket.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
-  } else if (players.size >= 2) {
+  } else {
+    // Fallback: session has 1 player but not 'A' (shouldn't happen)
     socket.close(WS_CLOSE.SESSION_FULL, 'Session full');
     return false;
   }
 
   this.log.info(
-    `[${sessionId}] Player ${players} connected. Total: ${currentSession.players.size}`,
+    `[${sessionId}] Player ${ players.get(socket) } connected. Total: ${currentSession.players.size}`,
   );
+
+  // Once both players connected, send start automatically
+  if (players.size === 2) {
+    const game = currentSession.game;
+    if (game && game.status === 'waiting') {
+      game.start();
+      this.log.info(`[${sessionId}] Both players connected — game auto-started`);
+    }
+  }
 
   // Handle connection close
   socket.on('close', (code: number, reason: string) => {
@@ -57,7 +76,6 @@ export function addPlayerConnection(this: FastifyInstance, socket: WebSocket, se
       currentSession.game.stop();
       this.log.info(`[${sessionId}] Game stopped`);
     }
-    // cleanupConnection(socket, sessionId)
   });
 
   // Handle errors
@@ -65,5 +83,6 @@ export function addPlayerConnection(this: FastifyInstance, socket: WebSocket, se
     console.error(`[${sessionId}] WebSocket error:`, err);
     cleanupConnection(socket, sessionId, 4444, 'error');
   });
+
   return true;
 }

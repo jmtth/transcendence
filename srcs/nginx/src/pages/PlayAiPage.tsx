@@ -4,14 +4,14 @@ import Background from '../components/atoms/Background';
 import { NavBar } from '../components/molecules/NavBar';
 import Button from '../components/atoms/Button';
 
-// ─── Canvas constants (match server physics) ────────────────────────────────
+// ─── Canvas constants (match server physics) ──────────────────────────────────
 const CW = 800;
 const CH = 600;
 const PADDLE_W = 10;
 const LEFT_X = 20;
 const RIGHT_X = CW - 30;
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 type Phase = 'idle' | 'loading' | 'playing' | 'gameOver' | 'error';
 
 interface GameState {
@@ -24,7 +24,6 @@ interface GameState {
 }
 
 function drawFrame(ctx: CanvasRenderingContext2D, state: GameState) {
-  // Background
   ctx.fillStyle = '#020617';
   ctx.fillRect(0, 0, CW, CH);
 
@@ -39,7 +38,7 @@ function drawFrame(ctx: CanvasRenderingContext2D, state: GameState) {
   ctx.stroke();
   ctx.restore();
 
-  // Paddles — glow effect
+  // Paddle with glow
   const paddleGlow = (x: number, y: number, h: number, color: string) => {
     ctx.save();
     ctx.shadowColor = color;
@@ -72,7 +71,7 @@ function drawFrame(ctx: CanvasRenderingContext2D, state: GameState) {
   ctx.fillText(String(state.scores.right), CW / 2 + 80, 60);
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 export const PlayAiPage = () => {
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -83,18 +82,36 @@ export const PlayAiPage = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const myPaddleRef = useRef<'left' | 'right'>('left');
   const phaseRef = useRef<Phase>('idle');
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Keep phaseRef in sync so WS callbacks don't capture stale phase
   useEffect(() => {
     phaseRef.current = phase;
   }, [phase]);
 
-  // ── Start game ─────────────────────────────────────────────────────────────
+  const clearSetupTimeout = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
+  // ── Start game ──────────────────────────────────────────────────────────────
   const startGame = useCallback(async () => {
     setPhase('loading');
     setError(null);
     setScores({ left: 0, right: 0 });
     setWinner(null);
+
+    // 10-second timeout: if no 'state' message received, show error
+    timeoutRef.current = setTimeout(() => {
+      if (phaseRef.current === 'loading' || phaseRef.current === 'playing') {
+        wsRef.current?.close();
+        setError(
+          'Game did not start within 10s. Is the AI service running and is models/best_model.zip present?'
+        );
+        setPhase('error');
+      }
+    }, 10000);
 
     try {
       const { sessionId } = await createAiSession();
@@ -103,9 +120,11 @@ export const PlayAiPage = () => {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        joinAiToSession(sessionId).catch(() => {
-          setError('Failed to join AI to session');
+        joinAiToSession(sessionId).catch((e: any) => {
+          clearSetupTimeout();
+          setError('AI service error: ' + (e?.response?.data?.detail ?? e?.message ?? 'unknown'));
           setPhase('error');
+          ws.close();
         });
       };
 
@@ -114,8 +133,10 @@ export const PlayAiPage = () => {
 
         if (msg.type === 'connected') {
           myPaddleRef.current = msg.message === 'Player A' ? 'left' : 'right';
-          setPhase('playing');
+          // Don't clear timeout yet — wait for first 'state' to confirm game loop is running
         } else if (msg.type === 'state' && msg.data) {
+          clearSetupTimeout(); // Game loop is alive
+          if (phaseRef.current !== 'playing') setPhase('playing');
           setScores({ ...msg.data.scores });
           const canvas = canvasRef.current;
           if (canvas) {
@@ -123,6 +144,7 @@ export const PlayAiPage = () => {
             if (ctx) drawFrame(ctx, msg.data);
           }
         } else if (msg.type === 'gameOver' && msg.data) {
+          clearSetupTimeout();
           setScores({ ...msg.data.scores });
           const canvas = canvasRef.current;
           if (canvas) {
@@ -135,24 +157,31 @@ export const PlayAiPage = () => {
             (myPaddle === 'right' && msg.data.scores.right >= msg.data.scores.left);
           setWinner(iWon ? 'you' : 'ai');
           setPhase('gameOver');
+        } else if (msg.type === 'error') {
+          clearSetupTimeout();
+          setError('Game error: ' + (msg.message ?? 'unknown'));
+          setPhase('error');
         }
       };
 
       ws.onerror = () => {
+        clearSetupTimeout();
         setError('WebSocket error — is the game service running?');
         setPhase('error');
       };
 
       ws.onclose = () => {
+        clearSetupTimeout();
         if (phaseRef.current === 'playing') setPhase('idle');
       };
     } catch (e: any) {
+      clearSetupTimeout();
       setError(e?.message ?? 'Failed to start game');
       setPhase('error');
     }
   }, []);
 
-  // ── Keyboard controls ──────────────────────────────────────────────────────
+  // ── Keyboard controls ────────────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'playing') return;
     const ws = wsRef.current;
@@ -180,10 +209,13 @@ export const PlayAiPage = () => {
     };
   }, [phase]);
 
-  // ── Cleanup on unmount ─────────────────────────────────────────────────────
-  useEffect(() => () => { wsRef.current?.close(); }, []);
+  // ── Cleanup on unmount ────────────────────────────────────────────────────────
+  useEffect(() => () => {
+    clearSetupTimeout();
+    wsRef.current?.close();
+  }, []);
 
-  // ── Mobile touch helpers ───────────────────────────────────────────────────
+  // ── Mobile touch helpers ─────────────────────────────────────────────────────
   const sendDirection = (dir: 'up' | 'down' | 'stop') =>
     wsRef.current?.send(JSON.stringify({ type: 'paddle', paddle: myPaddleRef.current, direction: dir }));
 
@@ -204,7 +236,7 @@ export const PlayAiPage = () => {
 
         <div className="flex flex-col items-center justify-center h-full gap-6 pt-16">
 
-          {/* ── Header ─────────────────────────────────────────────────── */}
+          {/* ── Header ─────────────────────────────────────────────────────── */}
           <div className="flex flex-col items-center gap-1">
             <h1 className="text-4xl font-bold font-mono tracking-widest"
               style={{ color: '#f0f9ff', textShadow: '0 0 24px #38bdf8' }}>
@@ -221,7 +253,7 @@ export const PlayAiPage = () => {
             )}
           </div>
 
-          {/* ── Canvas ─────────────────────────────────────────────────── */}
+          {/* ── Canvas ─────────────────────────────────────────────────────── */}
           {(phase === 'playing' || phase === 'gameOver') && (
             <div className="relative">
               <canvas
@@ -236,15 +268,13 @@ export const PlayAiPage = () => {
                 }}
               />
 
-              {/* ── Game Over overlay ───────────────────────────────────── */}
+              {/* ── Game Over overlay ──────────────────────────────────────── */}
               {phase === 'gameOver' && (
                 <div
                   className="absolute inset-0 flex flex-col items-center justify-center gap-6 rounded-xl"
                   style={{ background: 'rgba(2,6,23,0.85)', backdropFilter: 'blur(4px)' }}
                 >
-                  <p className="text-5xl" aria-label={winner === 'you' ? 'You win' : 'AI wins'}>
-                    {winner === 'you' ? '🏆' : '🤖'}
-                  </p>
+                  <p className="text-5xl">{winner === 'you' ? '🏆' : '🤖'}</p>
                   <p className="text-3xl font-bold font-mono"
                     style={{ color: winner === 'you' ? '#34d399' : '#fb7185' }}>
                     {winner === 'you' ? 'You Win!' : 'AI Wins!'}
@@ -264,7 +294,7 @@ export const PlayAiPage = () => {
             </div>
           )}
 
-          {/* ── Idle / Error state ──────────────────────────────────────── */}
+          {/* ── Idle / Error state ─────────────────────────────────────────── */}
           {(phase === 'idle' || phase === 'error') && (
             <div className="flex flex-col items-center gap-4">
               {error && (
@@ -286,22 +316,21 @@ export const PlayAiPage = () => {
             </div>
           )}
 
-          {/* ── Loading state ───────────────────────────────────────────── */}
+          {/* ── Loading state ──────────────────────────────────────────────── */}
           {phase === 'loading' && (
             <div className="flex flex-col items-center gap-3">
               <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
               <p className="text-slate-400 font-mono text-sm animate-pulse">Setting up game…</p>
+              <p className="text-slate-600 font-mono text-xs">Waiting for AI to connect (max 10s)</p>
             </div>
           )}
 
-          {/* ── Playing hints + mobile controls ─────────────────────────── */}
+          {/* ── Playing hints + mobile controls ───────────────────────────── */}
           {phase === 'playing' && (
             <div className="flex flex-col items-center gap-3">
               <p className="text-slate-500 font-mono text-xs hidden sm:block">
                 ↑ / ↓ arrow keys · First to 5 wins
               </p>
-
-              {/* Mobile touch buttons */}
               <div className="flex gap-6 sm:hidden">
                 <button
                   onPointerDown={() => sendDirection('up')}
