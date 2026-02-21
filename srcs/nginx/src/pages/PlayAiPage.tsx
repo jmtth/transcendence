@@ -60,7 +60,6 @@ function drawFrame(ctx: CanvasRenderingContext2D, state: GameState) {
   ctx.fill();
   ctx.restore();
 
-  // Scores drawn on the canvas itself (no React state needed for display)
   ctx.fillStyle = '#475569';
   ctx.font = 'bold 48px "Courier New", monospace';
   ctx.textAlign = 'center';
@@ -70,24 +69,21 @@ function drawFrame(ctx: CanvasRenderingContext2D, state: GameState) {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export const PlayAiPage = () => {
-  // Only state that actually drives React rendering
   const [phase,  setPhase]  = useState<Phase>('idle');
   const [error,  setError]  = useState<string | null>(null);
   const [winner, setWinner] = useState<'you' | 'ai' | null>(null);
-  // Scores live in a ref during gameplay — only copied to state on gameOver
-  const scoresRef   = useRef({ left: 0, right: 0 });
+  const scoresRef = useRef({ left: 0, right: 0 });
   const [displayScores, setDisplayScores] = useState({ left: 0, right: 0 });
 
-  const wsRef        = useRef<WebSocket | null>(null);
-  const canvasRef    = useRef<HTMLCanvasElement | null>(null);
-  const ctxRef       = useRef<CanvasRenderingContext2D | null>(null);
-  const myPaddleRef  = useRef<'left' | 'right'>('left');
-  const phaseRef     = useRef<Phase>('idle');
-  const timeoutRef   = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const wsRef       = useRef<WebSocket | null>(null);
+  const canvasRef   = useRef<HTMLCanvasElement | null>(null);
+  const ctxRef      = useRef<CanvasRenderingContext2D | null>(null);
+  const myPaddleRef = useRef<'left' | 'right'>('left');
+  const phaseRef    = useRef<Phase>('idle');
+  const timeoutRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => { phaseRef.current = phase; }, [phase]);
 
-  // Cache the 2D context once the canvas mounts
   const setCanvasRef = useCallback((el: HTMLCanvasElement | null) => {
     canvasRef.current = el;
     ctxRef.current = el ? el.getContext('2d') : null;
@@ -97,7 +93,6 @@ export const PlayAiPage = () => {
     if (timeoutRef.current) { clearTimeout(timeoutRef.current); timeoutRef.current = null; }
   }, []);
 
-  // ── Start game ───────────────────────────────────────────────────────────────
   const startGame = useCallback(async () => {
     setPhase('loading');
     setError(null);
@@ -135,16 +130,11 @@ export const PlayAiPage = () => {
           myPaddleRef.current = msg.message === 'Player A' ? 'left' : 'right';
 
         } else if (msg.type === 'state' && msg.data) {
-          // ─ transition to playing once (1 setState total)
           if (phaseRef.current !== 'playing') {
             clearSetupTimeout();
             setPhase('playing');
           }
-
-          // ─ draw every frame with zero React overhead
           if (ctxRef.current) drawFrame(ctxRef.current, msg.data);
-
-          // ─ only update score display when score actually changes
           const s = msg.data.scores;
           if (s.left !== scoresRef.current.left || s.right !== scoresRef.current.right) {
             scoresRef.current = { left: s.left, right: s.right };
@@ -189,7 +179,6 @@ export const PlayAiPage = () => {
     }
   }, [clearSetupTimeout]);
 
-  // ── Keyboard controls (no re-render involved) ────────────────────────────────
   useEffect(() => {
     if (phase !== 'playing') return;
     const ws = wsRef.current;
@@ -214,10 +203,8 @@ export const PlayAiPage = () => {
     };
   }, [phase]);
 
-  // ── Cleanup ───────────────────────────────────────────────────────────────────
   useEffect(() => () => { clearSetupTimeout(); wsRef.current?.close(); }, [clearSetupTimeout]);
 
-  // ── Mobile touch ─────────────────────────────────────────────────────────────
   const sendDir = (dir: 'up' | 'down' | 'stop') =>
     wsRef.current?.send(JSON.stringify({ type: 'paddle', paddle: myPaddleRef.current, direction: dir }));
 
@@ -249,7 +236,7 @@ export const PlayAiPage = () => {
             )}
           </div>
 
-          {/* Canvas — always mounted while game visible, ref-only updates */}
+          {/* Canvas */}
           {isGame && (
             <div className="relative">
               <canvas
@@ -304,8 +291,7 @@ export const PlayAiPage = () => {
           {phase === 'loading' && (
             <div className="flex flex-col items-center gap-3">
               <div className="w-8 h-8 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-              <p className="text-slate-400 font-mono text-sm animate-pulse">Setting up game…</p>
-              <p className="text-slate-600 font-mono text-xs">Waiting for AI to connect (max 10s)</p>
+              <p className="text-white font-mono text-sm animate-pulse">Setting up game…</p>
             </div>
           )}
 
