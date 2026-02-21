@@ -45,7 +45,7 @@ def test_1_create_4_users_and_a_tournament():
         f"{API_URL}/auth/login", json=creds, verify=False
     )
     tourId = session.post("/game/create-tournament", json=creds)
-    print(tourId.json())
+    print(f"- id du tournoi :{tourId.json()}")
 
     for i in range(3):
         creds = {
@@ -71,9 +71,9 @@ def test_1_create_4_users_and_a_tournament():
     print(f"   ⏱️  Temps total: {total_time:.2f} secondes")
     print_success("création d'un tournoi avec 4 joueurs")
 
-def test_2_create_4_users_and_a_tournament():
-    """Test: création d'un tournoi avec 4 joueurs"""
-    print_test("GAME - création d'un tournoi avec 4 joueurs")
+def test_2_create_5_users_and_a_tournament():
+    """Test: création d'un tournoi avec 4 joueurs et ajout d'un 5eme"""
+    print_test("GAME - création d'un tournoi avec 5 joueurs")
 
     session = TestSession()
     import time
@@ -92,7 +92,7 @@ def test_2_create_4_users_and_a_tournament():
         f"{API_URL}/auth/login", json=creds, verify=False
     )
     tourId = session.post("/game/create-tournament", json=creds)
-    print(tourId.json())
+    print(f"- id du tournoi :{tourId.json()}")
 
     for i in range(3):
         creds = {
@@ -119,12 +119,12 @@ def test_2_create_4_users_and_a_tournament():
         f"{API_URL}/auth/login", json=creds, verify=False
     )
     resp = session.post(f"{API_URL}/game/tournaments/{tourId.json()}", json=creds, expected_status=500)
-    print(f"code:{resp.status_code},{resp.json()}");
+    print(f"⚠️  Ajout du 5eme joueur: code:{resp.status_code},{resp.json()}\n");
 
     total_time = time.time() - start_time
 
     print(f"   ⏱️  Temps total: {total_time:.2f} secondes")
-    print_success("création d'un tournoi avec 4 joueurs")
+    print_success("création d'un tournoi avec 5 joueurs lance une erreur")
 
 def main():
     """Exécution de tous les tests"""
@@ -134,7 +134,7 @@ def main():
 
     tests = [
         test_1_create_4_users_and_a_tournament,
-        test_2_create_4_users_and_a_tournament
+        test_2_create_5_users_and_a_tournament
     ]
 
     test_dict = {}
