@@ -6,6 +6,13 @@ all : volumes certs colima build
 	npm i
 	$(D_COMPOSE) up -d
 
+ai: volumes certs colima
+	npm i
+	COMPOSE_PROFILES=ai $(D_COMPOSE) build
+	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d
+
+re-ai: fclean ai
+
 dev: volumes colima-dev build-dev
 	$(D_COMPOSE_DEV) up -d
 
@@ -99,7 +106,7 @@ game:
 block:
 	$(D_COMPOSE) up -d --build $(BK_SERVICE_NAME)
 pong-ai:
-	$(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
+	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
 build:
 	$(D_COMPOSE) build
 build-dev:
@@ -260,4 +267,4 @@ endif
 	@echo "Remove certificates"
 	rm -rf make/scripts/certs/certs
 
-.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev
+.PHONY : all ai re-ai clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev

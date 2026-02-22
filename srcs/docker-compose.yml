@@ -229,6 +229,8 @@ services:
         ]
 
   pong-ai-service:
+    profiles:
+      - ai
     build:
       context: ./pong-ai
       dockerfile: Dockerfile
@@ -247,7 +249,15 @@ services:
     restart: unless-stopped
     healthcheck:
       <<: *healthcheck-template
-      test: ['CMD', 'curl', '-f', 'http://localhost:${PONG_AI_SERVICE_PORT}/health']
+      test:
+        [
+          'CMD',
+          'wget',
+          '--no-verbose',
+          '--tries=1',
+          '--spider',
+          'http://localhost:${PONG_AI_SERVICE_PORT}/health',
+        ]
 
 networks:
   app-network:

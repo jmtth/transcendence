@@ -15,6 +15,7 @@ COPY srcs/shared/core/package*.json ./srcs/shared/core/
 COPY srcs/shared/core/tsconfig.json ./srcs/shared/core/tsconfig.json
 
 # 2) Installation déterministe (workspaces)
+RUN apk add --no-cache python3 make g++
 RUN npm ci
 
 # 3) Sources minimales nécessaires au build
@@ -33,6 +34,7 @@ RUN npm prune --omit=dev
 FROM node:20-alpine
 
 # Install runtime-only system deps (wget for healthcheck)
+RUN apk add --no-cache python3 make g++  
 RUN apk add --no-cache wget
 
 # 5) Installer UNIQUEMENT les dépendances runtime du workspace users
