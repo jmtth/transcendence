@@ -36,7 +36,5 @@ EXPOSE 3006
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 	CMD wget --no-verbose --tries=1 --spider http://localhost:3006/health || exit 1
-   # CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:3006/health')" || exit 1
-   
 
 CMD ["uvicorn", "pong_server:app", "--host", "0.0.0.0", "--port", "3006", "--log-level", "info"]
