@@ -5,7 +5,7 @@ import { App } from './App';
 import './i118n';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './providers/AuthProvider';
-import { FrontendError } from '../../shared/core/src/errors/error-types';
+import { FrontendError } from '@transcendence/core';
 
 const queryClient = new QueryClient({
   defaultOptions: {
