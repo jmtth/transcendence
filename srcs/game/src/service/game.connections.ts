@@ -32,29 +32,18 @@ export function addPlayerConnection(this: FastifyInstance, socket: WebSocket, se
 
   const players = currentSession.players;
 
-  // players is Map<any, 'A' | 'B'> — check IDs via .values(), not .keys()
-  const existingIds = Array.from(players.values());
-  const currentSize = players.size; // capture before mutating
-
-  if (currentSize >= 2) {
+  if (players.size >= 2) {
+    this.log.info('Too much players in session, refused connection.');
     socket.close(WS_CLOSE.SESSION_FULL, 'Session full');
     return false;
-  }
-
-  // Track whether this socket completed the pair
-  let isSecondPlayer = false;
-
-  if (currentSize === 1 && existingIds.includes('A')) {
+  } else if (players.size === 1 && Array.from(players.values())[0] === 'A') {
     players.set(socket, 'B');
+    this.log.info('Player connected as Player B');
     socket.send(JSON.stringify({ type: 'connected', message: 'Player B' }));
-    isSecondPlayer = true;
-  } else if (currentSize === 0) {
-    players.set(socket, 'A');
-    socket.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
   } else {
-    // Unexpected state (e.g. size===1 but player 'A' not present)
-    socket.close(WS_CLOSE.SESSION_FULL, 'Session full');
-    return false;
+    players.set(socket, 'A');
+    this.log.info('Player connected as Player A');
+    socket.send(JSON.stringify({ type: 'connected', message: 'Player A' }));
   }
 
   this.log.info(

@@ -96,9 +96,10 @@ export function webSocketProxyRequest(
 
   app.log.info({ event: 'game_ws_connect_attempt', path, user: userName, userId });
 
-  // game-service is TLS-only → wss:// + mTLS certs
+  // Create WebSocket downstreamWs to game-service
   const upstreamUrl = `wss://game-service:3003${path}`;
   const upstreamWs = new WebSocket(upstreamUrl, {
+    rejectUnauthorized: false, // for self-signed certs
     headers: {
       'x-user-name': userName as string,
       'x-user-id':   userId  as string,
