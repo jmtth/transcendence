@@ -14,16 +14,13 @@ export default function TournamentCreatePage() {
   useEffect(() => {
     async function createTournament() {
       try {
-        // A remplacer par le vrai appel API
         const res = await creatingTournament();
         console.log(res.id);
-
         navigate(`/tournaments/${res.id}`);
       } catch (err) {
         setError('Failed to create tournament');
       }
     }
-
     createTournament();
   }, [navigate]);
 

@@ -24,20 +24,3 @@ export function MatchNode({ label, status, highlight = false, onStart }: MatchNo
     </div>
   );
 }
-// {/* Start button */}
-// <button
-//   onClick={onStart}
-//   disabled={!canStart}
-//   className={`
-//     px-4 py-1.5 rounded-full text-xs font-semibold
-//     transition-all
-//     ${
-//       canStart
-//         ? 'bg-emerald-500 text-white hover:bg-emerald-600 hover:scale-105 active:scale-100'
-//         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-//     }
-//   `}
-//   aria-disabled={!canStart}
-// >
-//   {t('game.start')}
-// </button>

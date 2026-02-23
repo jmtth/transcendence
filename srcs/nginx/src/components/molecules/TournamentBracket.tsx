@@ -18,7 +18,6 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
   const p2Ref = useRef<HTMLDivElement>(null);
   const p3Ref = useRef<HTMLDivElement>(null);
   const p4Ref = useRef<HTMLDivElement>(null);
-
   const semiLeftRef = useRef<HTMLDivElement>(null);
   const semiRightRef = useRef<HTMLDivElement>(null);
   const finalRef = useRef<HTMLDivElement>(null);

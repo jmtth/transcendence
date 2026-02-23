@@ -2,8 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { TournamentBracket } from '../components/molecules/TournamentBracket';
 import { Player } from '../types/types';
 import { useState, useEffect } from 'react';
-import { PlayerDTO, ProfileSimpleDTO } from '@transcendence/core';
-import { profileApi } from '../api/profile-api';
+import { PlayerDTO } from '@transcendence/core';
 import api from '../api/api-client';
 import { useParams } from 'react-router-dom';
 
@@ -60,7 +59,7 @@ export default function TournamentPage() {
       }
     };
     fetchPlayers();
-    // reffresh the page to show in realtime the users who joining the tournament
+    // refresh the page to show in realtime the users who joining the tournament
     const interval = setInterval(fetchPlayers, 10000);
     return () => clearInterval(interval);
   }, []);

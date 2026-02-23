@@ -14,7 +14,7 @@ function mapTournamentDTO(dto: TournamentDTO): Tournament {
     id: dto.id.toString(),
     name: `${dto.username}`,
     players: dto.player_count,
-    maxPlayers: 4, // valeur fixe ou future colonne
+    maxPlayers: 4, // valeur fixe ou champ dans la base
     status: dto.status === 'PENDING' ? 'WAITING' : 'IN_PROGRESS',
     createdAt: new Date().toISOString(), // ou champ futur
   };
