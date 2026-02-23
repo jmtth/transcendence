@@ -29,9 +29,9 @@ export const App = () => {
         <Route path="/" element={<AnimationPage />}></Route>
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/me" element={<MeRedirect />}></Route>
-        <Route path="/simple-game" element={<GamePage sessionId={null} />}></Route>
+        <Route path="/game/local" element={<GamePage sessionId={null} />} />
+        <Route path="/game/pong-ai" element={<PlayAiPage />} />
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
-        <Route path="/ai" element={<PlayAiPage />} />
         <Route path="/tournaments/*" element={<TournamentRoutes />} />
       </Routes>
     </main>
