@@ -130,7 +130,15 @@ export async function listTournament(req: FastifyRequest, reply: FastifyReply) {
 
 export async function joinTournament(req: FastifyRequest, reply: FastifyReply) {
   const tourId = Number((req.params as any).id);
-  db.joinTournament(req.user.sub, tourId);
+  try {
+    db.joinTournament(req.user.sub, tourId);
+  } catch (err: unknown) {
+    if (err instanceof Error && (err as any).code === 'TOURNAMENT_FULL') {
+      return reply.code(409).send({ message: err.message });
+    } else {
+      throw err;
+    }
+  }
   return reply.code(200).send({ joining: tourId });
 }
 

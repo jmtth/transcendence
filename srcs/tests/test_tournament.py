@@ -112,13 +112,18 @@ def test_2_create_5_users_and_a_tournament():
             print(f"code:{resp.status_code},{resp.json()}");
         except Exception as e:
             print(f"Error : {e.args}")
+    creds = {
+        "username": f"{timestamp}_tour",
+        "email": f"{timestamp}_tour@test.local",
+        "password": "ValidPass123!",
+    }
     resp = session.session.post(
         f"{API_URL}/auth/register", json=creds, verify=False
     )
     resp = session.session.post(
         f"{API_URL}/auth/login", json=creds, verify=False
     )
-    resp = session.post(f"{API_URL}/game/tournaments/{tourId.json()}", json=creds, expected_status=500)
+    resp = session.post(f"{API_URL}/game/tournaments/{tourId.json()}", json=creds, expected_status=409)
     print(f"⚠️  Ajout du 5eme joueur: code:{resp.status_code},{resp.json()}\n");
 
     total_time = time.time() - start_time
