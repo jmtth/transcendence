@@ -1,8 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { ProfilePage } from './pages/ProfilePage';
+import { GamePage } from './pages/GamePage';
+import { LoginPage } from './pages/LoginRegisterPage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
 import { WelcomePage } from './pages/WelcomePage';
+import { PlayAiPage } from './pages/PlayAiPage';
 import TournamentRoutes from './router/TournamentRoutes';
 
 const MeRedirect = () => {
@@ -24,9 +27,10 @@ export const App = () => {
     <main className="h-screen bd-slate-950 text-slate-100">
       <Routes>
         <Route path="/" element={<AnimationPage />}></Route>
-
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/me" element={<MeRedirect />}></Route>
+        <Route path="/game/local" element={<GamePage sessionId={null} />} />
+        <Route path="/game/pong-ai" element={<PlayAiPage />} />
         <Route path="/profile/:username" element={<ProfilePage />}></Route>
         <Route path="/tournaments/*" element={<TournamentRoutes />} />
       </Routes>
