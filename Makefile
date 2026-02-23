@@ -5,7 +5,7 @@ include make/config.mk
 all : volumes certs colima install build
 	$(D_COMPOSE) up -d
 
-dev: volumes colima-dev build-dev
+dev: volumes colima build-dev
 	$(D_COMPOSE_DEV) up -d
 
 volumes:
@@ -262,4 +262,4 @@ endif
 	@echo "Remove certificates"
 	rm -rf make/scripts/certs/certs
 
-.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev
+.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima
