@@ -11,7 +11,7 @@ import { PublicRoute } from './router/PublicRoute';
 
 export const App = () => {
   return (
-    <main className="h-screen bd-slate-950 text-slate-100">
+    <main className="h-screen bg-slate-950 text-slate-100">
       <Routes>
         {/* Route publique sans guard — animation d'intro */}
         <Route path="/" element={<AnimationPage />} />
