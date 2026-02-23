@@ -4,6 +4,7 @@ import { GamePage } from './pages/GamePage';
 import { LoginPage } from './pages/LoginRegisterPage';
 import { useAuth } from './providers/AuthProvider';
 import { AnimationPage } from './pages/AnimationPage';
+import { WelcomePage } from './pages/WelcomePage';
 import { PlayAiPage } from './pages/PlayAiPage';
 import TournamentRoutes from './router/TournamentRoutes';
 
