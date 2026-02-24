@@ -12,5 +12,6 @@ export async function gameRoutes(app: FastifyInstance) {
   app.get('/sessions', listGameSessions);
   app.post('/create-session', newGameSession);
   app.get('/health', healthCheck);
+  // @ts-ignore - Fastify WebSocket plugin adds { websocket: true } option at runtime
   app.get('/:sessionId', { websocket: true }, webSocketConnect);
 }
