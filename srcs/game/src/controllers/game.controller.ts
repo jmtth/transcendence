@@ -230,8 +230,12 @@ export async function getGameState(this: FastifyInstance, req: FastifyRequest) {
   return { status: 'success', state: sessionData.game.getState() };
 }
 
-export async function showTournament(req: FastifyRequest, reply: FastifyReply) {
-  const tourId = Number((req.params as any).id);
+export async function showTournament(
+  req: FastifyRequest<{ Params: TournamentParams }>,
+  reply: FastifyReply,
+) {
+  const tourId = Number(req.params.id);
   const result = db.showTournament(tourId);
+  if (result.length === 0) return reply.code(404).send(`tournament don't exist`);
   return reply.code(200).send(result);
 }
