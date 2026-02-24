@@ -16,9 +16,11 @@ export async function gameRoutes(app: FastifyInstance) {
   app.get('/sessions', listGameSessions);
   app.post('/create-session', newGameSession);
   app.get('/health', healthCheck);
-  app.get('/ws/:sessionId', { websocket: true }, webSocketConnect);
-  app.post('/create-tournament', { preHandler: app.authenticate }, newTournament);
+  app.post('/create-tournament', newTournament);
   app.get('/tournaments', listTournament);
-  app.post('/tournaments/:id', { preHandler: app.authenticate }, joinTournament);
-  app.get('/tournaments/:id', { preHandler: app.authenticate }, showTournament);
+  app.post('/tournaments/:id', joinTournament);
+  app.get('/tournaments/:id', showTournament);
+  // WebSocket route for game sessions
+  //keep last to avoid conflict with other routes
+  app.get('/:sessionId', { websocket: true }, webSocketConnect);
 }

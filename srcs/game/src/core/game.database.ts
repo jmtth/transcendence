@@ -247,22 +247,26 @@ export function listTournaments(): TournamentDTO[] {
 
 export function joinTournament(player_id: number, tournament_id: number) {
   try {
-    const result = countPlayerTournamentStmt.get(tournament_id) as { nbPlayer: number };
-    const isAlreadyInGame = isPlayerInTournamentStmt.get(player_id, tournament_id);
-    if (isAlreadyInGame) return;
-    const nbPlayers = result['nbPlayer'];
-    if (nbPlayers >= 4) {
-      const errorDetail: ErrorDetail = {
-        field: `tournament full: ${tournament_id}`,
-        message: 'Tournament is already full',
-        reason: 'tournament_full',
-      };
-      throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
-    }
-    addPlayerTournament(player_id, tournament_id);
-    if (nbPlayers === 3) {
-      changeStatusTournamentStmt.run('STARTED', tournament_id);
-    }
+    //db transaction to avoid race condition when multiple players try to join the same tournament
+    const transaction = db.transaction(() => {
+      const result = countPlayerTournamentStmt.get(tournament_id) as { nbPlayer: number };
+      const isAlreadyInGame = isPlayerInTournamentStmt.get(player_id, tournament_id);
+      if (isAlreadyInGame) return;
+      const nbPlayers = result['nbPlayer'];
+      if (nbPlayers >= 4) {
+        const errorDetail: ErrorDetail = {
+          field: `tournament full: ${tournament_id}`,
+          message: 'Tournament is already full',
+          reason: 'tournament_full',
+        };
+        throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
+      }
+      addPlayerTournament(player_id, tournament_id);
+      if (nbPlayers === 3) {
+        changeStatusTournamentStmt.run('STARTED', tournament_id);
+      }
+    });
+    transaction();
   } catch (err: unknown) {
     if (err instanceof AppError) throw err;
     throw new AppError(

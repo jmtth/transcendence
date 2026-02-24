@@ -2,7 +2,7 @@ import { ReasonValue } from '../logging/logging-types.js';
 import { LOG_EVENTS, LOG_REASONS } from '../logging/logging.js';
 import { ErrorCode, ErrorDefinition, HttpStatus } from './error-types.js';
 import { HTTP_STATUS } from '../constants/index.js';
-import { ERROR_CODES, USER_ERRORS } from './error-codes.js';
+import { ERROR_CODES } from './error-codes.js';
 
 // Factory pattern to centralize error generation
 

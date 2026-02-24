@@ -105,7 +105,6 @@ async function processMessage(
     await redis.xack(STREAM, GROUP, id);
   } catch (err) {
     app.log.error({ err, streamId: id }, 'User event processing failed');
-    throw err;
   }
 }
 

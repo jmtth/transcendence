@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Tests fonctionnels CI/CD - Service Auth
-Tests: Register, Login, Logout, Verify, Me, 2FA, Admin
+Tests fonctionnels CI/CD - Service Game (Tournaments)  
+Tests: Tournament creation, joining, capacity limits  
 """
 import sys
 import time

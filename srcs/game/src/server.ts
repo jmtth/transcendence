@@ -4,7 +4,6 @@ import { gameRoutes } from './routes/game.routes.js';
 import { gameSessions } from './core/game.state.js';
 import type { PongGame } from './core/game.engine.js';
 import fs from 'fs';
-import authPlugin from './plugins/auth.plugin.js';
 import { env } from './config/env.js';
 import redisPlugin from './plugins/ioredis.plugin.js';
 import { startGameConsumer } from './core/game.consumer.js';
@@ -27,7 +26,6 @@ fastify.addHook('onReady', async () => {
 });
 
 // Prehandlher for request route
-fastify.register(authPlugin);
 fastify.register(redisPlugin);
 
 // Register WebSocket support

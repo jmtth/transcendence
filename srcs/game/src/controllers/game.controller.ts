@@ -6,8 +6,7 @@ import { handleClientMessage } from '../service/game.communication.js';
 import { GameSettings } from '../core/game.types.js';
 import { WebSocket } from 'ws';
 import * as db from '../core/game.database.js';
-import { AppError } from '../../../shared/core/src/errors/error-types.js';
-import { LOG_REASONS } from '@transcendence/core';
+import { LOG_REASONS, AppError } from '@transcendence/core';
 
 // Controller - get sessionId from body
 export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {
@@ -126,6 +125,8 @@ export async function newTournament(req: FastifyRequest, reply: FastifyReply) {
   if (!userId)
     return reply.code(500).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
   const userExist = db.getUser(userId);
+  if (!userExist)
+    return reply.code(500).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
   const tournament_id = db.createTournament(userId);
   return reply.code(200).send(tournament_id);
 }
@@ -135,10 +136,21 @@ export async function listTournament(req: FastifyRequest, reply: FastifyReply) {
   return reply.code(200).send(tournaments);
 }
 
-export async function joinTournament(req: FastifyRequest, reply: FastifyReply) {
-  const tourId = Number((req.params as any).id);
+interface TournamentParams {
+  id: string;
+}
+
+export async function joinTournament(
+  req: FastifyRequest<{ Params: TournamentParams }>,
+  reply: FastifyReply,
+) {
+  const tourId = Number(req.params.id);
+  const idHeader = (req.headers as any)['x-user-id'];
+  const userId = idHeader ? Number(idHeader) : null;
+  if (!userId)
+    return reply.code(500).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
   try {
-    db.joinTournament(req.user.sub, tourId);
+    db.joinTournament(userId, tourId);
   } catch (err: unknown) {
     if (err instanceof AppError && err.context?.reason === LOG_REASONS.TOURNAMENT.FULL) {
       return reply.code(409).send({ message: err.message });
