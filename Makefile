@@ -5,6 +5,13 @@ include make/config.mk
 all : volumes certs colima install build
 	$(D_COMPOSE) up -d
 
+ai: volumes certs colima
+	npm i
+	COMPOSE_PROFILES=ai $(D_COMPOSE) build
+	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d
+
+re-ai: fclean ai
+
 dev: volumes colima-dev build-dev
 	$(D_COMPOSE_DEV) up -d
 
@@ -110,8 +117,8 @@ block-nc:
 	$(D_COMPOSE) build --no-cache $(BK_SERVICE_NAME)
 	$(D_COMPOSE) up -d $(BK_SERVICE_NAME)
 pong-ai:
-	$(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
-build: install
+	COMPOSE_PROFILES=ai $(D_COMPOSE) up -d --build $(PONG_AI_SERVICE_NAME)
+build:
 	$(D_COMPOSE) build
 build-dev:
 	$(D_COMPOSE_DEV) build
@@ -275,4 +282,4 @@ endif
 	@echo "Remove certificates"
 	rm -rf make/scripts/certs/certs
 
-.PHONY : all clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev studio-user
+.PHONY : all ai re-ai clean fclean re check format core build volumes setup core nginx redis api auth user stop down logs logs-nginx logs-api logs-auth colima colima-dev studio-user
