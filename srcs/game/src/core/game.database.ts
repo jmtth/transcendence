@@ -33,32 +33,40 @@ CREATE TABLE IF NOT EXISTS match(
     tournament_id INTEGER, -- NULL if free match
     player1 INTEGER NOT NULL,
     player2 INTEGER NOT NULL,
+    sessionId TEXT,-- NULL if match not started, otherwise the sessionId of the game instance
     score_player1 INTEGER NOT NULL DEFAULT 0,
     score_player2 INTEGER NOT NULL DEFAULT 0,
     winner_id INTEGER NOT NULL,
     round TEXT, --NULL | SEMI_1 | SEMI_2 | LITTLE_FINAL | FINAL
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (tournament_id) REFERENCES tournament(id) ON DELETE CASCADE,
+    FOREIGN KEY (player1) REFERENCES player(id) ON DELETE CASCADE,
+    FOREIGN KEY (player2) REFERENCES player(id) ON DELETE CASCADE,
+    FOREIGN KEY (winner_id) REFERENCES player(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS tournament(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     creator_id INTEGER NOT NULL,
     status TEXT NOT NULL DEFAULT 'PENDING', -- PENDING | STARTED | FINISHED
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    FOREIGN KEY (creator_id) REFERENCES player(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS tournament_player(
     tournament_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
-    final_position INTEGER,
+    final_position INTEGER, -- NULL | 1 | 2 | 3 | 4
+    FOREIGN KEY (tournament_id) REFERENCES tournament(id) ON DELETE CASCADE,
+    FOREIGN KEY (player_id) REFERENCES player(id) ON DELETE CASCADE,
     PRIMARY KEY (tournament_id, player_id)
 );
 
 CREATE TABLE IF NOT EXISTS player (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL,
-    avatar TEXT,
-    updated_at INTEGER NOT NULL
+    avatar TEXT,-- NULL if not synchronised with user service
+    updated_at INTEGER NOT NULL,
 );
 
 CREATE INDEX IF NOT EXISTS idx_match_tournament
