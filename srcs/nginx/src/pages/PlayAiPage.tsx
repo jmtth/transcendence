@@ -326,6 +326,8 @@ export const PlayAiPage = () => {
               onCreateLocalGame={startGameWithRef}
               onStartGame={() => {}}
               loading={phase === 'loading'}
+              onExitGame={() => {}}
+              gameMode="ai"
             />
 
             <GameStatusBar sessionsData={null} />
