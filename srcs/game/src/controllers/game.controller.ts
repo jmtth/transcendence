@@ -100,6 +100,7 @@ export async function newGameSession(this: FastifyInstance, req: FastifyRequest)
   const idHeader = (req.headers as any)['x-user-id'];
   const userId = idHeader ? Number(idHeader) : null;
   const sessionId = randomUUID();
+
   this.log.info(`Creating new session with mode: ${body.gameMode}`);
   const sessionData = getSessionData.call(this, null, sessionId, body.gameMode);
   if (!sessionData) {
@@ -110,6 +111,8 @@ export async function newGameSession(this: FastifyInstance, req: FastifyRequest)
       wsUrl: `/game/ws/${sessionId}`,
     };
   }
+  // const tournamentId = (this as any).tournamentId || null;
+  // let sessionId = db.getSessionGame(tournamentId, userId);
   if (sessionData.game) sessionData.game.preview();
   return {
     status: 'success',
