@@ -37,15 +37,20 @@ export const useKeyboardControls = ({
         }
       } else if (gameMode === 'ai') {
         // ai: W/S and ArrowUp/Down all control left paddle (right belongs to AI)
+        // preventDefault stops browser scroll; repeat check avoids flooding the server
         switch (event.key) {
           case 'w':
           case 'W':
           case 'ArrowUp':
+            event.preventDefault();
+            if (event.repeat) break;
             wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'up' }));
             break;
           case 's':
           case 'S':
           case 'ArrowDown':
+            event.preventDefault();
+            if (event.repeat) break;
             wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'down' }));
             break;
         }
