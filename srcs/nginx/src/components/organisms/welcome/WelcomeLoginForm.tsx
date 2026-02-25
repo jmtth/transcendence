@@ -56,22 +56,31 @@ async function loginAction(prevState: LoginState | null, formData: FormData) {
       success: false,
     };
     if (err instanceof FrontendError) {
-      if (err.statusCode === HTTP_STATUS.BAD_REQUEST) {
-        if (err.details) {
-          err.details.forEach((d) => {
-            if (d.field && d.field in nextState.errors!) {
-              const key = d.field as keyof NonNullable<LoginState['errors']>;
-              nextState.errors![key] =
-                i18next.t(`zod_errors.${d.reason}`) || i18next.t(`zod_errors.invalid_format`);
-            } else if (d.field) {
-              nextState.errors!.form =
-                i18next.t(`zod_errors.${d.reason}`) || i18next.t(`zod_errors.invalid_format`);
-            }
-          });
-        }
-      } else if (err.code) {
+      if (err.statusCode === HTTP_STATUS.BAD_REQUEST && err.details) {
+        // Erreurs de validation
+        err.details.forEach((d) => {
+          const validFields = ['identifier', 'password'];
+
+          if (d.field && validFields.includes(d.field)) {
+            const key = d.field as keyof NonNullable<LoginState['errors']>;
+            nextState.errors![key] =
+              d.message ||
+              i18next.t(`zod_errors.${d.reason}`) ||
+              i18next.t(`zod_errors.invalid_format`);
+          } else {
+            nextState.errors!.form =
+              d.message ||
+              i18next.t(`zod_errors.${d.reason}`) ||
+              err.message ||
+              i18next.t(`zod_errors.invalid_format`);
+          }
+        });
+      } else {
+        // Autres erreurs (unauthorized, etc.)
         nextState.errors!.form =
-          i18next.t(`errors.${err.code}`) || i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
+          i18next.t(`errors.${err.code}`) ||
+          err.message ||
+          i18next.t(`errors.${ERROR_CODES.INTERNAL_ERROR}`);
       }
     } else {
       (nextState.errors as Record<string, string>)['form'] = i18next.t(

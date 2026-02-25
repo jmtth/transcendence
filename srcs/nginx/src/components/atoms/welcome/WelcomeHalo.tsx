@@ -7,7 +7,6 @@ import { useAuth } from '../../../providers/AuthProvider';
 
 interface WelcomeHaloProps {
   isRegister: boolean;
-  className?: string;
   size?: number;
   onToggleForm: () => void;
 }
@@ -16,7 +15,7 @@ interface WelcomeHaloProps {
  * WelcomeHalo - Halo lumineux spécifique à WelcomePage
  * Design: Atome avec orbites électroniques, gradient cyan/bleu
  */
-const WelcomeHalo = ({ className = '', size = 92, isRegister, onToggleForm }: WelcomeHaloProps) => {
+const WelcomeHalo = ({ size = 92, isRegister, onToggleForm }: WelcomeHaloProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const { isLoggedIn } = useAuth();
   const { t } = useTranslation();
@@ -24,12 +23,12 @@ const WelcomeHalo = ({ className = '', size = 92, isRegister, onToggleForm }: We
 
   return (
     <div
-      className={`absolute ${className} w-[95vw] max-w-2xl lg:w-auto`}
+      className={`w-[95vw] max-w-2xl lg:w-auto transition-all duration-500 ${isHovered ? 'mt-20' : 'mt-0'}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <WelcomeCircle
-        size={isHovered ? (isLoggedIn ? 40 : size) : 32}
+        size={isHovered ? (isLoggedIn ? 40 : isRegister ? size + 6 : size) : 32}
         className="cursor-pointer group hover:shadow-[0_8px_40px_rgba(0,255,159,0.25),0_0_120px_rgba(0,136,255,0.15)]"
       >
         {/* PLAY text initial - Style atome */}

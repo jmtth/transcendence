@@ -19,20 +19,23 @@ export const WelcomePage = () => {
   const [isRegister, setIsRegister] = useState(false);
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full">
       <Background
         grainIntensity={4}
         baseFrequency={0.28}
         colorStart={colors.start}
         colorEnd={colors.end}
       >
-        <NavBar />
-        <WelcomeHalo
-          size={80}
-          isRegister={isRegister}
-          onToggleForm={() => setIsRegister(!isRegister)}
-          className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-        />
+        <div className="flex flex-col h-full w-full">
+          <NavBar />
+          <div className="flex-1 flex items-center justify-center px-4 py-8">
+            <WelcomeHalo
+              size={80}
+              isRegister={isRegister}
+              onToggleForm={() => setIsRegister(!isRegister)}
+            />
+          </div>
+        </div>
       </Background>
     </div>
   );

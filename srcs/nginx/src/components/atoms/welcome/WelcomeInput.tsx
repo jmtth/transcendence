@@ -1,5 +1,5 @@
-import { Mail, Lock, User } from 'lucide-react';
-import { InputHTMLAttributes, useId } from 'react';
+import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { InputHTMLAttributes, useId, useState, ReactNode } from 'react';
 import { twMerge } from 'tailwind-merge';
 import { clsx, type ClassValue } from 'clsx';
 
@@ -17,6 +17,8 @@ interface WelcomeInputProps extends InputHTMLAttributes<HTMLInputElement> {
   containerClassName?: string;
   customType?: 'email' | 'password' | 'username';
   errorMessage?: string;
+  showValidation?: boolean;
+  validationContent?: ReactNode;
 }
 
 /**
@@ -27,6 +29,8 @@ export const WelcomeInput = ({
   customType,
   errorMessage,
   id,
+  showValidation = false,
+  validationContent,
   ...props
 }: WelcomeInputProps) => {
   const generatedId = useId();
@@ -35,16 +39,16 @@ export const WelcomeInput = ({
   const hasError = Boolean(errorMessage);
   const Icon = customType ? ICON_MAP[customType] : null;
 
+  // State pour toggle password visibility
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isPasswordType = customType === 'password';
+
   let type = 'text';
-  switch (customType) {
-    case 'password':
-      type = 'password';
-      break;
-    case 'email':
-      type = 'email';
-      break;
-    default:
-      type = 'text';
+  if (isPasswordType) {
+    type = showPassword ? 'text' : 'password';
+  } else if (customType === 'email') {
+    type = 'email';
   }
 
   const borderClass = hasError
@@ -75,11 +79,27 @@ export const WelcomeInput = ({
             'w-full rounded-lg border-2 py-2 text-sm transition-all focus:outline-none focus:ring-2',
             'bg-white text-gray-800 placeholder:text-gray-400',
             'ring-offset-2 ring-offset-transparent',
-            Icon ? 'pl-10 pr-4' : 'px-4',
+            Icon ? 'pl-10' : 'px-4',
+            isPasswordType ? 'pr-10' : Icon ? 'pr-4' : 'px-4',
             borderClass,
           )}
         />
+
+        {/* Toggle password visibility button */}
+        {isPasswordType && (
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#0088ff] transition-colors focus:outline-none focus:ring-2 focus:ring-[#0088ff] rounded p-1"
+            aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        )}
       </div>
+
+      {/* Validation checklist */}
+      {showValidation && validationContent && <div className="mt-1">{validationContent}</div>}
 
       {hasError && (
         <span id={errorId} role="alert" className="text-sm text-red-600 font-semibold">

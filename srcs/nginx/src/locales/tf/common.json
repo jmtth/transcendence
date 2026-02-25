@@ -48,6 +48,19 @@
     "too_small": "Sois pas chiche, tu peux y aller niveau longueur",
     "too_big": "T'as dépassé les bornes, coco. Revois ça à la baisse"
   },
+  "validation": {
+    "password": {
+      "minLength": "Au moins 8 caractères (sois pas radin)",
+      "lowercase": "Une minuscule (a-z, c'est pas compliqué)",
+      "uppercase": "Une majuscule (A-Z, pour faire classe)",
+      "number": "Un chiffre (0-9, comme ton niveau au pong)",
+      "special": "Un truc chelou (!@#$%^&*, pour les pros)"
+    },
+    "username": {
+      "minLength": "4 à 20 caractères (pas moins, pas plus)",
+      "alphanumeric": "Que des lettres, chiffres et _ (pas de fantaisies)"
+    }
+  },
   "errors": {
     "validation_mandatory": "Balance l'info",
     "validation_error": "T’as tout foiré, mon pote. Vérifie tes papiers et recommence, sinon ça va barder.",
