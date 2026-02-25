@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 interface UseKeyboardControlsProps {
   wsRef: React.RefObject<WebSocket | null>;
   gameMode: string;
-  enabled?: boolean;
+  enabled?: boolean; // Optional: to enable/disable controls
 }
 
 export const useKeyboardControls = ({
@@ -37,7 +37,6 @@ export const useKeyboardControls = ({
         }
       } else if (gameMode === 'ai') {
         // ai: W/S and ArrowUp/Down all control left paddle (right belongs to AI)
-        // preventDefault stops browser scroll; repeat check avoids flooding the server
         switch (event.key) {
           case 'w':
           case 'W':

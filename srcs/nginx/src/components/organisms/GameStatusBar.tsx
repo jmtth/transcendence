@@ -36,6 +36,12 @@ const GameStatusBar = ({
 
   const [gameLogs, setGameLogs] = useState<string[]>([]);
 
+  const [gameLogs, setGameLogs] = useState<string[]>([]);
+
+  const addGameLog = (message: string) => {
+    setGameLogs((prevLogs) => [...prevLogs, message]);
+  };
+
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
