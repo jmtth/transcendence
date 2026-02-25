@@ -82,6 +82,7 @@
   },
   "game": {
     "playWithAI": "Joue avec un ROBOT (no friends?)",
+    "playWithRemote": "2 joueurs sur cette machine",
     "playWithFriends": "Joue avec ton copaing",
     "tournament": "Tournoi",
     "game": "Jeu",
@@ -102,8 +103,10 @@
     "semi_final": "Demi-Finale",
     "little_final": "Petite-Finale",
     "start": "Jouer",
+    "run": "Lancement du tournoi",
     "friends": "Amis",
     "waitiing": "Attente...",
-    "creating": "Création du tournoi..."
+    "creating": "Création du tournoi...",
+    "tournament_full": "Ce tournoi est déjà complet (maximum 4 joueurs)."
   }
 }

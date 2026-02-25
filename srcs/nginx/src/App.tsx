@@ -28,6 +28,14 @@ export const App = () => {
         {/* Routes protégées — authentification requise */}
         <Route element={<PrivateRoute />}>
           <Route path="/home" element={<HomePage />} />
+          <Route
+            path="/game/remote"
+            element={<GamePage sessionId={null} gameMode={'remote'} />}
+          ></Route>
+          <Route
+            path="/game/local"
+            element={<GamePage sessionId={null} gameMode={'local'} />}
+          ></Route>
           <Route path="/me" element={<MyProfilePage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />

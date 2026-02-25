@@ -7,6 +7,11 @@ import { useLocalSession } from '../api/game-api';
 import { useGameState } from '../hooks/GameState';
 import { useGameWebSocket } from '../hooks/GameWebSocket';
 import { useEffect, useState } from 'react';
+import { useGameState } from '../hooks/GameState';
+import { useGameWebSocket } from '../hooks/GameWebSocket';
+import { useEffect, useState, useRef } from 'react';
+import { useKeyboardControls } from '../hooks/input.tsx';
+import { useGameSessions, UseGameSessionsReturn } from '../hooks/GameSessions';
 
 export interface Paddle {
   y: number;
@@ -61,17 +66,27 @@ interface ServerMessage {
   message?: string;
 }
 
-export const GamePage = ({ sessionId: routeSessionId }: { sessionId: string | null }) => {
-  // const { createLocalSession, isLoading, sessionId: localSessionId } = useLocalSession();
+interface GamePageProps {
+  sessionId: string | null;
+  gameMode: 'local' | 'remote' | 'tournament';
+}
 
+// export const GamePage = ({ sessionId: routeSessionId }: { sessionId: string | null }) => {
+export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const { openWebSocket, closeWebSocket } = useGameWebSocket();
   const { gameStateRef, updateGameState } = useGameState();
-  const [sessionId, setSessionId] = useState<string | null>(routeSessionId);
+  const [currentSessionId, setSessionId] = useState<string | null>(sessionId);
   const [isLoading, setIsLoading] = useState(false);
+  const wsRef = useRef<WebSocket | null>(null); // Use ref instead of state
+
+  useKeyboardControls({
+    wsRef,
+    enabled: !!currentSessionId, // Only enable when connected
+  });
 
   const createLocalSession = async () => {
     setIsLoading(true);
-    console.log('Fetching sessions from back...');
+    console.log('Fetching sessions from backend...');
     const res = await fetch('/api/game/create-session', {
       method: 'POST',
       credentials: 'include',
@@ -84,22 +99,49 @@ export const GamePage = ({ sessionId: routeSessionId }: { sessionId: string | nu
     setIsLoading(false);
   };
 
+  const onStartGame = () => {
+    if (!wsRef.current) {
+      console.error('WebSocket not connected');
+      return;
+    }
+
+    console.log('📤 Sending start message');
+    wsRef.current.send(JSON.stringify({ type: 'start' }));
+  };
+
   useEffect(() => {
-    if (!sessionId) return;
+    if (gameMode === 'local' && !currentSessionId) {
+      createLocalSession();
+      console.log('Auto-creating local session...');
+    }
+  }, [gameMode, currentSessionId]); // Only run when gameMode changes (on mount)
 
-    let ws: WebSocket | null = null;
+  useEffect(() => {
+    if (!currentSessionId) return;
+    const connectWebSocket = async () => {
+      try {
+        const ws = await openWebSocket(currentSessionId, (message: ServerMessage) => {
+          if (message.type === 'state' && message.data) {
+            updateGameState(message.data);
+          }
+        });
 
-    // In GamePage
-    openWebSocket(sessionId, (message: ServerMessage) => {
-      if (message.type === 'state' && message.data) {
-        updateGameState(message.data);
+        wsRef.current = ws; // Store WebSocket in ref
+      } catch (error) {
+        console.error('Failed to connect WebSocket:', error);
       }
-    });
+    };
+
+    connectWebSocket();
+
     // Cleanup on unmount or sessionId change
     return () => {
       closeWebSocket();
+      wsRef.current = null;
     };
-  }, [sessionId]);
+  }, [currentSessionId, openWebSocket, updateGameState, closeWebSocket]);
+
+  const sessions = useGameSessions() as UseGameSessionsReturn;
 
   return (
     <div className={`w-full h-full relative`}>
@@ -112,8 +154,16 @@ export const GamePage = ({ sessionId: routeSessionId }: { sessionId: string | nu
         <NavBar />
         <div className="flex flex-row h-full">
           <div className="flex flex-col flex-[1]">
-            <GameControl onCreateLocalGame={createLocalSession} loading={isLoading} />
-            <GameStatusBar />
+            <GameControl
+              onCreateLocalGame={createLocalSession}
+              onStartGame={onStartGame}
+              loading={isLoading}
+            />
+            {gameMode === 'remote' ? (
+              <GameStatusBar sessionsData={sessions} />
+            ) : (
+              <GameStatusBar sessionsData={null} />
+            )}
           </div>
 
           <div className="flex-[3]">

@@ -82,6 +82,7 @@
   },
   "game": {
     "playWithAI": "Play with AI",
+    "playRemote": "2 Players on this machine",
     "playWithFriends": "Play with Friends",
     "tournament": "Tournament",
     "game": "Game",
@@ -102,8 +103,10 @@
     "semi_final": "Semi-Final",
     "little_final": "Little-Finale",
     "start": "Start",
+    "run": "Launch Tournament",
     "friends": "Friends",
     "waitiing": "Waiting...",
-    "creating": "Creating tournament..."
+    "creating": "Creating tournament...",
+    "tournament_full": "This tournament is full(maximum 4 players)."
   }
 }
