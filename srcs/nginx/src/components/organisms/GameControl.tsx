@@ -2,7 +2,8 @@ interface GameControlProps {
   className?: string;
   onCreateLocalGame: () => void;
   onStartGame: () => void;
-  // onExitGame: () => void;
+  onExitGame: () => void;
+  gameMode: string;
   loading?: boolean;
 }
 
@@ -10,26 +11,28 @@ const GameControl = ({
   className,
   onCreateLocalGame: onCreateLocalGame,
   onStartGame: onStartGame,
-  // onExitGame: onExitGame,
+  onExitGame: onExitGame,
+  gameMode,
   loading,
 }: GameControlProps) => {
   return (
     <div className={`flex gap-4 ${className}`}>
-      <button
-        id="create-game-btn"
-        onClick={() => {
-          onCreateLocalGame();
-        }}
-        disabled={loading}
-        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition"
-      >
-        {loading ? 'Creating...' : 'Create new GAME (sessions)'}
-      </button>
+      {gameMode === 'remote' && (
+        <button
+          id="create-game-btn"
+          onClick={() => {
+            onCreateLocalGame();
+          }}
+          disabled={loading}
+          className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded transition"
+        >
+          {loading ? 'Creating...' : 'Create new GAME (sessions)'}
+        </button>
+      )}
 
       <button
         style={{ border: '3px solid red' }}
         id="start-game-btn"
-        // onClick={onCreateLocalGame}
         onClick={() => {
           onStartGame();
         }}
@@ -40,8 +43,8 @@ const GameControl = ({
       <button
         id="exit-btn"
         onClick={() => {
-          // onExitGame();
-          console.log('exit');
+          onExitGame();
+          console.log('exit session');
         }}
         className="flex-1 bg-red-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition"
       >

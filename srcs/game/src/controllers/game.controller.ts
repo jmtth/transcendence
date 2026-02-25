@@ -7,6 +7,28 @@ import { GameSettings } from '../core/game.types.js';
 import { WebSocket } from 'ws';
 import * as db from '../core/game.database.js';
 import { LOG_REASONS, AppError } from '@transcendence/core';
+import { cleanupConnection } from '../service/game.connections.js';
+import { WS_CLOSE } from '../core/game.state.js';
+
+export async function deleteSession(this: FastifyInstance, req: FastifyRequest) {
+  const params = req.params as { sessionId: string };
+  const sessionId = params.sessionId;
+  // Validate sessionId
+  if (!sessionId) {
+    return { status: 'error', message: 'Session ID required' };
+  }
+
+  this.log.info('Delete session');
+
+  const sessionData = getSessionData.call(this, null, sessionId);
+  sessionData.game.stop();
+  cleanupConnection(null, sessionId, WS_CLOSE.PLAYER_QUIT, 'Player is left');
+  gameSessions.delete(sessionId);
+  return {
+    status: 'succes',
+    message: 'session has been erased',
+  };
+}
 
 // Controller - get sessionId from body
 export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {
@@ -15,11 +37,9 @@ export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {
     settings?: GameSettings;
   };
 
-  // ✅ Get sessionId from body
   const sessionId = body.sessionId;
   const settings = body.settings;
 
-  // Validate sessionId
   if (!sessionId) {
     this.log.warn({ body }, 'Missing sessionId in request body');
     return {

@@ -1,8 +1,10 @@
 import { UseGameSessionsReturn, useGameSessions } from '../../hooks/GameSessions.tsx';
+import { useState } from 'react';
 
 interface GameStatusBarProps {
   className?: string;
   sessionsData: UseGameSessionsReturn | null;
+  onSelectSession?: (sessionId: string) => void;
 }
 
 export interface GameSession {
@@ -13,17 +15,23 @@ export interface GameSession {
   // Add other fields your backend returns
 }
 
-const GameStatusBar = ({ className = '', sessionsData }: GameStatusBarProps) => {
+const GameStatusBar = ({ className = '', sessionsData, onSelectSession }: GameStatusBarProps) => {
   const {
     sessionsList = [],
     isLoadingSessions = false,
     error = null,
     refetch = () => {},
   } = sessionsData || {};
-  console.log('sessionsList:', sessionsList);
-  console.log('sessionsList type:', typeof sessionsList);
-  console.log('Is array?', Array.isArray(sessionsList));
+  // console.log('sessionsList:', sessionsList);
+  // console.log('sessionsList type:', typeof sessionsList);
+  // console.log('Is array?', Array.isArray(sessionsList));
   // const { sessionsList, isLoadingSessions, error, refetch } = sessionsData as UseGameSessionsReturn;
+
+  const [gameLogs, setGameLogs] = useState<string[]>([]);
+
+  const addGameLog = (message: string) => {
+    setGameLogs((prevLogs) => [...prevLogs, message]);
+  };
 
   return (
     <div className={`space-y-4 ${className}`}>
@@ -68,7 +76,11 @@ const GameStatusBar = ({ className = '', sessionsData }: GameStatusBarProps) => 
             </button>
             <ul>
               {sessionsData.sessionsList.map((session) => (
-                <li key={session.sessionId}>
+                <li
+                  key={session.sessionId}
+                  onClick={() => onSelectSession?.(session.sessionId)}
+                  className="cursor-pointer hover:bg-white/10 p-2 rounded transition"
+                >
                   {session.sessionId} - {session.status}
                 </li>
               ))}

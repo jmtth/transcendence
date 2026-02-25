@@ -9,6 +9,7 @@ import { useGameWebSocket } from '../hooks/GameWebSocket';
 import { useEffect, useState, useRef } from 'react';
 import { useKeyboardControls } from '../hooks/input.tsx';
 import { useGameSessions, UseGameSessionsReturn } from '../hooks/GameSessions';
+import { useNavigate } from 'react-router-dom';
 
 export interface Paddle {
   y: number;
@@ -76,6 +77,8 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const wsRef = useRef<WebSocket | null>(null); // Use ref instead of state
 
+  const navigate = useNavigate();
+
   useKeyboardControls({
     wsRef,
     enabled: !!currentSessionId, // Only enable when connected
@@ -90,7 +93,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     });
     const data = await res.json();
     if (res.ok && data.sessionId) {
-      console.log('Succes');
+      console.log('Success');
       setSessionId(data.sessionId);
     }
     setIsLoading(false);
@@ -104,6 +107,23 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
 
     console.log('📤 Sending start message');
     wsRef.current.send(JSON.stringify({ type: 'start' }));
+  };
+
+  const onExitGame = async () => {
+    if (!currentSessionId) {
+      console.log('no Session');
+      return;
+    }
+    const res = await fetch(`/api/game/del/${currentSessionId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    console.log('EXIIIT');
+    const data = await res.json();
+    if (res.ok && data.message) {
+      console.log(data.message);
+      navigate('/home');
+    }
   };
 
   useEffect(() => {
@@ -138,6 +158,11 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     };
   }, [currentSessionId, openWebSocket, updateGameState, closeWebSocket]);
 
+  const handleSelectSession = (selectedSessionId: string) => {
+    console.log('Selected session:', selectedSessionId);
+    setSessionId(selectedSessionId);
+    // navigate('game/remote');
+  };
   const sessions = useGameSessions() as UseGameSessionsReturn;
 
   return (
@@ -149,21 +174,28 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
         colorEnd={colors.end}
       >
         <NavBar />
-        <div className="flex flex-row h-full">
-          <div className="flex flex-col flex-[1]">
+        <div className="flex flex-row flex-1 overflow-hidden">
+          {' '}
+          {/* Added flex-1 and overflow-hidden */}
+          <div className="flex flex-col flex-[1] overflow-y-auto p-4">
+            {' '}
+            {/* Added overflow and padding */}
             <GameControl
               onCreateLocalGame={createLocalSession}
               onStartGame={onStartGame}
+              onExitGame={onExitGame}
+              gameMode={gameMode}
               loading={isLoading}
             />
             {gameMode === 'remote' ? (
-              <GameStatusBar sessionsData={sessions} />
+              <GameStatusBar sessionsData={sessions} onSelectSession={handleSelectSession} />
             ) : (
               <GameStatusBar sessionsData={null} />
             )}
           </div>
-
-          <div className="flex-[3]">
+          <div className="flex-[3] flex justify-center p-4">
+            {' '}
+            {/* Added flex centering */}
             <Arena gameStateRef={gameStateRef} />
           </div>
         </div>

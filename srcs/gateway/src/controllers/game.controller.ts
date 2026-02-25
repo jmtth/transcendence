@@ -17,6 +17,18 @@ export function registerGameRoutes(app: FastifyInstance) {
     return res;
   });
 
+  app.delete('/del/:sessionId', async (request, reply) => {
+    app.log.info({ event: 'game_delete_session', remote: 'game', url: '/del/:sessionId' });
+    const { sessionId } = request.params as { sessionId: string };
+    const res = await proxyRequest(
+      app,
+      request,
+      reply,
+      `${GATEWAY_CONFIG.SERVICES.GAME}/del/${sessionId}`,
+    );
+    return res;
+  });
+
   app.post('/settings', async (request, reply) => {
     app.log.info({ event: 'game_settings', remote: 'game', url: '/settings' });
     const res = await proxyRequest(
