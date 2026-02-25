@@ -24,7 +24,6 @@ export const PlayAiPage = () => {
   const { gameStateRef, updateGameState } = useGameState();
   const [currentSessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [winner, setWinner] = useState<'you' | 'ai' | null>(null);
   const [scores, setScores] = useState({ left: 0, right: 0 });
@@ -32,11 +31,11 @@ export const PlayAiPage = () => {
   const phaseRef = useRef<'idle' | 'playing' | 'gameOver'>('idle');
   const navigate = useNavigate();
 
-  useKeyboardControls({ wsRef, enabled: !!currentSessionId && !isGameOver, gameMode: 'local' });
+  // 'ai' mode: W/S and ArrowUp/Down all control left paddle only
+  useKeyboardControls({ wsRef, enabled: !!currentSessionId && !isGameOver, gameMode: 'ai' });
 
   const createSession = async () => {
     setIsLoading(true);
-    setIsPlaying(false);
     setIsGameOver(false);
     setWinner(null);
     setScores({ left: 0, right: 0 });
@@ -52,7 +51,7 @@ export const PlayAiPage = () => {
     }
   }, []);
 
-  // AI sends start automatically — this is a no-op kept for GameControl compatibility
+  // AI sends start automatically — no-op kept for GameControl compatibility
   const onStartGame = () => {};
 
   const onExitGame = async () => {
@@ -71,7 +70,6 @@ export const PlayAiPage = () => {
       const ws = await openWebSocket(currentSessionId, (message: ServerMessage) => {
         if (message.type === 'state' && message.data) {
           phaseRef.current = 'playing';
-          setIsPlaying(true);
           updateGameState(message.data);
           setScores({ ...message.data.scores });
         } else if (message.type === 'gameOver' && message.data) {
@@ -117,20 +115,6 @@ export const PlayAiPage = () => {
               gameMode="local"
               loading={isLoading}
             />
-            {/* Score display — uses isPlaying state (not ref) so React re-renders */}
-            {(isPlaying || isGameOver) && (
-              <div className="flex justify-around text-white bg-white/10 backdrop-blur-lg rounded-lg p-4 mt-4">
-                <div className="text-center">
-                  <p className="text-sm text-cyan-400">YOU</p>
-                  <p className="text-3xl font-bold">{scores.left}</p>
-                </div>
-                <div className="text-center self-center text-purple-300 text-sm">vs</div>
-                <div className="text-center">
-                  <p className="text-sm text-pink-400">AI</p>
-                  <p className="text-3xl font-bold">{scores.right}</p>
-                </div>
-              </div>
-            )}
             <GameStatusBar sessionsData={null} />
           </div>
 
