@@ -5,7 +5,7 @@ import { MatchNode } from '../atoms/MatchNode';
 import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StartButton } from '../atoms/StartButton';
-
+import { useNavigate } from 'react-router-dom';
 interface TournamentBracketProps {
   players: [Player, Player, Player, Player];
 }
@@ -23,6 +23,7 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
   const semiRightRef = useRef<HTMLDivElement>(null);
   const finalRef = useRef<HTMLDivElement>(null);
   const littleFinalRef = useRef<HTMLDivElement>(null);
+ 
 
   const connections: BracketConnection[] = [
     { from: p1Ref, to: semiLeftRef },
@@ -33,7 +34,10 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
     { from: littleFinalRef, to: finalRef },
     { from: semiRightRef, to: littleFinalRef },
   ];
-  return (
+  const navigate = useNavigate();
+  const runGame = () => { navigate('/game/tournament'); };
+
+ return (
     <div ref={containerRef} className="relative w-[70%] max-w-6xl mx-auto py-12">
       <BracketLines containerRef={containerRef} connections={connections} />
 
@@ -79,7 +83,7 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
       <StartButton
         label={t('game.run')}
         isready={isStarted}
-        onStart={() => console.log(`startSemiFinal('right')`)}
+        onStart={runGame}
       />
     </div>
   );
