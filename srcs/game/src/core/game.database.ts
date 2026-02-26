@@ -273,14 +273,15 @@ export function joinTournament(player_id: number, tournament_id: number) {
 }
 
 const createMatchStmt = db.prepare(`
-INSERT INTO(tournanent_id, player1, player2, sessionId, round, create_at)
-VALUES(?,?,?,?,?)`);
+INSERT INTO match(tournament_id, player1, player2, sessionId, round, created_at)
+VALUES(?,?,?,?,?,?)
+`);
 
 const getPlayersIdTournamentStmt = db.prepare(`
 SELECT player_id
 FROM tournament_player tp
 WHERE tournament_id = ?
-  `);
+`);
 
 function initializeTournamentMatchs(tournament_id: number) {
   const players = getPlayersIdTournamentStmt.all(tournament_id) as { player_id: number }[];
