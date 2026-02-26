@@ -58,8 +58,10 @@ CREATE TABLE IF NOT EXISTS tournament_player(
     tournament_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
     final_position INTEGER, -- NULL | 1 | 2 | 3 | 4
+    slot INTEGER, --1 | 2 | 3 | 4, corresponds to the slot of the creator in the tournament
     FOREIGN KEY (tournament_id) REFERENCES tournament(id) ON DELETE CASCADE,
     FOREIGN KEY (player_id) REFERENCES player(id) ON DELETE CASCADE,
+    UNIQUE( tournament_id, slot ),
     PRIMARY KEY (tournament_id, player_id)
 );
 
@@ -96,8 +98,8 @@ VALUES (?,?)
 `);
 
 const addPlayerTournamentStmt = db.prepare(`
-INSERT INTO tournament_player(player_id, tournament_id)
-VALUES(?,?)
+INSERT INTO tournament_player(player_id, tournament_id, slot)
+VALUES(?, ?, ?)
 `);
 
 const addPlayerPositionTournamentStmt = db.prepare(`
@@ -149,11 +151,11 @@ WHERE id = ?
 `);
 
 const listPlayersTournamentStmt = db.prepare(`
-SELECT tp.player_id, p.username, p.avatar
+SELECT tp.player_id, p.username, p.avatar, tp.slot
 FROM tournament_player tp
-LEFT JOIN player p
-ON  tp.player_id = p.id
+LEFT JOIN player p ON tp.player_id = p.id
 WHERE tournament_id = ?
+ORDER BY tp.slot ASC
 `);
 
 const isPlayerInTournamentStmt = db.prepare(`
@@ -175,7 +177,7 @@ WHERE player1 = ? OR player2 = ?`);
 export function createTournament(player_id: number): number {
   try {
     const idtournament = createTournamentStmt.run(player_id, Date.now());
-    addPlayerTournament(player_id, Number(idtournament.lastInsertRowid));
+    addPlayerTournament(player_id, Number(idtournament.lastInsertRowid), 1);
     return Number(idtournament.lastInsertRowid);
   } catch (err: unknown) {
     throw new AppError(
@@ -186,13 +188,13 @@ export function createTournament(player_id: number): number {
   }
 }
 
-export function addPlayerTournament(player: number, tournament: number) {
+export function addPlayerTournament(player: number, tournament_id: number, slot: number = 0) {
   try {
-    addPlayerTournamentStmt.run(player, tournament);
+    addPlayerTournamentStmt.run(player, tournament_id, slot);
   } catch (err: unknown) {
     throw new AppError(
       ERR_DEFS.DB_UPDATE_ERROR,
-      { details: [{ field: `addPlayerTournament ${player} ${tournament}` }] },
+      { details: [{ field: `addPlayerTournament ${player} ${tournament_id}` }] },
       err,
     );
   }
@@ -255,7 +257,7 @@ export function joinTournament(player_id: number, tournament_id: number) {
         };
         throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
       }
-      addPlayerTournament(player_id, tournament_id);
+      addPlayerTournament(player_id, tournament_id, nbPlayers + 1);
       if (nbPlayers === 3) {
         changeStatusTournamentStmt.run('STARTED', tournament_id);
         initializeTournamentMatchs(tournament_id);

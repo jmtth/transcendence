@@ -11,12 +11,6 @@ const colors = {
 
 /*This component is the architecture of all tournament pages.*/
 export default function TournamentLayout() {
-  const MOCK_PLAYERS: [Player, Player, Player, Player] = [
-    { id: '1', name: 'johnny', avatar: null, online: true, status: 'connected' },
-    { id: '2', name: 'eddy', avatar: null, online: false, status: 'connected' },
-    { id: '3', name: 'khaled', avatar: null, online: true, status: 'connected' },
-    { id: '4', name: 'danny', avatar: null, online: false, status: 'connected' },
-  ] as const;
   return (
     <div className={`w-full relative flex flex-col flex min-h-screen`}>
       <Background
@@ -31,8 +25,6 @@ export default function TournamentLayout() {
           </div>
         }
         <div className="flex min-h-screen justify-center">
-          {MOCK_PLAYERS.length > 0 && <FriendsList friends={MOCK_PLAYERS} />}
-
           <Outlet />
         </div>
       </Background>

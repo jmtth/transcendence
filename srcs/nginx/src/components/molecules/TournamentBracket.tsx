@@ -6,8 +6,17 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StartButton } from '../atoms/StartButton';
 import { useNavigate } from 'react-router-dom';
+
+// interface Match {
+//   id: number;
+//   round: 'SEMI_1' | 'SEMI_2' | 'FINAL' | 'LITTLE_FINAL';
+//   player1Id: string | null;
+//   player2Id: string | null;
+//   winnerId: string | null;
+// }
 interface TournamentBracketProps {
   players: [Player, Player, Player, Player];
+  //matches: Match[];
 }
 
 export function TournamentBracket({ players }: TournamentBracketProps) {
@@ -23,7 +32,6 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
   const semiRightRef = useRef<HTMLDivElement>(null);
   const finalRef = useRef<HTMLDivElement>(null);
   const littleFinalRef = useRef<HTMLDivElement>(null);
- 
 
   const connections: BracketConnection[] = [
     { from: p1Ref, to: semiLeftRef },
@@ -35,9 +43,11 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
     { from: semiRightRef, to: littleFinalRef },
   ];
   const navigate = useNavigate();
-  const runGame = () => { navigate('/game/tournament'); };
+  const runGame = () => {
+    navigate('/game/tournament');
+  };
 
- return (
+  return (
     <div ref={containerRef} className="relative w-[70%] max-w-6xl mx-auto py-12">
       <BracketLines containerRef={containerRef} connections={connections} />
 
@@ -80,11 +90,7 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
           </div>
         </div>
       </div>
-      <StartButton
-        label={t('game.run')}
-        isready={isStarted}
-        onStart={runGame}
-      />
+      <StartButton label={t('game.run')} isready={isStarted} onStart={runGame} />
     </div>
   );
 }
