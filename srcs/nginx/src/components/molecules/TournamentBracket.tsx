@@ -6,6 +6,8 @@ import { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StartButton } from '../atoms/StartButton';
 import { useNavigate } from 'react-router-dom';
+import { MatchToPlayDTO } from '@transcendence/core';
+import { api } from 'src/api/api-client';
 
 // interface Match {
 //   id: number;
@@ -16,10 +18,11 @@ import { useNavigate } from 'react-router-dom';
 // }
 interface TournamentBracketProps {
   players: [Player, Player, Player, Player];
+  tournamentId: string;
   //matches: Match[];
 }
 
-export function TournamentBracket({ players }: TournamentBracketProps) {
+export function TournamentBracket({ players, tournamentId }: TournamentBracketProps) {
   const { t } = useTranslation();
   const [p1, p2, p3, p4] = players;
   const isStarted = players.every((p) => p.status === 'connected');
@@ -43,8 +46,10 @@ export function TournamentBracket({ players }: TournamentBracketProps) {
     { from: semiRightRef, to: littleFinalRef },
   ];
   const navigate = useNavigate();
-  const runGame = () => {
-    navigate('/game/tournament');
+  const runGame = async () => {
+    const { data } = await api.get<MatchToPlayDTO>(`/game/tournaments/${tournamentId}/match-to-play`);
+    const session = new URLSearchParams({ sessionId: data.sessionId.toString() });
+    navigate(`/game/tournament/${session.toString()}`);
   };
 
   return (

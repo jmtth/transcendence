@@ -14,3 +14,9 @@ export interface PlayerDTO {
   avatar: string | null;
   slot: 1 | 2 | 3 | 4;
 }
+export interface MatchToPlayDTO {
+  sessionId: number;
+  round: string;
+  player1: number;
+  player2: number;
+}

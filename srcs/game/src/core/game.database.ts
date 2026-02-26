@@ -3,9 +3,10 @@ import fs from 'fs';
 import path from 'path';
 import { MatchDTO } from '../types/game.dto.js';
 import { env } from '../config/env.js';
-import { UserEvent, TournamentDTO, ERR_DEFS } from '@transcendence/core';
+import { UserEvent, TournamentDTO,MatchToPlayDTO, ERR_DEFS } from '@transcendence/core';
 import { AppError, ErrorDetail } from '@transcendence/core';
 import { randomUUID } from 'crypto';
+import { LOG_REASONS } from '@transcendence/core';
 
 // DB path
 const DEFAULT_DIR = path.join(process.cwd(), 'data');
@@ -253,7 +254,7 @@ export function joinTournament(player_id: number, tournament_id: number) {
         const errorDetail: ErrorDetail = {
           field: `tournament full: ${tournament_id}`,
           message: 'Tournament is already full',
-          reason: 'tournament_full',
+          reason: LOG_REASONS.TOURNAMENT.FULL,
         };
         throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
       }
@@ -291,7 +292,7 @@ function initializeTournamentMatchs(tournament_id: number) {
     const errorDetail: ErrorDetail = {
       field: `Invalid player count: ${tournament_id}`,
       message: 'Tournament invalid player count',
-      reason: 'tournament_count_error',
+      reason: LOG_REASONS.TOURNAMENT.COUNT,
     };
     throw new AppError(ERR_DEFS.DB_UPDATE_ERROR, { details: [errorDetail] });
   }
@@ -371,39 +372,34 @@ SET player2 = ?
 WHERE id = ?
 `);
 
-export function getSessionGame(tournamentId: number | null, userId: number | null): string | null {
+const getMatchToPlayStmt = db.prepare(`
+SELECT sessionId , round, player1, player2
+FROM match
+WHERE tournament_id = ?
+  AND (player1 = ? OR player2 = ?)
+  AND player2 IS NOT NULL
+  AND player1 IS NOT NULL
+  AND sessionId IS NOT NULL
+  AND winner_id IS NULL
+`);
+
+export function getMatchToPlay(tournament_id: number, userId: number): MatchToPlayDTO | null {
   try {
-    const tournamentHaveMatch = getMatchSmt.all(tournamentId) as {
-      sessionId: string | null;
-      round: string;
-      player1: number;
-      player2: number | null;
-      id: number | null;
-    }[];
-    const nbMatch = tournamentHaveMatch.length;
-    if (nbMatch === 0)
-      createPlayer1Match.run(tournamentId, userId, 'SEMI_1', randomUUID(), Date.now());
-    else if (nbMatch === 1 && tournamentHaveMatch[0].player2 == null)
-      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
-    else if (nbMatch === 1 && tournamentHaveMatch[0].player2 != null)
-      createPlayer1Match.run(tournamentId, userId, 'SEMI_2', randomUUID(), Date.now());
-    else if (nbMatch === 2 && tournamentHaveMatch[1].player2 == null)
-      createPlayer2Match.run(userId, tournamentHaveMatch[1].id);
-    else if (nbMatch === 2 && tournamentHaveMatch[1].player2 != null)
-      createPlayer1Match.run(tournamentId, userId, 'LITTLE_FINAL', randomUUID(), Date.now());
-    else if (nbMatch === 3 && tournamentHaveMatch[2].player2 == null)
-      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
-    else if (nbMatch === 3 && tournamentHaveMatch[2].player2 != null)
-      createPlayer1Match.run(tournamentId, userId, 'FINAL', randomUUID(), Date.now());
-    else if (nbMatch === 4 && tournamentHaveMatch[3].player2 == null)
-      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
-    else throw new Error(`Maximum number of match reached`);
-    const sessionId = nbMatch > 0 ? tournamentHaveMatch[nbMatch - 1].sessionId : null;
-    return sessionId;
+    const match = getMatchToPlayStmt.get(tournament_id, userId, userId) as MatchToPlayDTO | null;
+    if (!match) {
+      const errorDetail: ErrorDetail = {
+        field: `No match to play for user ${userId} in tournament ${tournament_id}`,
+        message: 'No match to play',
+        reason: LOG_REASONS.TOURNAMENT.NO_MATCH_TO_PLAY,
+      };
+      throw new AppError(ERR_DEFS.DB_SELECT_ERROR,{ details: [errorDetail] });
+    }
+    return match;
   } catch (err: unknown) {
+    if (err instanceof AppError) throw err;
     throw new AppError(
-      ERR_DEFS.DB_INSERT_ERROR,
-      { details: [{ field: `getSessionGame tournamentId:${tournamentId} userId:${userId}` }] },
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: `getMatchToPlay tournamentId:${tournament_id} userId:${userId}` }] },
       err,
     );
   }

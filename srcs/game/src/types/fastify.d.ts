@@ -1,6 +1,6 @@
 import 'fastify';
-import '@fastify/jwt';
 import { Redis } from 'ioredis';
+import { UserRequestDTO } from '@transcendence/core';
 
 // Type for authenticate plugin and JWT data
 declare module 'fastify' {
@@ -8,4 +8,8 @@ declare module 'fastify' {
     redis: Redis;
     closing: boolean;
   }
+  interface FastifyRequest {
+    user: UserRequestDTO;
+  }
 }
+export {};

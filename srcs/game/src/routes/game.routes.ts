@@ -10,6 +10,7 @@ import {
   joinTournament,
   showTournament,
   deleteSession,
+  getMatchToPlay,
 } from '../controllers/game.controller.js';
 
 export async function gameRoutes(app: FastifyInstance) {
@@ -21,6 +22,7 @@ export async function gameRoutes(app: FastifyInstance) {
   app.get('/tournaments', listTournament);
   app.post('/tournaments/:id', joinTournament);
   app.get('/tournaments/:id', showTournament);
+  app.get('/tournaments/:id/match-to-play', getMatchToPlay);
   app.delete('/del/:sessionId', deleteSession);
   app.get('/ws/:sessionId', { websocket: true }, webSocketConnect);
 }

@@ -7,6 +7,7 @@ import fs from 'fs';
 import { env } from './config/env.js';
 import redisPlugin from './plugins/ioredis.plugin.js';
 import { startGameConsumer } from './core/game.consumer.js';
+import * as db from './core/game.database.js';
 
 const fastify = Fastify({
   https: {
@@ -27,6 +28,30 @@ fastify.addHook('onReady', async () => {
 
 // Prehandlher for request route
 fastify.register(redisPlugin);
+
+fastify.addHook('preHandler', async (req, reply) => {
+    const userIdHeader = req.headers['x-user-id'];
+    const usernameHeader = req.headers['x-user-name'];
+    // If some auth headers are present but not all required ones, treat as invalid
+    if (typeof userIdHeader === 'undefined' || typeof usernameHeader === 'undefined') {
+      fastify.log.warn(`invalid auth header`);
+      return reply.code(400).send({ error: 'Invalid authentication headers' });
+    }
+    const userId = Number(userIdHeader);
+    if (!Number.isFinite(userId)) {
+      fastify.log.warn(`invalid auth header - no finite number`);
+      return reply.code(400).send({ error: 'Invalid authentication headers' });
+    }
+    const userExist = db.getUser(userId);
+      if (!userExist){
+        fastify.log.warn(`invalid auth header - user not found`);
+        return reply.code(400).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
+      }
+      req.user = {
+      id: userId,
+      username: String(usernameHeader),
+    };
+});
 
 // Register WebSocket support
 // @ts-ignore - Fastify WebSocket plugin types are incompatible with Fastify v5 but work at runtime
