@@ -5,6 +5,7 @@ import { MatchDTO } from '../types/game.dto.js';
 import { env } from '../config/env.js';
 import { UserEvent, TournamentDTO, ERR_DEFS } from '@transcendence/core';
 import { AppError, ErrorDetail } from '@transcendence/core';
+import { randomUUID } from 'crypto';
 
 // DB path
 const DEFAULT_DIR = path.join(process.cwd(), 'data');
@@ -66,7 +67,7 @@ CREATE TABLE IF NOT EXISTS player (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL,
     avatar TEXT,-- NULL if not synchronised with user service
-    updated_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_match_tournament
@@ -74,6 +75,12 @@ ON match(tournament_id);
 
 CREATE INDEX IF NOT EXISTS idx_tournament_player_tid
 ON tournament_player(tournament_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_match_unique_round
+ON match(tournament_id, round);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_tournament_player_limit
+ON tournament_player(tournament_id, player_id);
 `);
 } catch (err: unknown) {
   throw new AppError(
@@ -327,3 +334,58 @@ export function getPlayerStats(player_id: number) {
       err,
     );
   }
+}
+
+const getMatchSmt = db.prepare(`
+SELECT sessionId , round, player1, player2, id
+FROM match
+WHERE tournament_id = ?
+`);
+
+const createPlayer1Match = db.prepare(`
+INSERT INTO match(tournament_id, player1, round, sessionId, created_at)
+VALUES (?,?,?,?,?)
+`);
+const createPlayer2Match = db.prepare(`
+UPDATE match
+SET player2 = ?
+WHERE id = ?
+`);
+
+export function getSessionGame(tournamentId: number | null, userId: number | null): string | null {
+  try {
+    const tournamentHaveMatch = getMatchSmt.all(tournamentId) as {
+      sessionId: string | null;
+      round: string;
+      player1: number;
+      player2: number | null;
+      id: number | null;
+    }[];
+    const nbMatch = tournamentHaveMatch.length;
+    if (nbMatch === 0)
+      createPlayer1Match.run(tournamentId, userId, 'SEMI_1', randomUUID(), Date.now());
+    else if (nbMatch === 1 && tournamentHaveMatch[0].player2 == null)
+      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
+    else if (nbMatch === 1 && tournamentHaveMatch[0].player2 != null)
+      createPlayer1Match.run(tournamentId, userId, 'SEMI_2', randomUUID(), Date.now());
+    else if (nbMatch === 2 && tournamentHaveMatch[1].player2 == null)
+      createPlayer2Match.run(userId, tournamentHaveMatch[1].id);
+    else if (nbMatch === 2 && tournamentHaveMatch[1].player2 != null)
+      createPlayer1Match.run(tournamentId, userId, 'LITTLE_FINAL', randomUUID(), Date.now());
+    else if (nbMatch === 3 && tournamentHaveMatch[2].player2 == null)
+      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
+    else if (nbMatch === 3 && tournamentHaveMatch[2].player2 != null)
+      createPlayer1Match.run(tournamentId, userId, 'FINAL', randomUUID(), Date.now());
+    else if (nbMatch === 4 && tournamentHaveMatch[3].player2 == null)
+      createPlayer2Match.run(userId, tournamentHaveMatch[0].id);
+    else throw new Error(`Maximum number of match reached`);
+    const sessionId = nbMatch > 0 ? tournamentHaveMatch[nbMatch - 1].sessionId : null;
+    return sessionId;
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_INSERT_ERROR,
+      { details: [{ field: `getSessionGame tournamentId:${tournamentId} userId:${userId}` }] },
+      err,
+    );
+  }
+}

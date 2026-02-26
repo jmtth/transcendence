@@ -82,7 +82,8 @@
   },
   "game": {
     "playWithAI": "Défie le machin",
-    "playWithFriends": "Joue avec tes potes",
+    "playRemote": "Joue a 2 sur cette becane",
+    "playLocal": "Joue avec tes potes en remote",
     "tournament": "Vendetta",
     "game": "La mort ou la vie",
     "participate": "Tu cherches des embrouilles!",
