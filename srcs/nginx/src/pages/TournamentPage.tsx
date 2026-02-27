@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { PlayerDTO } from '@transcendence/core';
 import api from '../api/api-client';
 import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 /* The principle of the tournament page:
  * The creator is displayed first, then the players join sequentially.
@@ -40,7 +40,6 @@ async function mapPlayerDTO(dto: PlayerDTO): Promise<Player> {
 
 export default function TournamentPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   function fillSlotPlayer(players: Player[]): [Player, Player, Player, Player] {
     const slots: Player[] = new Array(4).fill(null);
@@ -77,8 +76,10 @@ export default function TournamentPage() {
     const interval = setInterval(fetchPlayers, 20000);
     return () => clearInterval(interval);
   }, [id]);
-  
-  if (!id) return navigate('/tournaments'); // if no id in the url, redirect to home page
-  
+
+  if (!id) {
+    return <Navigate to="/tournaments" replace />;
+  }
+
   return <TournamentBracket players={fillSlotPlayer(players)} tournamentId={id} />;
 }

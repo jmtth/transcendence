@@ -92,19 +92,19 @@ export async function gameSettings(this: FastifyInstance, req: FastifyRequest) {
   };
 }
 
-export async function newGameSession(this: FastifyInstance, req: FastifyRequest) {
+export async function newGameSession(req: FastifyRequest, reply: FastifyReply) {
+  req.server.log.info(`Creating new session------`);
   const body = req.body as {
     gameMode: string;
     tournamentId?: number;
   };
-  const idHeader = (req.headers as any)['x-user-id'];
-  const userId = idHeader ? Number(idHeader) : null;
+  const userId = req.user.id;
   let sessionId = null;
   if (body.gameMode === 'tournament')
     sessionId = db.getMatchToPlay(body.tournamentId!, userId!)?.sessionId;
   else sessionId = randomUUID();
-  this.log.info(`Creating new session with mode: ${body.gameMode}`);
-  const sessionData = getSessionData.call(this, null, sessionId, body.gameMode);
+  req.server.log.info(`Creating new session with mode: ${body.gameMode}`);
+  const sessionData = getSessionData.call(req.server, null, sessionId, body.gameMode);
   if (!sessionData) {
     return {
       status: 'failure',
@@ -162,7 +162,6 @@ export async function webSocketConnect(
 }
 
 export async function newTournament(req: FastifyRequest, reply: FastifyReply) {
-
   const userId = req.user.id;
   const tournament_id = db.createTournament(userId);
   return reply.code(200).send(tournament_id);
