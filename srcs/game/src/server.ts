@@ -7,7 +7,7 @@ import fs from 'fs';
 import { env } from './config/env.js';
 import redisPlugin from './plugins/ioredis.plugin.js';
 import { startGameConsumer } from './core/game.consumer.js';
-import * as db from './core/game.database.js';
+import recoveryHeaders from './plugins/headers.plugins.js';
 
 const fastify = Fastify({
   https: {
@@ -28,25 +28,7 @@ fastify.addHook('onReady', async () => {
 
 // Prehandlher for request route
 fastify.register(redisPlugin);
-
-fastify.addHook('preHandler', async (req, reply) => {
-  const idHeader = (req.headers as any)['x-user-id'];
-  const usernameHeader = req.headers['x-user-name'];
-  const userId = idHeader ? Number(idHeader) : null;
-  if (!userId) {
-    fastify.log.warn(`invalid auth header - user id missing`);
-    return reply.code(400).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
-  }
-  const userExist = db.getUser(userId);
-  if (!userExist) {
-    fastify.log.warn(`invalid auth header - user not found`);
-    return reply.code(400).send({ code: 'NOT_VALID_USER', message: "This user don't exist" });
-  }
-  req.user = {
-    id: userId,
-    username: String(usernameHeader),
-  };
-});
+fastify.register(recoveryHeaders);
 
 // Register WebSocket support
 // @ts-ignore - Fastify WebSocket plugin types are incompatible with Fastify v5 but work at runtime

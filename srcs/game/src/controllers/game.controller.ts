@@ -98,6 +98,7 @@ export async function newGameSession(req: FastifyRequest, reply: FastifyReply) {
     gameMode: string;
     tournamentId?: number;
   };
+  req.server.log.info(`Creating new session with body: ${JSON.stringify(body)}`);
   const userId = req.user.id;
   let sessionId = null;
   if (body.gameMode === 'tournament')
