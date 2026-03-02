@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { MyProfilePage } from './pages/MyProfilePage';
 import { ProfilePage } from './pages/ProfilePage';
-//import { GamePage } from './pages/GamePage';
+import { FAQPage } from './pages/FAQPage';
 import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
 import { WelcomePage } from './pages/WelcomePage';
@@ -54,6 +54,9 @@ export const App = () => {
             <Route path="/history" element={<HistoryPage />} />
           </Route>
         </Route>
+
+        {/* FAQ — accessible à tous, connecté ou non */}
+        <Route path="/faq" element={<FAQPage />} />
 
         {/* Catch-all — toute URL non reconnue */}
         <Route path="*" element={<NotFoundPage />} />
