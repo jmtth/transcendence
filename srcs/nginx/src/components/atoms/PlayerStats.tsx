@@ -31,9 +31,7 @@ export const StatsTableDesktop = ({ stats }: { stats: PlayerStat[] }) => {
           header: t('stats.tournaments_won', 'Tournaments Won'),
           cell: (row) => (
             <span
-              className={
-                row.tournaments_won > 0 ? 'font-medium text-emerald-600' : 'text-gray-500'
-              }
+              className={row.tournaments_won > 0 ? 'font-medium text-emerald-600' : 'text-gray-500'}
             >
               {row.tournaments_won}
             </span>
@@ -48,9 +46,7 @@ export const StatsTableDesktop = ({ stats }: { stats: PlayerStat[] }) => {
           className: 'text-right',
           cell: (row) => (
             <span
-              className={
-                row.matches_won > 0 ? 'font-medium text-emerald-600' : 'text-gray-500'
-              }
+              className={row.matches_won > 0 ? 'font-medium text-emerald-600' : 'text-gray-500'}
             >
               {row.matches_won}
             </span>
@@ -72,12 +68,22 @@ export const StatsListMobile = ({ stats }: { stats: PlayerStat[] }) => {
         <>
           <div className="font-semibold text-gray-700 text-base">{row.username}</div>
           <div className="grid grid-cols-2 gap-2 text-sm">
-            {([
-              [t('stats.tournaments_played', 'Tournaments Played'), row.tournaments_played, false],
-              [t('stats.tournaments_won', 'Tournaments Won'), row.tournaments_won, row.tournaments_won > 0],
-              [t('stats.matches_played', 'Matches Played'), row.matches_played, false],
-              [t('stats.matches_won', 'Matches Won'), row.matches_won, row.matches_won > 0],
-            ] as [string, number, boolean][]).map(([label, value, highlight]) => (
+            {(
+              [
+                [
+                  t('stats.tournaments_played', 'Tournaments Played'),
+                  row.tournaments_played,
+                  false,
+                ],
+                [
+                  t('stats.tournaments_won', 'Tournaments Won'),
+                  row.tournaments_won,
+                  row.tournaments_won > 0,
+                ],
+                [t('stats.matches_played', 'Matches Played'), row.matches_played, false],
+                [t('stats.matches_won', 'Matches Won'), row.matches_won, row.matches_won > 0],
+              ] as [string, number, boolean][]
+            ).map(([label, value, highlight]) => (
               <div key={label} className="bg-gray-50 rounded-xl p-2 text-center">
                 <div className="text-gray-500 text-xs mb-1">{label}</div>
                 <div

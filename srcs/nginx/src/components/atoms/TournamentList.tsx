@@ -39,9 +39,7 @@ export function TournamentTableDesktop({ tournaments, onJoin }: tournamentsProps
       columns={[
         {
           header: t('game.name'),
-          cell: (tour) => (
-            <span className="font-bold text-gray-700">{tour.name}</span>
-          ),
+          cell: (tour) => <span className="font-bold text-gray-700">{tour.name}</span>,
         },
         {
           header: t('game.players'),

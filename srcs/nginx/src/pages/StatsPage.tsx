@@ -1,9 +1,5 @@
 import { useState } from 'react';
-import {
-  PlayerStat,
-  StatsTableDesktop,
-  StatsListMobile,
-} from '../components/atoms/PlayerStats';
+import { PlayerStat, StatsTableDesktop, StatsListMobile } from '../components/atoms/PlayerStats';
 // import api from '../api/api-client';
 
 interface match {
@@ -23,10 +19,42 @@ interface tournament_stats {
 }
 
 const MOCK_MATCH_STATS: match[] = [
-  { id: 1, tournament_id: 1, player1: 1, player2: 2, score_player1: 5, score_player2: 2, winner_id: 1 },
-  { id: 2, tournament_id: 1, player1: 3, player2: 4, score_player1: 5, score_player2: 0, winner_id: 3 },
-  { id: 3, tournament_id: 1, player1: 1, player2: 3, score_player1: 5, score_player2: 4, winner_id: 1 },
-  { id: 4, tournament_id: 1, player1: 2, player2: 4, score_player1: 5, score_player2: 3, winner_id: 2 },
+  {
+    id: 1,
+    tournament_id: 1,
+    player1: 1,
+    player2: 2,
+    score_player1: 5,
+    score_player2: 2,
+    winner_id: 1,
+  },
+  {
+    id: 2,
+    tournament_id: 1,
+    player1: 3,
+    player2: 4,
+    score_player1: 5,
+    score_player2: 0,
+    winner_id: 3,
+  },
+  {
+    id: 3,
+    tournament_id: 1,
+    player1: 1,
+    player2: 3,
+    score_player1: 5,
+    score_player2: 4,
+    winner_id: 1,
+  },
+  {
+    id: 4,
+    tournament_id: 1,
+    player1: 2,
+    player2: 4,
+    score_player1: 5,
+    score_player2: 3,
+    winner_id: 2,
+  },
 ];
 
 const MOCK_TOURNAMENTS_STATS: tournament_stats[] = [
