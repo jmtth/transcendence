@@ -496,7 +496,6 @@ function onMatchFinished(matchId: number) {
   })();
 }
 
-<<<<<<< HEAD
 // ---- STATS ----
 const getTournamentStatsStmt = db.prepare(`
 SELECT
@@ -554,63 +553,5 @@ export function getMatchHistory() {
     return getMatchHistoryStmt.all();
   } catch (err: unknown) {
     throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: 'getMatchHistory' }] }, err);
-=======
-export function recordTournamentResult(tournament_id: number): TournamentResultDTO {
-  const transaction = db.transaction(() => {
-    const finalMatch = getMatchByRound.get(tournament_id, 'FINAL');
-    if (!finalMatch || !finalMatch.winner_id) {
-      throw new Error('Final match not finished');
-    }
-    const winnerId = finalMatch.winner_id;
-    const loserId = finalMatch.player1 === winnerId ? finalMatch.player2 : finalMatch.player1;
-
-    addPlayerPositionTournament(winnerId, 1, tournament_id);
-    addPlayerPositionTournament(loserId, 2, tournament_id);
-
-    const littleFinal = getMatchByRound.get(tournament_id, 'LITTLE_FINAL');
-    if (!littleFinal || !littleFinal.winner_id) {
-      throw new Error('Little final match not finished');
-    }
-    const thirdId = littleFinal.winner_id;
-    const fourthId = littleFinal.player1 === thirdId ? littleFinal.player2 : littleFinal.player1;
-
-    addPlayerPositionTournament(thirdId, 3, tournament_id);
-    addPlayerPositionTournament(fourthId, 4, tournament_id);
-
-    changeStatusTournamentStmt.run('FINISHED', tournament_id);
-    const tournament: TournamentResultDTO = {
-      tour_id: tournament_id,
-      player1: winnerId,
-      player2: loserId,
-      player3: thirdId,
-      player4: fourthId,
-    };
-    return tournament;
-  });
-  return transaction();
-}
-
-async function sendTournamentResultToBlockchain(
-  app: FastifyInstance,
-  tournament: TournamentResultDTO,
-) {
-  try {
-    // On utilise l'instance redis partagée par Fastify
-    await app.redis.xadd(
-      'tournament.results',
-      '*',
-      'data',
-      JSON.stringify({
-        tour_id: tournament.tour_id,
-        player1: tournament.player1,
-        player2: tournament.player2,
-        player3: tournament.player3,
-        player4: tournament.player4,
-      }),
-    );
-    app.log.debug(`Event streamed to Redis for tournament ${tournament.tour_id}`);
-  } catch (err) {
-    app.log.error(err, 'Failed to stream tournament result to Redis');
->>>>>>> f323f87 (feat(tournament): implement tournament result recording and match updates)
   }
 }
