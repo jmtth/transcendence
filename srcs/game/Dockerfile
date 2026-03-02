@@ -39,8 +39,8 @@ ENV NODE_ENV=production
 COPY package-lock.json ./package-lock.json
 COPY srcs/game/package.json ./package.json
 # audit and fund are done in builder
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
+RUN apk add --no-cache python3 make g++
+RUN npm install --omit=dev --no-audit --no-fund
 
 # 6) Injecter le package interne @transcendence/core (compilé)
 RUN mkdir -p node_modules/@transcendence
