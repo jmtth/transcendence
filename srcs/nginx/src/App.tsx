@@ -1,14 +1,14 @@
 import { Route, Routes } from 'react-router-dom';
 import { MyProfilePage } from './pages/MyProfilePage';
 import { ProfilePage } from './pages/ProfilePage';
-import { GamePage } from './pages/GamePage';
+//import { GamePage } from './pages/GamePage';
 import { AnimationPage } from './pages/AnimationPage';
 import { FriendsPage } from './pages/FriendsPage';
 import { WelcomePage } from './pages/WelcomePage';
 import { HomePage } from './pages/HomePage';
 import { OAuthCallback } from './pages/OAuthCallback';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { PlayAiPage } from './pages/PlayAiPage';
+//import { PlayAiPage } from './pages/PlayAiPage';
 import TournamentRoutes from './router/TournamentRoutes';
 import { PrivateRoute } from './router/PrivateRoute';
 import { PublicRoute } from './router/PublicRoute';
