@@ -3,6 +3,7 @@ import { proxyRequest, webSocketProxyRequest } from '../utils/proxy.js';
 import { GATEWAY_CONFIG } from '../utils/constants.js';
 import { fetchOptions } from '../utils/mtlsAgent.js';
 import { getInternalHeaders } from '../index.js';
+import { error } from 'node:console';
 
 function getProxyHeaders(request: FastifyRequest): HeadersInit {
   const internalHeaders = getInternalHeaders(request);
@@ -79,6 +80,7 @@ export function registerGameRoutes(app: FastifyInstance) {
       event: 'game_proxy_request',
       fullUrl,
       method: request.method,
+      body: request.body,
       user: request.headers['x-user-name'] || null,
     });
 
@@ -89,10 +91,35 @@ export function registerGameRoutes(app: FastifyInstance) {
 
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       // Avoid circcular structure JSON.stringify by cleaning the body if it exists
-      const cleanBody = request.body ? { ...request.body } : undefined;
-      init.body = cleanBody ? JSON.stringify(cleanBody) : undefined;
+      // const cleanBody = request.body ? { ...request.body } : undefined;
+      // init.body = cleanBody ? JSON.stringify(cleanBody) : undefined;
+      const contentType = request.headers['content-type'];
+      if (contentType?.includes('application/json')) {
+        if (request.body !== null && request.body !== undefined) {
+          if (typeof request.body === 'object') {
+            try {
+              init.body = JSON.stringify(request.body);
+            } catch (err) {
+              app.log.error({
+                event: 'game_proxy_body_stringify_error',
+                error: (err as Error).message,
+                bodyType: typeof request.body,
+              });
+              return reply.code(400).send({
+                error: 'INVALID_JSON_BODY',
+                message: 'Failed to process request body as JSON',
+              });
+            }
+          } else {
+            init.body = String(request.body);
+          }
+        } else if (contentType === 'application/json') {
+          init.body = '{}';
+        }
+      } else {
+        init.body = request.body as any;
+      }
     }
-
     const res = await proxyRequest(app, request, reply, fullUrl, init);
     return res;
   });
