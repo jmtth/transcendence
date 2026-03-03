@@ -1,4 +1,4 @@
-import fastify, { FastifyReply, FastifyRequest } from 'fastify';
+import fastify, { FastifyRequest } from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
@@ -9,10 +9,11 @@ import * as totpService from './services/totp.service.js';
 import * as onlineService from './services/online.service.js';
 import { loggerConfig } from './config/logger.config.js';
 import { AUTH_CONFIG, EVENTS, REASONS } from './utils/constants.js';
-import { AppBaseError } from './types/errors.js';
 import { authenv } from './config/env.js';
 import fs from 'fs';
 import { ERROR_CODES } from '@transcendence/core';
+import { serializerCompiler, validatorCompiler, ZodTypeProvider } from 'fastify-type-provider-zod';
+import { $ZodError } from 'zod/v4/core';
 
 const app = fastify({
   https: {
@@ -25,7 +26,10 @@ const app = fastify({
   },
   logger: loggerConfig,
   disableRequestLogging: false,
-});
+}).withTypeProvider<ZodTypeProvider>();
+
+await app.setValidatorCompiler(validatorCompiler);
+await app.setSerializerCompiler(serializerCompiler);
 
 export const logger = app.log;
 
@@ -46,7 +50,7 @@ app.addHook('onRequest', (request, reply, done) => {
 /**
  * @abstract add userId and userName to logger
  */
-app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
+app.addHook('onRequest', async (request: FastifyRequest) => {
   const userId = request.headers['x-user-id'];
   const userName = request.headers['x-user-name'];
   const bindings: Record<string, any> = {};
@@ -59,9 +63,12 @@ app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) =>
   if (Object.keys(bindings).length > 0) {
     request.log = request.log.child(bindings);
   }
+  if (userId && userName) {
+    request.user = { id: bindings.userId, username: bindings.username as string };
+  }
 });
 
-app.setErrorHandler((error: AppBaseError, req, reply) => {
+app.setErrorHandler((error, req, reply) => {
   // Ne pas traiter les erreurs déjà envoyées
   if (reply.sent) {
     req.log.debug({
@@ -72,6 +79,21 @@ app.setErrorHandler((error: AppBaseError, req, reply) => {
       errorMessage: (error as any)?.message,
     });
     return;
+  }
+
+  logger.error(error);
+
+  // Gestion spéciale pour les erreurs de Zod
+  if (error instanceof $ZodError) {
+    const zodError = error as $ZodError;
+
+    return reply.status(400).send({
+      error: {
+        message: zodError.issues[0]?.message || 'Validation failed',
+        code: ERROR_CODES.VALIDATION_ERROR,
+        details: zodError.issues,
+      },
+    });
   }
 
   // Gestion spéciale pour les erreurs de rate limiting
@@ -112,8 +134,8 @@ app.setErrorHandler((error: AppBaseError, req, reply) => {
   req.log.error(
     {
       err: error,
-      event: error?.context?.event || EVENTS.CRITICAL.BUG,
-      reason: error?.context?.reason || REASONS.UNKNOWN,
+      event: (error as any)?.context?.event || EVENTS.CRITICAL.BUG,
+      reason: (error as any)?.context?.reason || REASONS.UNKNOWN,
       statusCode: statusCode,
       errorCode: (error as any)?.code,
       errorName: (error as any)?.name,
@@ -125,7 +147,7 @@ app.setErrorHandler((error: AppBaseError, req, reply) => {
     error: {
       message: (error as any)?.message || 'Internal server error',
       code: (error as any)?.code || EVENTS.CRITICAL.BUG,
-      reason: error?.context?.reason || REASONS.UNKNOWN,
+      reason: (error as any)?.error?.context?.reason || REASONS.UNKNOWN,
     },
   });
 });
