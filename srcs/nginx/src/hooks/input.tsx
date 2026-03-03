@@ -3,12 +3,14 @@ import { useEffect } from 'react';
 interface UseKeyboardControlsProps {
   wsRef: React.RefObject<WebSocket | null>;
   gameMode: string;
+  playerRole?: 'A' | 'B' | null;
   enabled?: boolean; // Optional: to enable/disable controls
 }
 
 export const useKeyboardControls = ({
   wsRef,
   gameMode,
+  playerRole = null,
   enabled = true,
 }: UseKeyboardControlsProps) => {
   useEffect(() => {
@@ -61,12 +63,44 @@ export const useKeyboardControls = ({
             );
             break;
         }
+      } else if (gameMode === 'remote') {
+        // Remote: only send commands for the paddle assigned to this client
+        // Player A -> left paddle (W/S), Player B -> right paddle (ArrowUp/Down)
+        if (!playerRole) return;
+        if (playerRole === 'A') {
+          switch (event.key) {
+            case 'w':
+            case 'W':
+              wsRef.current?.send(
+                JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'up' }),
+              );
+              break;
+            case 's':
+            case 'S':
+              wsRef.current?.send(
+                JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'down' }),
+              );
+              break;
+          }
+        } else if (playerRole === 'B') {
+          switch (event.key) {
+            case 'ArrowUp':
+              wsRef.current?.send(
+                JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'up' }),
+              );
+              break;
+            case 'ArrowDown':
+              wsRef.current?.send(
+                JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'down' }),
+              );
+              break;
+          }
+        }
       }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (!wsRef.current) return;
-
       if (gameMode === 'local') {
         const keys = ['w', 'W', 's', 'S', 'ArrowUp', 'ArrowDown'];
         if (keys.includes(event.key)) {
@@ -83,6 +117,23 @@ export const useKeyboardControls = ({
         if (keys.includes(event.key)) {
           wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'stop' }));
         }
+      } else if (gameMode === 'remote') {
+        if (!playerRole) return;
+        if (playerRole === 'A') {
+          const keys = ['w', 'W', 's', 'S'];
+          if (keys.includes(event.key)) {
+            wsRef.current.send(
+              JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'stop' }),
+            );
+          }
+        } else if (playerRole === 'B') {
+          const keys = ['ArrowUp', 'ArrowDown'];
+          if (keys.includes(event.key)) {
+            wsRef.current.send(
+              JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'stop' }),
+            );
+          }
+        }
       }
     };
 
@@ -93,5 +144,5 @@ export const useKeyboardControls = ({
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [wsRef, enabled, gameMode]);
+  }, [wsRef, enabled, gameMode, playerRole]);
 };

@@ -391,7 +391,7 @@ export function getPlayerStats(player_id: number) {
 // `);
 
 const getMatchToPlayStmt = db.prepare(`
-SELECT sessionId , round, player1, player2
+SELECT sessionId , id, round, player1, player2
 FROM match
 WHERE tournament_id = ?
   AND (player1 = ? OR player2 = ?)

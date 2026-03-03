@@ -40,6 +40,19 @@ const GameStatusBar = ({
     setGameLogs((prevLogs) => [...prevLogs, message]);
   };
 
+  const WIN_SCORE = 5;
+  const hasWinner = scoreLeft >= WIN_SCORE || scoreRight >= WIN_SCORE;
+  const winnerLabel = hasWinner
+    ? scoreLeft > scoreRight
+      ? labelLeft
+      : scoreRight > scoreLeft
+        ? labelRight
+        : 'Draw'
+    : null;
+  let statusText = 'Ready';
+  if (hasWinner) statusText = `${winnerLabel} wins!`;
+  else if (scoreLeft > 0 || scoreRight > 0) statusText = 'Playing';
+
   return (
     <div className={`space-y-4 ${className}`}>
       <div className="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
@@ -52,9 +65,17 @@ const GameStatusBar = ({
           </div>
           <div className="text-center">
             <p className="text-sm text-purple-300">Game Status</p>
-            <p id="game-status-text" className="text-xl font-semibold text-yellow-400">
-              Ready
+            <p
+              id="game-status-text"
+              className={`text-xl font-semibold ${hasWinner ? 'text-green-400' : 'text-yellow-400'}`}
+            >
+              {statusText}
             </p>
+            {hasWinner && (
+              <p className="text-sm text-gray-300">
+                Final score: {scoreLeft} - {scoreRight}
+              </p>
+            )}
           </div>
           <div className="text-center">
             <p className="text-sm text-purple-300">{labelRight}</p>

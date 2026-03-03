@@ -66,13 +66,15 @@ interface ServerMessage {
 
 interface GamePageProps {
   sessionId: string | null;
-  gameMode: 'local' | 'remote' | 'tournament';
+  gameMode: 'local' | 'remote' | 'tournament' | 'ai';
 }
 
 // export const GamePage = ({ sessionId: routeSessionId }: { sessionId: string | null }) => {
 export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const { openWebSocket, closeWebSocket } = useGameWebSocket();
   const { gameStateRef, updateGameState } = useGameState();
+  const [scores, setScores] = useState<Scores>({ left: 0, right: 0 });
+  const [playerRole, setPlayerRole] = useState<'A' | 'B' | null>(null);
   const [currentSessionId, setSessionId] = useState<string | null>(sessionId);
   const [isLoading, setIsLoading] = useState(false);
   const wsRef = useRef<WebSocket | null>(null); // Use ref instead of state
@@ -82,8 +84,32 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   useKeyboardControls({
     wsRef,
     gameMode,
+    playerRole,
     enabled: !!currentSessionId, // Only enable when connected
   });
+
+  // Poll the gameStateRef on animation frames to keep UI scores in sync
+  useEffect(() => {
+    let mounted = true;
+    let rafId = 0;
+    const loop = () => {
+      if (!mounted) return;
+      const gs = gameStateRef.current;
+      if (gs?.scores) {
+        setScores((prev) =>
+          prev.left !== gs.scores.left || prev.right !== gs.scores.right
+            ? { left: gs.scores.left, right: gs.scores.right }
+            : prev,
+        );
+      }
+      rafId = requestAnimationFrame(loop);
+    };
+    rafId = requestAnimationFrame(loop);
+    return () => {
+      mounted = false;
+      cancelAnimationFrame(rafId);
+    };
+  }, [gameStateRef]);
 
   const createLocalSession = async () => {
     setIsLoading(true);
@@ -114,7 +140,9 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     const data = res.data;
     // if (res.ok && data.sessionId) {
     if (data.sessionId) {
-      console.log('Success');
+      console.log(
+        `Success ${tournamentId ? 'tournament' : 'local'} session created with ID: ${data.sessionId}`,
+      );
       setSessionId(data.sessionId);
     }
     setIsLoading(false);
@@ -148,7 +176,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   };
 
   useEffect(() => {
-    if (gameMode === 'local' && !currentSessionId) {
+    if (gameMode !== 'remote' && !currentSessionId) {
       createLocalSession();
       console.log('Auto-creating local session...');
     }
@@ -159,8 +187,23 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     const connectWebSocket = async () => {
       try {
         const ws = await openWebSocket(currentSessionId, (message: ServerMessage) => {
+          // Update game state for regular state frames
           if (message.type === 'state' && message.data) {
             updateGameState(message.data);
+          }
+
+          // Some servers send a final 'gameOver' message with the last state — handle it too
+          if (message.type === 'gameOver' && message.data) {
+            updateGameState(message.data);
+            console.log('Received gameOver, applied final state', message.data.scores);
+          }
+
+          // Server assigns player A/B on connect
+          if (message.type === 'connected' && message.message) {
+            const msg = message.message.toLowerCase();
+            if (msg.includes('player b') || msg.includes('b')) setPlayerRole('B');
+            else setPlayerRole('A');
+            console.log('Assigned role:', message.message);
           }
         });
 
@@ -176,6 +219,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     return () => {
       closeWebSocket();
       wsRef.current = null;
+      setPlayerRole(null);
     };
   }, [currentSessionId, openWebSocket, updateGameState, closeWebSocket]);
 
@@ -209,9 +253,22 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
               loading={isLoading}
             />
             {gameMode === 'remote' ? (
-              <GameStatusBar sessionsData={sessions} onSelectSession={handleSelectSession} />
+              <GameStatusBar
+                sessionsData={sessions}
+                scoreLeft={scores.left}
+                scoreRight={scores.right}
+                labelLeft="Player A"
+                labelRight="Player B"
+                onSelectSession={handleSelectSession}
+              />
             ) : (
-              <GameStatusBar sessionsData={null} />
+              <GameStatusBar
+                sessionsData={null}
+                scoreLeft={scores.left}
+                scoreRight={scores.right}
+                labelLeft="Player A"
+                labelRight="Player B"
+              />
             )}
           </div>
           <div className="flex-[3] flex justify-center p-4">
