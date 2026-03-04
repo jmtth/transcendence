@@ -356,6 +356,22 @@
     "playLocal": "Joue avec tes potes en remote",
     "tournament": "Vendetta",
     "game": "La mort ou la vie",
+    "loading_sessions": "on s'en occupe..",
+    "refresh_sessions": "il y a besoin de rafraîchir tout ça..",
+    "player_a": "machin",
+    "player_b": "truc",
+    "info_controls": "comment ça marche ce truc ?",
+    "info_controls_mask": "ça va, c'est pas trop compliqué",
+    "controls": {
+      "left_paddle": "si t'es à gauche",
+      "right_paddle": "si t'es à droite"
+    },
+    "status_list": {
+      "waiting": "on vous attend",
+      "playing": "faites honneur au sport",
+      "finished": "c'est plié",
+      "paused:": "temps mort"
+    },
     "participate": "Tu cherches des embrouilles!",
     "create": "Je vous mets au défi!",
     "tournament_available": "Vendetta disponibles",

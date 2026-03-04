@@ -343,7 +343,23 @@
     "game": "Game",
     "participate": "Participate",
     "create": "Create Game",
+    "player_a": "player A",
+    "player_b": "player B",
+    "info_controls": "show controls",
+    "info_controls_mask": "hide controls",
     "tournament_available": "Tournament available",
+    "loading_sessions": "loading sessions..",
+    "refresh_sessions": "refreshing sessions..",
+    "status_list": {
+      "waiting": "waiting to start",
+      "playing": "ongoing",
+      "finished": "finished",
+      "paused:": "paused"
+    },
+    "controls": {
+      "left_paddle": "for left paddle",
+      "right_paddle": "for right paddle"
+    },
     "name": "Pseudo",
     "players": "Nb players",
     "status": "Status",

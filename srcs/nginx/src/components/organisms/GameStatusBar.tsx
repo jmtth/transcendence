@@ -1,4 +1,6 @@
+import { useTranslation } from 'react-i18next';
 import { UseGameSessionsReturn } from '../../hooks/GameSessions.tsx';
+import { GameStatus } from './Arena.tsx';
 
 interface GameStatusBarProps {
   className?: string;
@@ -8,8 +10,8 @@ interface GameStatusBarProps {
   scoreRight?: number;
   labelLeft?: string;
   labelRight?: string;
+  status?: GameStatus;
 }
-
 export interface GameSession {
   sessionId: string;
   createdAt?: string;
@@ -20,30 +22,60 @@ export interface GameSession {
 const GameStatusBar = ({
   className = '',
   sessionsData,
+  status = 'waiting',
   onSelectSession,
   scoreLeft = 0,
   scoreRight = 0,
-  labelLeft = 'Player A',
-  labelRight = 'Player B',
+  labelLeft,
+  labelRight,
 }: GameStatusBarProps) => {
+  const { t } = useTranslation();
+
+  const statusConfig = {
+    waiting: {
+      color: 'text-gray-200',
+      label: t('game.status_list.waiting'),
+    },
+    playing: {
+      color: 'text-green-400',
+      label: t('game.status_list.playing'),
+    },
+    finished: {
+      color: 'text-red-400',
+      label: t('game.status_list.finished'),
+    },
+    paused: {
+      color: 'text-blue-400',
+      label: t('game.status_list.paused'),
+    },
+  };
+
+  const currentStatus = statusConfig[status];
+
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="bg-white/10 backdrop-blur-lg rounded-lg p-4 max-w-2xl mx-auto">
+    <div className={`w-full space-y-4 ${className}`}>
+      <div className="bg-white/10 backdrop-blur-lg rounded-lg p-4 mx-auto">
         <div className="flex justify-around text-white">
           <div className="text-center">
-            <p className="text-sm text-purple-300">{labelLeft}</p>
+            <p className="text-xl  font-quantico text-gray-100">
+              {labelLeft || t('game.player_a')}
+            </p>
             <p id="player1-score" className="text-3xl font-bold">
               {scoreLeft}
             </p>
           </div>
-          <div className="text-center">
-            <p className="text-sm text-purple-300">Game Status</p>
-            <p id="game-status-text" className="text-xl font-semibold text-yellow-400">
-              Ready
+          <div className="flex flex-col justify-around text-center px-8 border-x border-white/10">
+            <p className="text-xs uppercase tracking-wider text-purple-300 opacity-80">
+              {t('game.status')}
+            </p>
+            <p className={`text-xl uppercase font-quantico tracking-widest ${currentStatus.color}`}>
+              {currentStatus.label}
             </p>
           </div>
-          <div className="text-center">
-            <p className="text-sm text-purple-300">{labelRight}</p>
+          <div className="text-center ">
+            <p className="text-xl  font-quantico text-gray-100">
+              {labelRight || t('game.player_b')}
+            </p>
             <p id="player2-score" className="text-3xl font-bold">
               {scoreRight}
             </p>
@@ -51,19 +83,12 @@ const GameStatusBar = ({
         </div>
       </div>
 
-      <div className="bg-white/5 backdrop-blur rounded-lg p-3 max-w-2xl mx-auto">
-        <p className="text-gray-300 text-sm">
-          Controls: <span className="text-purple-300 font-mono">W/S</span> for left paddle,{' '}
-          <span className="text-purple-300 font-mono">↑/↓</span> for right paddle
-        </p>
-      </div>
-
       {sessionsData && (
-        <div className="bg-white/5 backdrop-blur rounded-lg p-4 max-w-2xl mx-auto">
-          {sessionsData.isLoadingSessions && <p>Loading sessions...</p>}
+        <div className="bg-white/5 backdrop-blur text-center rounded-lg p-4 mx-auto">
+          {sessionsData.isLoadingSessions && <p>{t('game.loading_sessions')}</p>}
           {sessionsData.error && <p>Error: {sessionsData.error}</p>}
           <button className="rounded-lg" onClick={sessionsData.refetch}>
-            Refresh Sessions
+            {t('game.refresh_sessions')}
           </button>
           <ul>
             {sessionsData.sessionsList.map((session) => (

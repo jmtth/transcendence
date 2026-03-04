@@ -1,6 +1,4 @@
 import React, { useRef, useEffect } from 'react';
-import { useGameState } from '../../hooks/GameState';
-
 export interface Scores {
   left: number;
   right: number;
@@ -161,13 +159,13 @@ const Arena = ({ className = '', gameStateRef }: ArenaProps) => {
     };
   }, [gameStateRef]);
   return (
-    <div className="w-full h-full flex  p-8">
-      <div className="relative w-full h-full max-w-5xl">
+    <div className={`w-full flex justify-center items-center align-center ${className}`}>
+      <div className="justify-center max-w-8xl">
         <canvas
           ref={canvasRef}
           width={800}
           height={600}
-          className="w-full object-contain border-2 border-purple-500/50 rounded-xl shadow-2xl"
+          className="w-full h-auto max-h-[80vh] border border-white/50 rounded-xl shadow-l"
           style={{
             aspectRatio: '4/3',
             backgroundColor: '#000',

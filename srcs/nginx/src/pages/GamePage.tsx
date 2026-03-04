@@ -56,6 +56,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const [currentSessionId, setSessionId] = useState<string | null>(sessionId);
   const [isLoading, setIsLoading] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [winner, setWinner] = useState<'left' | 'right' | null>(null);
   const [scores, setScores] = useState({ left: 0, right: 0 });
   const wsRef = useRef<WebSocket | null>(null);
@@ -64,6 +65,12 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const sessionIdRef = useRef<string | null>(null);
   const { tournamentId } = useParams<{ tournamentId?: string }>();
   const navigate = useNavigate();
+
+  const getGameStatus = (): GameStatus => {
+    if (isGameOver) return 'finished';
+    if (isPlaying) return 'playing';
+    return 'waiting';
+  };
 
   useKeyboardControls({
     wsRef,
@@ -116,6 +123,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   // ── Controls ──────────────────────────────────────────────────────
   const onStartGame = async () => {
     if (!wsRef.current) return;
+    setIsPlaying(true);
     if (gameMode === 'ai') {
       const id = sessionIdRef.current;
       if (id) await joinAiToSession(id);
@@ -149,6 +157,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
             setScores({ left: s.left, right: s.right });
           }
         } else if (message.type === 'gameOver' && message.data) {
+          setIsPlaying(false);
           phaseRef.current = 'gameOver';
           updateGameState(message.data);
           const s = message.data.scores;
@@ -196,41 +205,49 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const winnerColor = winner === 'left' ? '#34d399' : '#fb7185';
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative overflow-hidden">
       <Background
         grainIntensity={4}
         baseFrequency={0.28}
         colorStart={colors.start}
         colorEnd={colors.end}
       >
-        <NavBar />
-        <div className="flex flex-col md:flex-row flex-1 overflow-hidden md:max-w-8xl md:mx-auto md:w-full">
+        <div className="w-full h-full flex flex-col justify-between items-stretch flex-1 overflow-hidden md:max-w-8xl md:mx-auto md:w-full">
           {/* Top bar: scores + controls */}
-          <div className="flex flex-col items-center p-4 gap-4 md:w-72 md:justify-center">
-            {gameMode === 'remote' ? (
-              <GameStatusBar sessionsData={sessions} onSelectSession={handleSelectSession} />
-            ) : (
-              <GameStatusBar
-                sessionsData={null}
-                scoreLeft={scores.left}
-                scoreRight={scores.right}
-                labelLeft={labelLeft}
-                labelRight={labelRight}
+          <div className="w-full flex flex-col">
+            <div className=" w-full">
+              {gameMode === 'remote' ? (
+                <GameStatusBar sessionsData={sessions} onSelectSession={handleSelectSession} />
+              ) : (
+                <GameStatusBar
+                  status={getGameStatus()}
+                  sessionsData={null}
+                  scoreLeft={scores.left}
+                  scoreRight={scores.right}
+                  labelLeft={labelLeft}
+                  labelRight={labelRight}
+                />
+              )}
+            </div>
+
+            <div className="w-full items-center mt-3 gap-4">
+              <GameControl
+                isPlaying={isPlaying}
+                onCreateLocalGame={createSession}
+                onStartGame={onStartGame}
+                onExitGame={onExitGame}
+                gameMode={gameMode}
+                loading={isLoading}
+                className="w-full"
               />
-            )}
-            <GameControl
-              onCreateLocalGame={createSession}
-              onStartGame={onStartGame}
-              onExitGame={onExitGame}
-              gameMode={gameMode}
-              loading={isLoading}
-              className="w-full"
-            />
+            </div>
           </div>
 
           {/* Arena */}
-          <div className="flex-1 flex justify-center px-4 pb-4 relative">
-            <Arena gameStateRef={gameStateRef} />
+          <div className="flex-1 flex flex-col justify-center items-center px-4 pb-4 relative min-h-0">
+            <div className="w-full max-w-5xl">
+              <Arena gameStateRef={gameStateRef} />
+            </div>
             {isGameOver && (
               <div
                 className="absolute inset-0 flex flex-col items-center justify-center gap-6"

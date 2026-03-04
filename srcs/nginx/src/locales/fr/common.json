@@ -341,6 +341,22 @@
     "playLocal": "Partie locale",
     "tournament": "Tournoi",
     "game": "Jeu",
+    "player_a": "joueur A",
+    "player_b": "joueur B",
+    "info_controls": "afficher les commandes",
+    "info_controls_mask": "masquer les commandes",
+    "loading_sessions": "chargement des sessions..",
+    "refresh_sessions": "mise à jour des sessions..",
+    "controls": {
+      "left_paddle": "pour la raquette de gauche",
+      "right_paddle": "pour la raquette de droite"
+    },
+    "status_list": {
+      "waiting": "prêt à démarrer",
+      "playing": "en cours",
+      "finished": "match terminé",
+      "paused:": "en pause"
+    },
     "participate": "Participer",
     "create": "Créer",
     "tournament_available": "Tournois disponibles",
