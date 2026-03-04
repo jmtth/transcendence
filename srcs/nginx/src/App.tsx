@@ -18,6 +18,7 @@ import { HistoryPage } from './pages/HistoryPage';
 import TournamentLayout from './components/organisms/TournamentLayout';
 import TosPage from './pages/TosPage';
 import PrivacyPage from './pages/PrivacyPage';
+import { FAQPage } from './pages/FAQPage';
 
 export const App = () => {
   return (
