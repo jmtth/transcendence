@@ -299,50 +299,34 @@ erDiagram
 
 ```
 
-Auth Service — users table
-
-| Field          | Type     | Notes                             |
-| -------------- | -------- | --------------------------------- |
-| id             | INTEGER  | Primary key, auto-increment       |
-| username       | TEXT     | Unique, used for login            |
-| email          | TEXT     | Unique, nullable                  |
-| password       | TEXT     | Bcrypt hash                       |
-| role           | TEXT     | 'user', 'moderator', 'admin'      |
-| is_2fa_enabled | INTEGER  | 0 or 1 (SQLite boolean)           |
-| totp_secret    | TEXT     | Nullable, set when 2FA activated  |
-| google_id      | TEXT     | Nullable, unique OAuth identifier |
-| school42_id    | TEXT     | Nullable, unique OAuth identifier |
-| created_at     | DATETIME | Auto, CURRENT_TIMESTAMP           |
-
-Auth Service — token tables
-
-| Field      | Type     | Notes                              |
-| ---------- | -------- | ---------------------------------- |
-| token      | TEXT     | 32-byte hex string (crypto-random) |
-| expires_at | DATETIME | ISO string, checked on every use   |
-| attempts   | INTEGER  | Brute-force protection counter     |
-
 ### Users Service Schema
 
-| Field     | Type     | Notes                                  |
-| --------- | -------- | -------------------------------------- |
-| authId    | Int      | Unique — mirrors users.id from Auth DB |
-| username  | String   | Unique display name                    |
-| email     | String?  | Optional, unique                       |
-| avatarUrl | String?  | URL to profile picture                 |
-| createdAt | DateTime | Auto, Prisma now()                     |
+```mermaid
+erDiagram
+    UserProfile {
+        Int id PK "autoincrement"
+        Int authId "UNIQUE - FK to auth.users.id"
+        DateTime createdAt
+        String email "UNIQUE, optional"
+        String username "UNIQUE"
+        String avatarUrl "optional"
+    }
 
-Users Service — Friendship (Prisma)
+    Friendship {
+        Int id PK "autoincrement"
+        DateTime createdAt
+        String nicknameRequester "optional"
+        String nicknameReceiver "optional"
+        String status
+        Int requesterId FK
+        Int receiverId FK
+    }
 
-| Field             | Type    | Notes                                   |
-| ----------------- | ------- | --------------------------------------- |
-| requesterId       | Int     | FK → UserProfile.authId, CASCADE delete |
-| receiverId        | Int     | FK → UserProfile.authId, CASCADE delete |
-| status            | String  | 'pending', 'accepted', 'blocked'        |
-| nicknameRequester | String? | Custom alias set by requester           |
-| nicknameReceiver  | String? | Custom alias set by receiver            |
+    UserProfile ||--o{ Friendship : "requested (requester)"
+    UserProfile ||--o{ Friendship : "received (receiver)"
+```
 
-Redis Keys
+### Redis Keys
 
 | Key pattern     | Value type | Notes                          |
 | --------------- | ---------- | ------------------------------ |
