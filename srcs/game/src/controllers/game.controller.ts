@@ -22,7 +22,7 @@ export async function deleteSession(this: FastifyInstance, req: FastifyRequest) 
 
   this.log.info('Delete session');
 
-  const sessionData = getSessionData.call(this, null, sessionId, null);
+  const sessionData = gameSessions.get(sessionId);
   if (!sessionData) {
     return {
       status: 'failure',
@@ -98,32 +98,40 @@ export async function newGameSession(req: FastifyRequest, reply: FastifyReply) {
   req.server.log.info(`Creating new session------`);
   const body = req.body as {
     gameMode: string;
-    tournamentId?: number;
+    tournamentId?: number | string;
   };
-  req.server.log.info(`Creating new session with body: ${body}`);
-  const userId = req.user.id;
+  req.server.log.info(`Creating new session with body: ${JSON.stringify(body)}`);
+  const userId = req.user?.id ?? null;
   req.server.log.info(`Creating new session with user id: ${userId}`);
   let sessionId = null;
-  if (body.gameMode === 'tournament')
-    sessionId = db.getMatchToPlay(body.tournamentId!, userId!)?.sessionId;
+  const tournamentId = body.tournamentId != null ? Number(body.tournamentId) : null;
+  if (body.gameMode === 'tournament' && tournamentId != null)
+    sessionId = db.getMatchToPlay(tournamentId, userId!)?.sessionId;
   else sessionId = randomUUID();
   req.server.log.info(`Creating new session with mode: ${body.gameMode}`);
-  const sessionData = getSessionData.call(req.server, null, sessionId, body.gameMode);
+  const sessionData = getSessionData.call(
+    req.server,
+    null,
+    sessionId,
+    body.gameMode,
+    tournamentId,
+    userId,
+  );
   if (!sessionData) {
-    return {
+    return reply.code(400).send({
       status: 'failure',
       message: 'Game session failed',
       sessionId: sessionId,
       wsUrl: `/game/ws/${sessionId}`,
-    };
+    });
   }
   if (sessionData.game) sessionData.game.preview();
-  return {
+  reply.code(200).send({
     status: 'success',
     message: 'Game session created',
     sessionId: sessionId,
     wsUrl: `/game/ws/${sessionId}`,
-  };
+  });
 }
 
 export async function healthCheck() {
@@ -162,7 +170,15 @@ export async function webSocketConnect(
   const params = req.params as { sessionId: string };
   const sessionId = params.sessionId;
 
-  handleClientMessage.call(this, socket, sessionId);
+  // Extract userId from headers forwarded by the gateway
+  const idHeader = (req.headers as any)['x-user-id'];
+  const parsed = idHeader ? Number(idHeader) : NaN;
+  const userId = Number.isFinite(parsed) ? parsed : null;
+
+  this.log.info({ event: 'ws_user_resolution', rawHeader: idHeader, resolvedUserId: userId });
+
+  this.log.info({ event: 'ws_connect', sessionId, userId });
+  handleClientMessage.call(this, socket, sessionId, userId);
 }
 
 export async function newTournament(req: FastifyRequest, reply: FastifyReply) {

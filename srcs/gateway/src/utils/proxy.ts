@@ -110,9 +110,12 @@ export function webSocketProxyRequest(
   path: string,
 ) {
   const userName = request.headers['x-user-name'] || 'anonymous';
-  const userId = request.headers['x-user-id'] || 'unknown';
+  const userId = request.headers['x-user-id'] || '';
 
   app.log.info({ event: 'game_ws_connect_attempt', path, user: userName, userId });
+  if (!userId) {
+    app.log.warn({ event: 'game_ws_missing_user_id', path, user: userName });
+  }
 
   // Create WebSocket to game-service, reusing mTLS options (includes rejectUnauthorized: false)
   const upstreamUrl = `wss://game-service:3003${path}`;

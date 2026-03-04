@@ -61,6 +61,12 @@ interface ServerMessage {
   type: 'connected' | 'state' | 'gameOver' | 'error' | 'pong';
   sessionId?: string;
   data?: GameState;
+  gameOverData?: {
+    scores: Scores;
+    winner: 'left' | 'right';
+    winnerUserId: number | null;
+    status: GameStatus;
+  };
   message?: string;
 }
 
@@ -77,6 +83,11 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const [playerRole, setPlayerRole] = useState<'A' | 'B' | null>(null);
   const [currentSessionId, setSessionId] = useState<string | null>(sessionId);
   const [isLoading, setIsLoading] = useState(false);
+  const [gameOver, setGameOver] = useState<{
+    winner: 'left' | 'right';
+    winnerUserId: number | null;
+    scores: Scores;
+  } | null>(null);
   const wsRef = useRef<WebSocket | null>(null); // Use ref instead of state
   const { tournamentId } = useParams<{ tournamentId?: string }>();
   const navigate = useNavigate();
@@ -115,35 +126,31 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     setIsLoading(true);
     console.log('Fetching sessions from backend...');
     // Build request body conditionally
-    const requestBody = {
+    const requestBody: Record<string, unknown> = {
       gameMode: gameMode,
-      ...(tournamentId ? { tournamentId } : {}),
     };
 
-    // const res = await fetch('/api/game/create-session', {
-    //   method: 'POST',
-    //   credentials: 'include',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(requestBody),
-    // });
+    // For tournament mode, pass the numeric tournamentId
+    if (tournamentId) {
+      requestBody.tournamentId = Number(tournamentId);
+    }
     interface CreateSessionResponse {
       status: 'success' | 'failure';
       message: string;
       sessionId?: string;
       wsUrl?: string;
     }
-    const res = await api.post<CreateSessionResponse>('/game/create-session', requestBody);
-
-    // const data = await res.json();
-    const data = res.data;
-    // if (res.ok && data.sessionId) {
-    if (data.sessionId) {
-      console.log(
-        `Success ${tournamentId ? 'tournament' : 'local'} session created with ID: ${data.sessionId}`,
-      );
-      setSessionId(data.sessionId);
+    try {
+      const res = await api.post<CreateSessionResponse>('/game/create-session', requestBody);
+      const data = res.data;
+      if (data.status === 'success' && data.sessionId) {
+        console.log('Session created:', data.sessionId);
+        setSessionId(data.sessionId);
+      } else {
+        console.error('Session creation failed:', data.message);
+      }
+    } catch (err) {
+      console.error('Error creating session:', err);
     }
     setIsLoading(false);
   };
@@ -161,24 +168,31 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const onExitGame = async () => {
     if (!currentSessionId) {
       console.log('no Session');
+      navigate('/home');
       return;
     }
-    const res = await fetch(`/api/game/del/${currentSessionId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    });
-    console.log('EXIIIT');
-    const data = await res.json();
-    if (res.ok && data.message) {
-      console.log(data.message);
-      navigate('/home');
+    try {
+      const res = await fetch(`/api/game/del/${currentSessionId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      const data = await res.json();
+      if (res.ok && data.message) {
+        console.log(data.message);
+      }
+    } catch (err) {
+      console.error('Error deleting session:', err);
     }
+    setGameOver(null);
+    setSessionId(null);
+    closeWebSocket();
+    navigate('/home');
   };
 
   useEffect(() => {
-    if (gameMode !== 'remote' && !currentSessionId) {
+    if ((gameMode === 'local' || gameMode === 'tournament') && !currentSessionId) {
       createLocalSession();
-      console.log('Auto-creating local session...');
+      console.log(`Auto-creating ${gameMode} session...`);
     }
   }, [gameMode, currentSessionId]); // Only run when gameMode changes (on mount)
 
@@ -187,17 +201,30 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     const connectWebSocket = async () => {
       try {
         const ws = await openWebSocket(currentSessionId, (message: ServerMessage) => {
-          // Update game state for regular state frames
           if (message.type === 'state' && message.data) {
             updateGameState(message.data);
+          } else if (message.type === 'gameOver') {
+            // Update final game state
+            if (message.data) {
+              updateGameState(message.data);
+            }
+            // Store game over data
+            if (message.gameOverData) {
+              setGameOver({
+                winner: message.gameOverData.winner,
+                winnerUserId: message.gameOverData.winnerUserId,
+                scores: message.gameOverData.scores,
+              });
+            } else if (message.data) {
+              // Fallback if gameOverData is missing
+              const scores = message.data.scores;
+              setGameOver({
+                winner: scores.left > scores.right ? 'left' : 'right',
+                winnerUserId: null,
+                scores,
+              });
+            }
           }
-
-          // Some servers send a final 'gameOver' message with the last state — handle it too
-          if (message.type === 'gameOver' && message.data) {
-            updateGameState(message.data);
-            console.log('Received gameOver, applied final state', message.data.scores);
-          }
-
           // Server assigns player A/B on connect
           if (message.type === 'connected' && message.message) {
             const msg = message.message.toLowerCase();
@@ -237,6 +264,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
         baseFrequency={0.28}
         colorStart={colors.start}
         colorEnd={colors.end}
+        animated={false}
       >
         <NavBar />
         <div className="flex flex-row flex-1 overflow-hidden">

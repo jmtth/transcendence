@@ -43,27 +43,7 @@ export const useKeyboardControls = ({
             );
             break;
         }
-      } else if (gameMode === 'ai') {
-        // ai: W/S and ArrowUp/Down all control left paddle (right belongs to AI)
-        switch (event.key) {
-          case 'w':
-          case 'W':
-          case 'ArrowUp':
-            event.preventDefault();
-            if (event.repeat) break;
-            wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'up' }));
-            break;
-          case 's':
-          case 'S':
-          case 'ArrowDown':
-            event.preventDefault();
-            if (event.repeat) break;
-            wsRef.current.send(
-              JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'down' }),
-            );
-            break;
-        }
-      } else if (gameMode === 'remote') {
+      } else if (gameMode === 'remote' || gameMode === 'tournament') {
         // Remote: only send commands for the paddle assigned to this client
         // Player A -> left paddle (W/S), Player B -> right paddle (ArrowUp/Down)
         if (!playerRole) return;
@@ -96,6 +76,26 @@ export const useKeyboardControls = ({
               break;
           }
         }
+      } else if (gameMode === 'ai') {
+        // ai: W/S and ArrowUp/Down all control left paddle (right belongs to AI)
+        switch (event.key) {
+          case 'w':
+          case 'W':
+          case 'ArrowUp':
+            event.preventDefault();
+            if (event.repeat) break;
+            wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'up' }));
+            break;
+          case 's':
+          case 'S':
+          case 'ArrowDown':
+            event.preventDefault();
+            if (event.repeat) break;
+            wsRef.current.send(
+              JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'down' }),
+            );
+            break;
+        }
       }
     };
 
@@ -112,27 +112,18 @@ export const useKeyboardControls = ({
             }),
           );
         }
+      } else if (gameMode === 'remote' || gameMode === 'tournament') {
+        const keys = ['w', 'W', 's', 'S', 'ArrowUp', 'ArrowDown'];
+        if (keys.includes(event.key)) {
+          wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'stop' }));
+          wsRef.current.send(
+            JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'stop' }),
+          );
+        }
       } else if (gameMode === 'ai') {
         const keys = ['w', 'W', 's', 'S', 'ArrowUp', 'ArrowDown'];
         if (keys.includes(event.key)) {
           wsRef.current.send(JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'stop' }));
-        }
-      } else if (gameMode === 'remote') {
-        if (!playerRole) return;
-        if (playerRole === 'A') {
-          const keys = ['w', 'W', 's', 'S'];
-          if (keys.includes(event.key)) {
-            wsRef.current.send(
-              JSON.stringify({ type: 'paddle', paddle: 'left', direction: 'stop' }),
-            );
-          }
-        } else if (playerRole === 'B') {
-          const keys = ['ArrowUp', 'ArrowDown'];
-          if (keys.includes(event.key)) {
-            wsRef.current.send(
-              JSON.stringify({ type: 'paddle', paddle: 'right', direction: 'stop' }),
-            );
-          }
         }
       }
     };

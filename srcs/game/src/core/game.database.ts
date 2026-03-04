@@ -32,6 +32,7 @@ try {
 export const db = new Database(DB_PATH);
 db.pragma('foreign_keys = ON');
 console.log('Using SQLite file:', DB_PATH);
+console.log('Database file exists:', fs.existsSync(DB_PATH));
 
 // Create table
 try {
@@ -553,5 +554,222 @@ export function getMatchHistory() {
     return getMatchHistoryStmt.all();
   } catch (err: unknown) {
     throw new AppError(ERR_DEFS.DB_SELECT_ERROR, { details: [{ field: 'getMatchHistory' }] }, err);
+  }
+}
+
+// ============================================================================
+// GUEST USER (for local games — userId = 2)
+// ============================================================================
+
+export const GUEST_USER_ID = 2;
+
+const ensureGuestPlayerStmt = db.prepare(`
+INSERT OR IGNORE INTO player (id, username, avatar, updated_at)
+VALUES (?, 'Guest', NULL, ?)
+`);
+
+/**
+ * Ensure the guest player (id=2) exists in the player table.
+ * Called before persisting local matches.
+ */
+export function ensureGuestPlayer(): void {
+  try {
+    ensureGuestPlayerStmt.run(GUEST_USER_ID, Date.now());
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_INSERT_ERROR,
+      { details: [{ field: 'ensureGuestPlayer' }] },
+      err,
+    );
+  }
+}
+
+// ============================================================================
+// FREE / LOCAL MATCH PERSISTENCE
+// ============================================================================
+
+const createFreeMatchStmt = db.prepare(`
+INSERT INTO match (tournament_id, player1, player2, sessionId, score_player1, score_player2, winner_id, round, created_at)
+VALUES (NULL, ?, ?, ?, ?, ?, ?, NULL, ?)
+`);
+
+/**
+ * Persist a free (non-tournament) or local match into the DB.
+ * @returns The inserted match ID.
+ */
+export function createFreeMatch(
+  player1: number,
+  player2: number,
+  sessionId: string,
+  scorePlayer1: number,
+  scorePlayer2: number,
+  winnerId: number,
+): number {
+  try {
+    const result = createFreeMatchStmt.run(
+      player1,
+      player2,
+      sessionId,
+      scorePlayer1,
+      scorePlayer2,
+      winnerId,
+      Date.now(),
+    );
+    return Number(result.lastInsertRowid);
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_INSERT_ERROR,
+      { details: [{ field: `createFreeMatch session=${sessionId}` }] },
+      err,
+    );
+  }
+}
+
+// ============================================================================
+// SESSION → MATCH LOOKUP (used at game finish to persist results)
+// ============================================================================
+
+const getMatchBySessionIdStmt = db.prepare(`
+SELECT id, tournament_id, player1, player2, round, winner_id
+FROM match
+WHERE sessionId = ?
+`);
+
+/**
+ * Get match row from DB given the in-memory sessionId.
+ * Returns null if this sessionId doesn't correspond to a DB match (free game).
+ */
+export function getMatchBySessionId(sessionId: string): {
+  id: number;
+  tournament_id: number | null;
+  player1: number;
+  player2: number;
+  round: string | null;
+  winner_id: number | null;
+} | null {
+  try {
+    const row = getMatchBySessionIdStmt.get(sessionId) as any;
+    return row || null;
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: `getMatchBySessionId ${sessionId}` }] },
+      err,
+    );
+  }
+}
+
+// ============================================================================
+// TOURNAMENT COMPLETION CHECK
+// ============================================================================
+
+const countUnfinishedMatchesStmt = db.prepare(`
+SELECT COUNT(*) AS count
+FROM match
+WHERE tournament_id = ?
+  AND winner_id IS NULL
+`);
+
+/**
+ * Returns true if ALL matches in a tournament have a winner (semis + final + little final).
+ */
+export function isTournamentComplete(tournamentId: number): boolean {
+  try {
+    const result = countUnfinishedMatchesStmt.get(tournamentId) as { count: number };
+    return result.count === 0;
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: `isTournamentComplete ${tournamentId}` }] },
+      err,
+    );
+  }
+}
+
+/**
+ * Mark tournament as FINISHED and set final_position for all players.
+ * Positions: 1st (FINAL winner), 2nd (FINAL loser), 3rd (LITTLE_FINAL winner), 4th (LITTLE_FINAL loser).
+ */
+export function setTournamentFinished(tournamentId: number): void {
+  try {
+    db.transaction(() => {
+      changeStatusTournamentStmt.run('FINISHED', tournamentId);
+
+      const finalMatch = getMatchByRound.get(tournamentId, 'FINAL');
+      const littleFinalMatch = getMatchByRound.get(tournamentId, 'LITTLE_FINAL');
+
+      if (finalMatch && finalMatch.winner_id != null) {
+        const finalLoser =
+          finalMatch.player1 === finalMatch.winner_id ? finalMatch.player2 : finalMatch.player1;
+        addPlayerPositionTournamentStmt.run(1, tournamentId, finalMatch.winner_id);
+        addPlayerPositionTournamentStmt.run(2, tournamentId, finalLoser);
+      }
+      if (littleFinalMatch && littleFinalMatch.winner_id != null) {
+        const littleFinalLoser =
+          littleFinalMatch.player1 === littleFinalMatch.winner_id
+            ? littleFinalMatch.player2
+            : littleFinalMatch.player1;
+        addPlayerPositionTournamentStmt.run(3, tournamentId, littleFinalMatch.winner_id);
+        addPlayerPositionTournamentStmt.run(4, tournamentId, littleFinalLoser);
+      }
+    })();
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_UPDATE_ERROR,
+      { details: [{ field: `setTournamentFinished ${tournamentId}` }] },
+      err,
+    );
+  }
+}
+
+// ============================================================================
+// BLOCKCHAIN PAYLOAD BUILDER
+// ============================================================================
+
+const getTournamentPlayersForBlockchainStmt = db.prepare(`
+SELECT tp.player_id, tp.final_position
+FROM tournament_player tp
+WHERE tp.tournament_id = ?
+ORDER BY tp.final_position ASC
+`);
+
+/**
+ * Build the payload expected by the blockchain consumer (BlockTournamentInput).
+ * player1 = 1st place, player2 = 2nd, player3 = 3rd, player4 = 4th.
+ * Returns null if positions are not yet assigned.
+ */
+export function getTournamentResultForBlockchain(
+  tournamentId: number,
+): { tour_id: number; player1: number; player2: number; player3: number; player4: number } | null {
+  try {
+    const rows = getTournamentPlayersForBlockchainStmt.all(tournamentId) as Array<{
+      player_id: number;
+      final_position: number | null;
+    }>;
+
+    const byPosition: Record<number, number> = {};
+    for (const row of rows) {
+      if (row.final_position != null) {
+        byPosition[row.final_position] = row.player_id;
+      }
+    }
+
+    if (!byPosition[1] || !byPosition[2] || !byPosition[3] || !byPosition[4]) {
+      return null; // Positions not fully assigned yet
+    }
+
+    return {
+      tour_id: tournamentId,
+      player1: byPosition[1],
+      player2: byPosition[2],
+      player3: byPosition[3],
+      player4: byPosition[4],
+    };
+  } catch (err: unknown) {
+    throw new AppError(
+      ERR_DEFS.DB_SELECT_ERROR,
+      { details: [{ field: `getTournamentResultForBlockchain ${tournamentId}` }] },
+      err,
+    );
   }
 }

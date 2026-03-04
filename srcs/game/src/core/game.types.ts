@@ -5,6 +5,7 @@ export interface GameSettings {
   ballMass: number;
   paddleSpeed: number;
   microWaveSize: number;
+  maxScore: number;
 }
 
 export interface ClientMessage {
@@ -13,10 +14,18 @@ export interface ClientMessage {
   direction?: 'up' | 'down' | 'stop';
 }
 
+export interface GameOverData {
+  scores: Scores;
+  winner: 'left' | 'right';
+  winnerUserId: number | null;
+  status: GameStatus;
+}
+
 export interface ServerMessage {
   type: 'connected' | 'state' | 'gameOver' | 'error' | 'pong';
   sessionId?: string;
   data?: GameState;
+  gameOverData?: GameOverData;
   message?: string;
 }
 
