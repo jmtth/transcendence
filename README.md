@@ -259,71 +259,66 @@ users (id) ──────────────────→   UserProfi
 ```mermaid
 erDiagram
 
-    %% ── USERS SERVICE (Prisma / SQLite) ──────────────────────────
+    %% ── AUTH SERVICE (SQLite) ──────────────────────────
+    users {
+        INTEGER id PK
+        TEXT    username "UNIQUE"
+        TEXT    email    "UNIQUE"
+        TEXT    password
+        TEXT    role     "default: user"
+        INTEGER is_2fa_enabled "0|1"
+        TEXT    totp_secret
+        TEXT    google_id    "UNIQUE"
+        TEXT    school42_id  "UNIQUE"
+        TEXT    oauth_email
+        TEXT    avatar_url
+        DATETIME created_at
+    }
+
+    login_tokens {
+        TEXT     token      PK
+        INTEGER  user_id    FK
+        DATETIME expires_at
+    }
+
+    login_token_attempts {
+        TEXT    token    PK
+        INTEGER attempts "default: 0"
+    }
+
+    totp_setup_secrets {
+        TEXT     token      PK
+        INTEGER  user_id    FK
+        TEXT     secret
+        DATETIME expires_at
+    }
+
+    %% ── USERS SERVICE (Prisma/SQLite) ──────────────────
     UserProfile {
-        int      id        PK
-        int      authId    UK
-        datetime createdAt
-        string   email     "nullable, unique"
-        string   username  UK
-        string   avatarUrl "nullable"
+        Int      id        PK
+        Int      authId    "UNIQUE – links to auth.users.id"
+        DateTime createdAt
+        String   email     "UNIQUE, nullable"
+        String   username  "UNIQUE"
+        String   avatarUrl "nullable"
     }
 
     Friendship {
-        int      id                PK
-        datetime createdAt
-        string   nicknameRequester "nullable"
-        string   nicknameReceiver  "nullable"
-        string   status
-        int      requesterId       FK
-        int      receiverId        FK
+        Int      id                PK
+        DateTime createdAt
+        String   nicknameRequester "nullable"
+        String   nicknameReceiver  "nullable"
+        String   status            "pending|accepted|blocked"
+        Int      requesterId       FK
+        Int      receiverId        FK
     }
 
-    UserProfile ||--o{ Friendship : "requests (requester)"
-    UserProfile ||--o{ Friendship : "receives (receiver)"
-
-    %% ── GAME SERVICE (better-sqlite3 / SQLite) ───────────────────
-    player {
-        int     id         PK
-        string  username
-        string  avatar     "nullable"
-        int     updated_at
-    }
-
-    tournament {
-        int     id         PK
-        int     creator_id FK
-        string  status     "PENDING|STARTED|FINISHED"
-        int     created_at
-    }
-
-    tournament_player {
-        int     tournament_id  FK
-        int     player_id      FK
-        int     final_position "nullable: 1-4"
-        int     slot           "1-4"
-    }
-
-    match {
-        int     id             PK
-        int     tournament_id  FK "nullable"
-        int     player1        FK
-        int     player2        FK
-        string  sessionId      "nullable"
-        int     score_player1
-        int     score_player2
-        int     winner_id      FK "nullable"
-        string  round          "nullable: SEMI_1|SEMI_2|LITTLE_FINAL|FINAL"
-        int     created_at
-    }
-
-    player ||--o{ tournament        : "creates"
-    player ||--o{ tournament_player : "joins"
-    tournament ||--o{ tournament_player : "has"
-    tournament ||--o{ match         : "contains"
-    player ||--o{ match             : "plays as player1"
-    player ||--o{ match             : "plays as player2"
-    player ||--o{ match             : "wins"
+    %% ── RELATIONSHIPS ───────────────────────────────────
+    users           ||--o{ login_tokens         : "has"
+    users           ||--o{ totp_setup_secrets   : "has"
+    login_tokens    ||--|| login_token_attempts  : "tracks"
+    UserProfile     ||--o{ Friendship            : "requests (requester)"
+    UserProfile     ||--o{ Friendship            : "receives (receiver)"
 ```
 
 Auth Service — users table
