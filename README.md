@@ -24,25 +24,27 @@ srcs/
 
 ## Instructions
 
+### Quick Start
+
 ```bash
 # 1. Clone the repository
+
 git clone https://github.com/codastream/transcendence.git
 cd transcendence
 
 # 2. Set up environment variables
-cp srcs/.env.example            srcs/.env
-cp srcs/.env.auth.example       srcs/.env.auth
-cp srcs/.env.gateway.example    srcs/.env.gateway
-cp srcs/.env.blockchain.example srcs/.env.blockchain
-cp srcs/.env.um.example         srcs/.env.um
+
+make envs
+
 # → Fill in your 42 OAuth2 credentials in srcs/.env.auth
 
 # 3. Build and launch all services
+
 make
 
 # 4. Stop all services
-make down
 
+make down
 
 # 5. Build AI opponent service separately (optional)
 
@@ -54,6 +56,80 @@ make test
 ```
 
 The app will be available at: **https://localhost:4430**
+
+### Setup Details
+
+The `make` command orchestrates the full setup: volume creation, certificate generation, dependency installation, Docker build, and service startup. Below is what happens at each step.
+
+#### 1. Environment Variables (`make envs`)
+
+Copies all `.env.*.example` files in `srcs/` to their corresponding `.env.*` files and auto-generates a shared `JWT_SECRET` across all of them.
+
+| File                   | Purpose                                                     | Action required                                                   |
+| ---------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------- |
+| `srcs/.env`            | Global config (service names, ports, volume name)           | Usually no change needed                                          |
+| `srcs/.env.auth`       | Auth service (DB path, admin credentials, Redis)            | Change `ADMIN_PASSWORD` in production                             |
+| `srcs/.env.oauth`      | OAuth2 secrets (Google & 42 School)                         | **Fill in your client IDs and secrets**                           |
+| `srcs/.env.nginx`      | Frontend OAuth public client IDs (Vite build vars)          | **Fill in `VITE_GOOGLE_CLIENT_ID` and `VITE_SCHOOL42_CLIENT_ID`** |
+| `srcs/.env.gateway`    | API gateway (rate limits, proxy timeout)                    | Usually no change needed                                          |
+| `srcs/.env.um`         | User service (DB path)                                      | Usually no change needed                                          |
+| `srcs/.env.game`       | Game service (DB path)                                      | Usually no change needed                                          |
+| `srcs/.env.blockchain` | Blockchain service (RPC URL, contract address, private key) | **Fill in Avalanche credentials if using blockchain**             |
+
+> **OAuth2 callback URIs** to register with providers:
+>
+> - Google: `https://localhost:4430/auth/oauth/google/callback`
+> - 42 School: `https://localhost:4430/auth/oauth/school42/callback`
+
+#### 2. Data Volumes (`make volumes`)
+
+Creates the local directories that are bind-mounted into containers:
+
+```
+data/
+├── database/   # SQLite databases (auth.db, um.db, game.db, blockchain.db)
+└── uploads/    # User-uploaded files (avatars)
+```
+
+The path defaults to `./data` and can be overridden via `VOLUME_NAME` in `srcs/.env`. These directories are mapped as Docker named volumes in `docker-compose.yml`:
+
+- **`data`** → `data/database/` — mounted at `/data` (auth, game, blockchain) and `/app/data` (users)
+- **`uploads`** → `data/uploads/` — mounted at `/app/uploads` (user-service) and `/usr/share/nginx/html/uploads` (nginx, to serve avatars statically)
+
+> ⚠ `make fclean` deletes these directories entirely. `make volumes` recreates them.
+
+#### 3. mTLS Certificates (`make certs`)
+
+Generates a full internal PKI under `make/scripts/certs/certs/`:
+
+```
+make/scripts/certs/certs/
+├── ca/                     # Internal Certificate Authority
+│   ├── ca.key              # CA private key (RSA 4096)
+│   └── ca.crt              # CA certificate (valid 10 years)
+├── services/               # Per-service client/server certs (RSA 2048, valid 825 days)
+│   ├── user-service/
+│   ├── auth-service/
+│   ├── blockchain-service/
+│   ├── game-service/
+│   └── api-gateway/
+└── nginx/                  # Nginx reverse proxy cert (also serves HTTPS to browser)
+    ├── nginx.key
+    └── nginx.crt
+```
+
+Each service gets a certificate with a SAN matching its Docker service name, enabling **mutual TLS** between all backend services. The CA cert is mounted as read-only into every container at `/etc/ca/`.
+
+Certificates are generated once and reused. To regenerate: `rm -rf make/scripts/certs/certs && make certs`.
+
+#### 4. Build & Run
+
+```bash
+make          # Full pipeline: volumes → certs → npm install → docker build → up -d
+make dev      # Development mode (with hot-reload via dev-docker-compose.yml)
+make re       # Full clean rebuild (fclean + all)
+make ai       # Build only the AI opponent service (for local development/testing)
+```
 
 ## Ressources
 
@@ -78,7 +154,7 @@ The app will be available at: **https://localhost:4430**
 | [TypeScript](https://www.typescriptlang.org/docs/)   | [Wiki](https://github.com/codastream/transcendence/wiki/TypeScript)   | -                                    |                         | 👷     |
 | [Zod](https://zod.dev/)                              | [Wiki](https://github.com/codastream/transcendence/wiki/Zod)          | -                                    |                         | 👷     |
 
-How AI was used: we asked for explanation on how different libraries and tools work. We also used AI for debugging purposes and in case of blocking on a certain problem.
+How AI was used: we asked for explanation on how different libraries and tools work. We also used AI for debugging purposes and in case of blocking on a certain problem. We also used Copilot for pull request reviews.
 
 ---
 
@@ -110,6 +186,7 @@ We used GitHub Issues to track tasks and features. We held regular meetings to d
 ◦ Tools used for project management:
 
 - GitHub Issues
+- Github Actions for CI/CD with tests and linting for every PR
 
 ◦ Communication channels used:
 
@@ -226,6 +303,48 @@ Redis Keys
 | online:{userId} | String     | Online status with TTL expiry  |
 | session:{token} | String     | JWT payload for session lookup |
 
+erDiagram
+
+    TOURNAMENT {
+        INTEGER id PK
+        INTEGER creator_id
+        TEXT status
+        INTEGER created_at
+    }
+
+    MATCH {
+        INTEGER id PK
+        INTEGER tournament_id
+        TEXT  sessionId
+        INTEGER player1
+        INTEGER player2
+        INTEGER score_player1
+        INTEGER score_player2
+        INTEGER winner_id
+        TEXT round
+        INTEGER created_at
+    }
+
+    TOURNAMENT_PLAYER {
+        INTEGER tournament_id PK
+        INTEGER player_id PK
+        INTEGER final_position
+    }
+
+    PLAYER {
+        INTEGER id PK
+        TEXT username
+        TEXT avatar
+        INTEGER updated_at
+    }
+
+
+    TOURNAMENT ||--o{ MATCH : contains
+    TOURNAMENT ||--o{ TOURNAMENT_PLAYER : has_players
+    TOURNAMENT }o--|| PLAYER : is
+    MATCH }o--|| PLAYER : is
+    TOURNAMENT_PLAYER }o--|| PLAYER : is
+
 ## Features List
 
 ### Authentication — `@rcaillie`
@@ -308,41 +427,50 @@ Redis Keys
 | mTLS            | Client certificate required between services                            |
 | Token cleanup   | Automatic expiration of tokens and TOTP secrets                         |
 
+### Blockchain - `@jhervoch`
+
+| Feature                | Description                                                  |
+| ---------------------- | ------------------------------------------------------------ |
+| Message Broker (Redis) | Listening and consuming tournament results from game service |
+| Smart contract         | Storing tournament results on-chain                          |
+| Dapp                   | Viewing tournament results                                   |
+
+```
+
 ## Modules:
 
-> **Total: 24 pts** (minimum required: 14 pts)
+> **Total: 32 pts** (minimum required: 14 pts)
 
-| #   | Category        | Module                                           | Type  | Points |
-| --- | --------------- | ------------------------------------------------ | ----- | ------ |
-| 1   | Web             | Backend framework (Fastify)                      | Minor | 1      |
-| 2   | Web             | Frontend framework (React)                       | Minor | 1      |
-| 3   | Web             | Real-time features (WebSockets)                  | Major | 2      |
-| 4   | Web             | Use a framework for both frontend and backend    | Major | 2      |
-| 5   | User Management | Standard user management & authentication        | Major | 2      |
-| 6   | User Management | Game statistics & match history                  | Minor | 1      |
-| 7   | User Management | Remote authentication (OAuth 2.0 — Google & 42)  | Minor | 1      |
-| 8   | User Management | Advanced permissions system (admin / moderator)  | Major | 2      |
-| 9   | User Management | Two-Factor Authentication (TOTP / 2FA)           | Minor | 1      |
-| 10  | AI              | AI Opponent (PPO reinforcement learning)         | Major | 2      |
-| 11  | Gaming & UX     | Complete web-based game (Pong)                   | Major | 2      |
-| 12  | Gaming & UX     | Remote players (real-time multiplayer)           | Major | 2      |
-| 13  | Gaming & UX     | Tournament system                                | Minor | 1      |
-| 14  | DevOps          | Backend as microservices                         | Major | 2      |
-| 15  | Blockchain      | Store tournament scores on Blockchain (Solidity) | Major | 2      |
-|     |                 |                                                  |       |        |
-|     |                 | **Major modules × 9**                            |       | **18** |
-|     |                 | **Minor modules × 6**                            |       | **6**  |
-|     |                 | **TOTAL**                                        |       | **24** |
-
-◦ List of all chosen modules (Major and Minor).
-◦ Point calculation (Major = 2pts, Minor = 1pt).
-◦ Justification for each module choice, especially for custom "Modules of
-choice".
-◦ How each module was implemented.
-◦ Which team member(s) worked on each module.
+| #   | Category        | Module                                                              | Type  | Points |
+| --- | --------------- | ------------------------------------------------------------------- | ----- | ------ |
+| 1   | Web             | Real-time features (WebSockets)                                     | Major | 2      |
+| 2   | Web             | Use a framework for both frontend and backend                       | Major | 2      |
+| 3   | User Management | Standard user management & authentication                           | Major | 2      |
+| 4   | User Management | Game statistics & match history (TBD)                               | Minor | 1      |
+| 5   | User Management | Remote authentication (OAuth 2.0 — Google & 42)                     | Minor | 1      |
+| 6   | User Management | Advanced permissions system (admin / moderator)                     | Major | 2      |
+| 7   | User Management | Two-Factor Authentication (TOTP / 2FA)                              | Minor | 1      |
+| 8   | AI              | AI Opponent (PPO reinforcement learning)                            | Major | 2      |
+| 9   | Gaming & UX     | Complete web-based game (Pong)                                      | Major | 2      |
+| 10  | Gaming & UX     | Remote players (real-time multiplayer)                              | Major | 2      |
+| 11  | Gaming & UX     | Tournament system                                                   | Minor | 1      |
+| 12  | DevOps          | Backend as microservices                                            | Major | 2      |
+| 13  | Blockchain      | Store tournament scores on Blockchain (Solidity)                    | Major | 2      |
+| 14  | Database        | ORM (Prisma)                                                        | Minor | 1      |
+| 15  | Accessibility   | Internationalization (i18n) — support for multiple languages        | Minor | 1      |
+| 16  | Database        | A public API to interact with the database                          | Major | 2      |
+| 17  | Web             | Custom-made design system with reusable components                  | Minor | 1      |
+| 18  | Web             | Advanced search with filters, sorting, and pagination               | Minor | 1      |
+| 19  | Accessibility   | Support for additional browsers (TBD)                               | Minor | 1      |
+| 20  | Security        | GDPR compliance features (TBD)                                      | Minor | 1      |
+|     |                 |                                                                     |       |        |
+|     |                 | **Major modules × 10**                                              |       | **20** |
+|     |                 | **Minor modules × 12**                                              |       | **12** |
+|     |                 | **TOTAL**                                                           |       | **32** |
 
 ## Individual Contributions:
 
 ◦ Detailed breakdown of what each team member contributed.
 ◦ Specific features, modules, or components implemented by each person.
 ◦ Any challenges faced and how they were overcome.
+```
