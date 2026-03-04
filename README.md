@@ -194,7 +194,7 @@ We used GitHub Issues to track tasks and features. We held regular meetings to d
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 | Layer            | Technology                                    |
 | ---------------- | --------------------------------------------- |
@@ -468,7 +468,6 @@ erDiagram
 | 18  | Web             | Advanced search with filters, sorting, and pagination        | Minor | 1      |
 | 19  | Accessibility   | Support for additional browsers (TBD)                        | Minor | 1      |
 | 20  | Security        | GDPR compliance features (TBD)                               | Minor | 1      |
-|     |                 |                                                              |       |        |
 |     |                 | **Major modules × 10**                                       |       | **20** |
 |     |                 | **Minor modules × 12**                                       |       | **12** |
 |     |                 | **TOTAL**                                                    |       | **32** |
@@ -504,7 +503,3 @@ erDiagram
 ### npolack — Scrum Master
 
 - **Game Engine** (modules #1, #9, #10): Real-time Pong gameplay over WebSockets, game session management (create/list/delete), configurable game settings, player stats
-
-```
-
-```
