@@ -322,6 +322,8 @@
   "friends": {
     "friends": "Friends",
     "add": "add to friends",
+    "add_title": "Add a friend",
+    "list": "Existing friends",
     "remove": "remove from friends",
     "play": "play"
   },

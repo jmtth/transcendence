@@ -70,7 +70,7 @@ export const FriendsPage = () => {
   return (
     <Page className="flex flex-col" title={t('friends.friends')}>
       <div className="border-b border-b-gray-300 mb-4">
-        <h2 className=" font-quantico text-gray-500 mb-1">Add friend</h2>
+        <h2 className=" font-quantico text-gray-500 mb-1">{t('friends.add_title')}</h2>
       </div>
       <div className="mb-4 w-[100%]">
         <UserSearchContainer
@@ -81,7 +81,7 @@ export const FriendsPage = () => {
       </div>
       {errorMessage && <p className="text-red-500 mb-2">{errorMessage}</p>}
       <div className="border-b border-b-gray-300 mb-1">
-        <h2 className=" font-quantico text-gray-500 mb-1">Existing friends</h2>
+        <h2 className=" font-quantico text-gray-500 mb-1">{t('friends.list')}</h2>
       </div>
       <div className="flex flex-col gap-2">
         {isLoading && <p>Loading..</p>}

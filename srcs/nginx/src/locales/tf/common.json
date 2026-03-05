@@ -337,6 +337,8 @@
   "friends": {
     "friends": "Les potes",
     "add": "ajoute-le",
+    "add_title": "Cherche un pote",
+    "list": "Potes ajoutés",
     "remove": "vire-le",
     "play": "on s'amuse"
   },

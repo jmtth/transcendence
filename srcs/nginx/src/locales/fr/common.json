@@ -321,6 +321,8 @@
   "friends": {
     "friends": "Amis",
     "add": "ajouter aux amis",
+    "add_title": "Ajouter un ami",
+    "list": "Amis",
     "remove": "supprimer des amis",
     "play": "jouer"
   },
