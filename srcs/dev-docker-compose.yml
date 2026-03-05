@@ -284,7 +284,10 @@ services:
       - uploads:/usr/share/nginx/html/uploads:ro
     networks:
       - app-network
-    command: sh -c "nginx -g 'daemon off;' & npm run dev"
+    command: >
+      sh -c "npm run dev &
+      until wget -q --spider http://127.0.0.1:5173; do sleep 1; done &&
+      nginx -g 'daemon off;'"
     restart: unless-stopped
     depends_on:
       api-gateway:
