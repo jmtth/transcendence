@@ -90,7 +90,7 @@ export async function initInviteUser(): Promise<void> {
     }
 
     // Créer l'utilisateur invité
-    const inviteId = authService.createUser({
+    const inviteId = await authService.createUser({
       username: authenv.INVITE_USERNAME,
       email: authenv.INVITE_EMAIL,
       password: authenv.INVITE_PASSWORD,
@@ -149,7 +149,7 @@ export async function initAIUser(): Promise<void> {
     }
 
     // Créer l'utilisateur AI
-    const aiId = authService.createUser({
+    const aiId = await authService.createUser({
       username: authenv.AI_USERNAME,
       email: authenv.AI_EMAIL,
       password: authenv.AI_PASSWORD,
