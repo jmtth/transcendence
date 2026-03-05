@@ -45,6 +45,7 @@ export const App = () => {
         {/* Routes protégées */}
         <Route element={<PrivateRoute />}>
           <Route path="/home" element={<HomePage />} />
+
           <Route path="/game/remote" element={<GamePage sessionId={null} gameMode="remote" />} />
           <Route path="/game/local" element={<GamePage sessionId={null} gameMode="local" />} />
           <Route path="/game/pong-ai" element={<GamePage sessionId={null} gameMode="ai" />} />
@@ -52,6 +53,7 @@ export const App = () => {
             path="/game/tournament/:tournamentId"
             element={<GamePage sessionId={null} gameMode="tournament" />}
           />
+
           <Route path="/me" element={<MyProfilePage />} />
           <Route path="/friends" element={<FriendsPage />} />
           <Route path="/profile/:username" element={<ProfilePage />} />

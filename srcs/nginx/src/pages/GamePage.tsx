@@ -43,6 +43,12 @@ interface ServerMessage {
   type: 'connected' | 'state' | 'gameOver' | 'error' | 'pong';
   sessionId?: string;
   data?: GameState;
+  gameOverData?: {
+    scores: Scores;
+    winner: 'left' | 'right';
+    winnerUserId: number | null;
+    status: GameStatus;
+  };
   message?: string;
 }
 
@@ -55,12 +61,13 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const { t } = useTranslation('common');
   const { openWebSocket, closeWebSocket } = useGameWebSocket();
   const { gameStateRef, updateGameState } = useGameState();
+  const [scores, setScores] = useState<Scores>({ left: 0, right: 0 });
+  const [playerRole, setPlayerRole] = useState<'A' | 'B' | null>(null);
   const [currentSessionId, setSessionId] = useState<string | null>(sessionId);
   const [isLoading, setIsLoading] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [winner, setWinner] = useState<'left' | 'right' | null>(null);
-  const [scores, setScores] = useState({ left: 0, right: 0 });
   const wsRef = useRef<WebSocket | null>(null);
   const phaseRef = useRef<'idle' | 'playing' | 'gameOver'>('idle');
   const scoresRef = useRef({ left: 0, right: 0 });
@@ -79,6 +86,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   useKeyboardControls({
     wsRef,
     gameMode,
+    playerRole,
     enabled: !!currentSessionId && !isGameOver,
   });
 
@@ -106,7 +114,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
       }
       const requestBody = {
         gameMode,
-        ...(tournamentId ? { tournamentId } : {}),
+        ...(tournamentId ? { tournamentId: Number(tournamentId) } : {}),
       };
       const res = await api.post<CreateSessionResponse>('/game/create-session', requestBody);
       if (res.data.sessionId) {
@@ -117,11 +125,15 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     setIsLoading(false);
   }, [closeWebSocket, gameMode, tournamentId]);
 
-  // Auto-create session on mount for local/ai modes
+  // Auto-create session on mount for local/ai/tournament modes
   useEffect(() => {
-    if ((gameMode === 'local' || gameMode === 'ai') && !currentSessionId) {
+    if (
+      (gameMode === 'local' || gameMode === 'ai' || gameMode === 'tournament') &&
+      !currentSessionId
+    ) {
       createSession();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Controls ──────────────────────────────────────────────────────
@@ -136,7 +148,10 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   };
 
   const onExitGame = async () => {
-    if (!currentSessionId) return;
+    if (!currentSessionId) {
+      navigate('/home');
+      return;
+    }
     await fetch(`/api/game/del/${currentSessionId}`, {
       method: 'DELETE',
       credentials: 'include',
@@ -152,8 +167,14 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     const connect = async () => {
       const ws = await openWebSocket(currentSessionId, (message: ServerMessage) => {
         if (cancelled) return;
+        if (message.type === 'connected' && message.message) {
+          const msg = message.message.toLowerCase();
+          if (msg.includes('player b')) setPlayerRole('B');
+          else setPlayerRole('A');
+        }
         if (message.type === 'state' && message.data) {
           phaseRef.current = 'playing';
+          setIsPlaying(true);
           updateGameState(message.data);
           const s = message.data.scores;
           if (s.left !== scoresRef.current.left || s.right !== scoresRef.current.right) {
@@ -188,6 +209,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
       cancelled = true;
       closeWebSocket();
       wsRef.current = null;
+      setPlayerRole(null);
     };
   }, [currentSessionId]);
 
@@ -215,11 +237,12 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
         baseFrequency={0.28}
         colorStart={colors.start}
         colorEnd={colors.end}
+        animated={false}
       >
         <div className="w-full h-full flex flex-col justify-between items-stretch flex-1 overflow-hidden md:max-w-8xl md:mx-auto md:w-full">
           {/* Top bar: scores + controls */}
           <div className="w-full flex flex-col">
-            <div className=" w-full">
+            <div className="w-full">
               {gameMode === 'remote' ? (
                 <GameStatusBar sessionsData={sessions} onSelectSession={handleSelectSession} />
               ) : (
