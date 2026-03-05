@@ -481,18 +481,18 @@ erDiagram
 | 18  | Security         | GDPR compliance features (TBD)                               | Minor | 1      |
 | 19  | Accessibility    | Internationalization (i18n) — support for multiple languages | Minor | 1      |
 | 20  | Accessibility    | Support for additional browsers (TBD)                        | Minor | 1      |
-| 21  | Module of choice | LED panel                                                    | Minor | 1      |
+| 21  | Module of choice | LED panel for scores                                         | Minor | 1      |
 |     |                  | **Major modules × 10**                                       |       | **20** |
 |     |                  | **Minor modules × 12**                                       |       | **13** |
 |     |                  | **TOTAL**                                                    |       | **33** |
 
-Module of choice justification: We chose to implement a LED panel that displays the current online users and recent tournament winners. This adds a fun visual element to the app and allows us to experiment with real-time updates and external hardware integration.
+Module of choice justification: We chose to implement a LED panel for scores as a fun extra feature. It adds a nice visual element to the game and allows us to experiment with real-time updates and animations.
 
 ## Individual Contributions:
 
 ### lisambet — Product Owner
 
-- **AI Opponent** (module #8): PPO reinforcement learning agent for the Pong game
+- **AI Opponent**: PPO reinforcement learning agent for the Pong game
 - **Friends System**: Co-developed friendship features (requests, status updates, nicknames)
 - **Game**: Contributed to game session logic and real-time gameplay
 
@@ -501,7 +501,7 @@ Module of choice justification: We chose to implement a LED panel that displays 
 - **User Service**: Full implementation of user profiles (create, get, search, avatar upload, delete)
 - **Friends System**: Co-developed friendship management (requests, list, remove, block, nicknames)
 - **Admin Panel**: Role-based permissions system (admin: update/delete users, moderator: list users, force-disable 2FA)
-- **ORM** (module #14): Prisma integration for the Users service
+- **ORM**: Prisma integration for the Users service
 
 ### rcaillie — Developer
 
@@ -511,11 +511,11 @@ Module of choice justification: We chose to implement a LED panel that displays 
 
 ### jhervoch — Tech Lead
 
-- **Blockchain Service** (module #13): Redis message broker for tournament results, Solidity smart contract on Avalanche, Dapp for viewing results
-- **Tournament System** (module #11): Tournament creation, join, bracket management, match scheduling, statistics
+- **Blockchain Service**: Redis message broker for tournament results, Solidity smart contract on Avalanche, Dapp for viewing results
+- **Tournament System**: Tournament creation, join, bracket management, match scheduling, statistics
 - **Infrastructure**: Co-developed mTLS certificate system, online presence tracking
 - **Game**: Contributed to game service and match history
 
 ### npolack — Scrum Master
 
-- **Game Engine** (modules #1, #9, #10): Real-time Pong gameplay over WebSockets, game session management (create/list/delete), configurable game settings, player stats
+- **Game Engine**: Real-time Pong gameplay over WebSockets, game session management (create/list/delete), configurable game settings, player stats
