@@ -481,12 +481,12 @@ erDiagram
 | 18  | Security         | GDPR compliance features (TBD)                               | Minor | 1      |
 | 19  | Accessibility    | Internationalization (i18n) — support for multiple languages | Minor | 1      |
 | 20  | Accessibility    | Support for additional browsers (TBD)                        | Minor | 1      |
-| 21  | Module of choice | LED panel (IoT)                                              | Minor | 1      |
+| 21  | Module of choice | LED panel implementation (IoT)                               | Minor | 1      |
 |     |                  | **Major modules × 10**                                       |       | **20** |
 |     |                  | **Minor modules × 12**                                       |       | **13** |
 |     |                  | **TOTAL**                                                    |       | **33** |
 
-Module of choice justification: We chose to implement a LED panel for scores as a fun extra feature. It adds a nice visual element to the game and allows us to experiment with real-time updates and animations.
+Module of choice justification: We chose to implement a LED panel for scores as an extra feature. It adds a nice visual and interactive element to the game and allows us to experiment with real-time updates and animations.
 
 ## Individual Contributions:
 
