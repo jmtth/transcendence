@@ -434,7 +434,7 @@ erDiagram
 
 | Role          | Permissions                                  |
 | ------------- | -------------------------------------------- |
-| **Admin**     | Update any user, delete any user             |
+| **Admin**     | See, update, modify, delete any user         |
 | **Moderator** | List all users, force-disable any user's 2FA |
 
 ### Infrastructure — `@rcaillie` `@jhervoch`
