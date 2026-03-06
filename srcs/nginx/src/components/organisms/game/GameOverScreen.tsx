@@ -29,6 +29,10 @@ interface GameOverScreenProps {
   onPlayAgain: () => void;
   /** Si fourni (tournament uniquement), affiche "Match suivant" */
   onNextMatch?: () => void;
+  /** Action explicite "Voir les résultats" en mode tournoi */
+  onViewResults?: () => void;
+  /** Affiche un état intermédiaire pendant la résolution du prochain match */
+  isTournamentProgressLoading?: boolean;
   onExit: () => void;
 }
 
@@ -44,6 +48,8 @@ const GameOverScreen = ({
   isForfeit = false,
   onPlayAgain,
   onNextMatch,
+  onViewResults,
+  isTournamentProgressLoading = false,
   onExit,
 }: GameOverScreenProps) => {
   const { t } = useTranslation('common');
@@ -64,6 +70,14 @@ const GameOverScreen = ({
   // ── Bouton d'action selon le mode ──────────────────────────────────────────
   const renderActionButton = () => {
     if (gameMode === 'tournament') {
+      if (isTournamentProgressLoading) {
+        return (
+          <p className="text-gray-300 font-mono text-sm animate-pulse text-center">
+            {t('game.gameover.resolving_next_match', 'Analyse du prochain match...')}
+          </p>
+        );
+      }
+
       if (onNextMatch) {
         return (
           <Button id="next-match-btn" variant="primary" type="button" onClick={onNextMatch}>
@@ -71,6 +85,15 @@ const GameOverScreen = ({
           </Button>
         );
       }
+
+      if (onViewResults) {
+        return (
+          <Button id="results-btn" variant="secondary" type="button" onClick={onViewResults}>
+            {t('game.gameover.view_results', 'Voir les résultats')}
+          </Button>
+        );
+      }
+
       return (
         <Button id="results-btn" variant="secondary" type="button" onClick={onExit}>
           {t('game.gameover.view_results', 'Voir les résultats')}

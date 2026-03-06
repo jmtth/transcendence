@@ -12,16 +12,21 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useGameWebSocket } from '../hooks/GameWebSocket';
 import { useGameState } from '../hooks/GameState';
 import { useGameLobby } from '../hooks/useGameLobby';
 import { useGameSession } from '../hooks/useGameSession';
 import { useGameSessions } from '../hooks/GameSessions';
 import { useKeyboardControls } from '../hooks/input.tsx';
+import api from '../api/api-client';
 import Background from '../components/atoms/Background';
 import StartGameScreen from '../components/organisms/game/StartGameScreen';
 import GamePlayScreen from '../components/organisms/game/GamePlayScreen';
 import GameOverScreen from '../components/organisms/game/GameOverScreen';
+import TournamentResultsScreen, {
+  TournamentHistoryMatch,
+} from '../components/organisms/game/TournamentResultsScreen';
 import type {
   ServerMessage,
   Scores,
@@ -36,7 +41,24 @@ export type { BackgroundMode } from '../types/game.types';
 // ── Types ────────────────────────────────────────────
 
 /** Les 3 écrans du flux de jeu */
-type GameScreen = 'start' | 'playing' | 'gameover';
+type GameScreen = 'start' | 'playing' | 'gameover' | 'tournament_results';
+
+interface MatchToPlayResponse {
+  sessionId: string;
+  id: number;
+  round: string;
+  player1: number;
+  player2: number;
+}
+
+interface TournamentPlayerResponse {
+  player_id: number;
+  username: string;
+  avatar: string | null;
+  slot: 1 | 2 | 3 | 4;
+}
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 interface GamePageProps {
   /** Session pré-sélectionnée (mode tournament : fournie par TournamentPage) */
@@ -59,6 +81,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const location = useLocation();
+  const { tournamentId } = useParams<{ tournamentId?: string }>();
 
   // ── Hooks ──────────────────────────────────────────────────────────────────
   const {
@@ -89,6 +112,10 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const [readyCheckReceived, setReadyCheckReceived] = useState(false);
   const [readySent, setReadySent] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [nextMatchSessionId, setNextMatchSessionId] = useState<string | null>(null);
+  const [isResolvingTournamentNextMatch, setIsResolvingTournamentNextMatch] = useState(false);
+  const [tournamentResults, setTournamentResults] = useState<TournamentHistoryMatch[]>([]);
+  const [tournamentResultsError, setTournamentResultsError] = useState<string | null>(null);
 
   // ── Machine à états : écran courant ───────────────────────────────
   const [screen, setScreen] = useState<GameScreen>(gameMode === 'tournament' ? 'playing' : 'start');
@@ -125,6 +152,8 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     onBeforeCreate,
     autoCreate: gameMode === 'tournament',
   });
+
+  const isTournamentMode = gameMode === 'tournament';
 
   // ── Clavier ────────────────────────────────────────────────────────────────
   useKeyboardControls({
@@ -175,6 +204,9 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
           setScores(s);
           setWinner(w);
           setScreen('gameover');
+          if (gameMode === 'tournament') {
+            void resolveTournamentNextStep();
+          }
           break;
         }
         case 'error':
@@ -193,6 +225,8 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
       onGameStart,
       updateGameState,
       onLobbyGameOver,
+      gameMode,
+      resolveTournamentNextStep,
     ],
   );
 
@@ -306,6 +340,39 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     await exitSession();
   }, [exitSession]);
 
+  const handleNextTournamentMatch = useCallback(async () => {
+    if (!isTournamentMode) return;
+
+    setTournamentResultsError(null);
+    setNextMatchSessionId(null);
+
+    try {
+      await createSession('tournament');
+      setScreen('playing');
+    } catch {
+      await loadTournamentResults();
+      setScreen('tournament_results');
+    }
+  }, [createSession, isTournamentMode, loadTournamentResults]);
+
+  const handleShowTournamentResults = useCallback(async () => {
+    if (!isTournamentMode) {
+      await handleExit();
+      return;
+    }
+
+    if (tournamentResults.length === 0 && !tournamentResultsError) {
+      await loadTournamentResults();
+    }
+    setScreen('tournament_results');
+  }, [
+    isTournamentMode,
+    handleExit,
+    loadTournamentResults,
+    tournamentResults.length,
+    tournamentResultsError,
+  ]);
+
   // ── Dérivés pour les composants ────────────────────────────────────────────
   const isPlaying = lobby.phase === 'playing';
   const gameStatus: GameStatus =
@@ -328,8 +395,137 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
 
   const awaitingReady = readyCheckReceived && !readySent;
 
+  async function loadTournamentResults() {
+    if (!tournamentId) {
+      setTournamentResults([]);
+      setTournamentResultsError(
+        t('game.tournament_results.unavailable', 'Résultats indisponibles'),
+      );
+      return;
+    }
+
+    try {
+      setTournamentResultsError(null);
+
+      const [historyRes, playersRes] = await Promise.all([
+        api.get<TournamentHistoryMatch[]>('/game/history'),
+        api.get<TournamentPlayerResponse[]>(`/game/tournaments/${tournamentId}`),
+      ]);
+
+      const playersById = new Map<number, string>(
+        playersRes.data.map((player) => [player.player_id, player.username]),
+      );
+
+      const roundOrder: Record<string, number> = {
+        SEMI_1: 1,
+        SEMI_2: 2,
+        LITTLE_FINAL: 3,
+        FINAL: 4,
+      };
+
+      const results = historyRes.data
+        .filter((match) => String(match.tournament_id) === String(tournamentId))
+        .filter((match) => typeof match.round === 'string' && match.round in roundOrder)
+        .sort((a, b) => roundOrder[a.round] - roundOrder[b.round])
+        .map((match) => ({
+          ...match,
+          username_player1:
+            match.username_player1 ??
+            (typeof match.player1 === 'number' ? playersById.get(match.player1) : null) ??
+            t('game.winner.player1_label'),
+          username_player2:
+            match.username_player2 ??
+            (typeof match.player2 === 'number' ? playersById.get(match.player2) : null) ??
+            t('game.winner.player2_label'),
+          username_winner:
+            match.username_winner ??
+            (typeof match.winner_id === 'number' ? playersById.get(match.winner_id) : null) ??
+            t('game.tournament_results.unknown_winner', 'Inconnu'),
+        }));
+
+      setTournamentResults(results);
+      setTournamentResultsError(null);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : t('game.tournament_results.fetch_error', 'Impossible de charger les résultats.');
+      setTournamentResultsError(message);
+      setTournamentResults([]);
+    }
+  }
+
+  async function resolveTournamentNextStep() {
+    if (!isTournamentMode || !tournamentId) return;
+
+    setIsResolvingTournamentNextMatch(true);
+    setTournamentResultsError(null);
+
+    try {
+      let nextSessionId: string | null = null;
+      let lastStatus: number | null = null;
+
+      const maxAttempts = 5;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          const response = await api.get<MatchToPlayResponse>(
+            `/game/tournaments/${tournamentId}/match-to-play`,
+          );
+          if (response.data?.sessionId) {
+            nextSessionId = response.data.sessionId;
+            break;
+          }
+        } catch (err: unknown) {
+          const status = (err as { response?: { status?: number } })?.response?.status ?? null;
+          lastStatus = status;
+
+          // 404 peut être transitoire juste après la fin de match (création final/petite finale)
+          if (status === 404 && attempt < maxAttempts) {
+            await wait(600);
+            continue;
+          }
+
+          // Erreur réseau/serveur: on retente quelques fois, puis on bascule résultats
+          if (attempt < maxAttempts) {
+            await wait(600);
+            continue;
+          }
+        }
+      }
+
+      if (nextSessionId) {
+        setNextMatchSessionId(nextSessionId);
+        return;
+      }
+
+      setNextMatchSessionId(null);
+      await loadTournamentResults();
+      setScreen('tournament_results');
+
+      if (lastStatus !== 404 && tournamentResults.length === 0) {
+        setTournamentResultsError(
+          t(
+            'game.tournament_results.next_match_error',
+            'Impossible de déterminer le prochain match de tournoi.',
+          ),
+        );
+      }
+    } finally {
+      setIsResolvingTournamentNextMatch(false);
+    }
+  }
+
   useEffect(() => {
-    if (gameMode === 'tournament') return;
+    if (!isTournamentMode) return;
+    if (isLoading) return;
+    if (currentSessionId) return;
+
+    // Aucun match actif pour ce joueur : afficher directement les résultats
+    void resolveTournamentNextStep();
+  }, [isTournamentMode, isLoading, currentSessionId]);
+
+  useEffect(() => {
+    if (isTournamentMode) return;
 
     const targetPath =
       activeMode === 'remote'
@@ -341,7 +537,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     if (location.pathname !== targetPath) {
       navigate(targetPath, { replace: true });
     }
-  }, [activeMode, gameMode, location.pathname, navigate]);
+  }, [activeMode, isTournamentMode, location.pathname, navigate]);
 
   // ── Rendu ──────────────────────────────────────────────────────────────────
   return (
@@ -396,6 +592,18 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
             localRole={lobby.localPlayer?.role ?? null}
             isForfeit={forfeit}
             onPlayAgain={handlePlayAgain}
+            onNextMatch={nextMatchSessionId ? handleNextTournamentMatch : undefined}
+            onViewResults={isTournamentMode ? handleShowTournamentResults : undefined}
+            isTournamentProgressLoading={isResolvingTournamentNextMatch}
+            onExit={handleExit}
+          />
+        )}
+
+        {screen === 'tournament_results' && (
+          <TournamentResultsScreen
+            tournamentId={tournamentId ?? null}
+            matches={tournamentResults}
+            error={tournamentResultsError}
             onExit={handleExit}
           />
         )}
