@@ -84,7 +84,7 @@ export const FriendsPage = () => {
       <div className="border-b border-b-gray-300 mb-1">
         <h2 className=" font-quantico text-gray-500 mb-1">{t('friends.list')}</h2>
       </div>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col w-full gap-2">
         {isLoading && <Loader message={t('global.loading')} />}
         {friends.length === 0 && <p className="text-gray-400 italic">{t('search.no_results')}</p>}
         {friends.map((f) => (
