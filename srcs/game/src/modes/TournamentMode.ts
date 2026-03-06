@@ -120,21 +120,59 @@ export class TournamentMode implements IGameMode {
       `[${session.id}] Tournament: Player ${player?.role ?? '?'} (${player?.username ?? '?'}) disconnected`,
     );
 
-    // Réinitialiser les ready players si la partie n'a pas encore commencé
-    if (session.game.status === 'waiting') {
-      session.clearReady();
-    }
+    // Déterminer s'il reste un joueur connecté
+    const remainingPlayer = session.getAllPlayers().find((p) => p.ws !== null);
 
-    // A disconnection mid-game must stop the engine so GameLoop can persist the
-    // partial result and advance the bracket.
-    if (session.game.status === 'playing') {
+    // Si un joueur reste ET que le jeu est en attente ou en cours → victoire par forfait
+    if (
+      remainingPlayer &&
+      (session.game.status === 'waiting' || session.game.status === 'playing')
+    ) {
+      app.log.info(
+        `[${session.id}] Tournament: ${player?.username ?? 'Un joueur'} disconnected — ${remainingPlayer.username} wins by forfeit`,
+      );
+
+      // Affecter les scores : le joueur restant obtient le score max, l'autre 0
+      const maxScore = session.game.settings.maxScore;
+      if (remainingPlayer.role === 'A') {
+        session.game.scores.left = maxScore;
+        session.game.scores.right = 0;
+      } else {
+        session.game.scores.left = 0;
+        session.game.scores.right = maxScore;
+      }
+
+      // Marquer le jeu comme terminé
+      session.game.stop();
+
+      // Broadcast la victoire par forfait
       broadcastToSession(session, {
         type: 'player_disconnected',
-        message: `${player?.username ?? 'Un joueur'} a quitté la partie — victoire par forfait`,
+        message: `${player?.username ?? 'Un joueur'} a quitté la partie — ${remainingPlayer.username} gagne par forfait`,
         players: session.getPlayersInfo(),
       });
-      app.log.info(`[${session.id}] Tournament: player left mid-game — game stopped (forfeit)`);
-      session.game.stop();
+
+      // Le GameLoop détectera le status 'finished' et persistera le résultat (inclut progression du bracket)
+      return;
+    }
+
+    // Si plus aucun joueur n'est connecté
+    if (session.connectedPlayerCount === 0) {
+      session.clearReady();
+      if (session.game.status === 'waiting') {
+        session.game.stop();
+        app.log.info(`[${session.id}] Tournament: no players left, session stopped`);
+      }
+    }
+
+    // Si un joueur se déconnecte mais qu'on attend encore l'autre
+    if (session.game.status === 'waiting' && session.connectedPlayerCount > 0) {
+      session.clearReady();
+      broadcastToSession(session, {
+        type: 'player_joined',
+        message: `${player?.username ?? 'Un joueur'} a quitté la session`,
+        players: session.getPlayersInfo(),
+      });
     }
   }
 
