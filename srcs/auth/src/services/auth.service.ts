@@ -219,11 +219,13 @@ export async function updateUserUsernameAndFetch(
   newUsername: string,
 ): Promise<UserDTO> {
   logger.info({ username, newUsername }, 'update username');
+  const user = await db.findUserByIdOrThrow(userId);
+  const currentUsername = user.username;
   await db.updateUserUsername(userId, newUsername);
   try {
-    await updateProfileUsername(userId, username, newUsername);
+    await updateProfileUsername(userId, currentUsername, newUsername);
   } catch (error: any) {
-    await db.updateUserUsername(userId, username);
+    await db.updateUserUsername(userId, currentUsername);
     throw new ServiceError(
       {
         code: ERROR_CODES.INTERNAL_ERROR,
@@ -238,8 +240,8 @@ export async function updateUserUsernameAndFetch(
       },
     );
   }
-  const user = await db.findUserByIdOrThrow(userId);
-  return toUserDTO(user);
+  const updatedUser = await db.findUserByIdOrThrow(userId);
+  return toUserDTO(updatedUser);
 }
 
 /**
