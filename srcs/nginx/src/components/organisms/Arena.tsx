@@ -110,7 +110,6 @@ const Arena = ({ className = '', gameStateRef, currentMode = 'ocean' }: ArenaPro
     const render = () => {
       const gameState = gameStateRef.current;
       if (!gameState || !gameState.paddles || !gameState.ball) {
-        console.log('no game state');
         requestAnimationFrame(render);
         return;
       }
