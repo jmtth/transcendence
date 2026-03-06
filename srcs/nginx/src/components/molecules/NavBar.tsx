@@ -1,6 +1,6 @@
 import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Locale } from '../atoms/Locale';
 import { useAuth } from '../../providers/AuthProvider';
 import Avatar from '../atoms/Avatar';
@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 export const NavBar = () => {
   const { user, isLoggedIn, logout } = useAuth();
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const playItems = [
     { label: t('navbar.play_friend'), to: '/friends' },

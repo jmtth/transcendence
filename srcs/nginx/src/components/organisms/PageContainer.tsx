@@ -38,7 +38,7 @@ export const Page = ({
             </div>
           )}
           <div className="grow flex flex-col justify-center overflow-hidden">
-            <Circle>
+            <Circle size={120}>
               {title && <h1 className="mb-6 text-gray-600 text-4xl font-quantico">{title}</h1>}
               {children}
             </Circle>

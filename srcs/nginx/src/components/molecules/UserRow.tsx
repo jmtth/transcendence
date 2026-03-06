@@ -67,7 +67,7 @@ const UserRow = ({ user, avatarSize = 'md', actions, isOnline = false, onAction 
               ></Avatar>{' '}
               <span
                 className={[
-                  'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-app-border',
+                  'absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-slate-800',
                   isOnline ? 'bg-emerald-500' : 'bg-gray-400',
                 ].join(' ')}
                 aria-label={isOnline ? 'online' : 'offline'}
