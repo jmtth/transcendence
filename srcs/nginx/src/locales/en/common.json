@@ -325,6 +325,8 @@
   "friends": {
     "friends": "Friends",
     "add": "add to friends",
+    "add_title": "Add a friend",
+    "list": "Existing friends",
     "remove": "remove from friends",
     "play": "play"
   },
@@ -390,6 +392,7 @@
       "no_sessions": "No sessions available"
     },
     "gameover": {
+      "wins": "wins",
       "title": "Game Over",
       "next_match": "Next match",
       "view_results": "View results"

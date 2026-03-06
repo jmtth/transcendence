@@ -1,6 +1,6 @@
 import MenuElement from '../atoms/MenuElement';
 import { MenuActions } from '../../types/react-types';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Locale } from '../atoms/Locale';
 import { useAuth } from '../../providers/AuthProvider';
 import Avatar from '../atoms/Avatar';
@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 export const NavBar = () => {
   const { user, isLoggedIn, logout } = useAuth();
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   const playItems = [
     { label: t('navbar.play_friend'), to: '/friends' },
@@ -32,7 +31,7 @@ export const NavBar = () => {
 
   return (
     <nav
-      className={`mb-2 bg-teal-800/30 p-5 w-full flex flex-row sm:gap-4 ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
+      className={`mb-1 bg-teal-800/30 p-5 w-full flex flex-row sm:gap-4 ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
     >
       <div className="lg:text-3xl hidden sm:block group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
         <Link to="/home">
