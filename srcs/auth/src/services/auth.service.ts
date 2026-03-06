@@ -71,7 +71,6 @@ export async function createUser(user: {
   try {
     await createUserProfile({
       authId: userId,
-      email: user.email || '',
       username: user.username,
     });
     return userId;
