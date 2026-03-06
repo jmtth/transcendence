@@ -31,7 +31,7 @@ export const NavBar = () => {
 
   return (
     <nav
-      className={`mb-2 bg-teal-800/30 p-5 w-full flex flex-row sm:gap-4 ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
+      className={`mb-1 bg-teal-800/30 p-5 w-full flex flex-row sm:gap-4 ${!isLoggedIn ? 'justify-center' : 'justify-between'}`}
     >
       <div className="lg:text-3xl hidden sm:block group font-quantico[900] font-stretch-extra-expanded font-bold tracking-wider self-center uppercase">
         <Link to="/home">

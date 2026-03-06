@@ -14,7 +14,7 @@ export default function Scrollable({
 }: ScrollableProps) {
   const layoutClass = !isAnimated ? 'max-w-4xl' : '';
   return (
-    <div className={`mt-0 mb-4 py-16 h-[90vh] flex justify-center items-center ${divClassName}`}>
+    <div className={`mt-0 h-[90vh] pb-20 flex justify-center items-center ${divClassName}`}>
       <div
         className={`${layoutClass} h-[75vh] w-full overflow-y-auto
           flex flex-col items-center 
