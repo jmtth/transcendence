@@ -17,6 +17,7 @@ interface StartGameScreenProps {
   isLoading: boolean;
   /** Données des sessions distantes (remote uniquement) */
   sessionsData: UseGameSessionsReturn | null;
+  onCreateAi: () => void;
   onCreateLocal: () => void;
   onCreateRemote: () => void;
   onJoinSession: (sessionId: string) => void;
@@ -54,6 +55,7 @@ const SessionItem = ({
 const StartGameScreen = ({
   isLoading,
   sessionsData,
+  onCreateAi,
   onCreateLocal,
   onCreateRemote,
   onJoinSession,
@@ -100,7 +102,7 @@ const StartGameScreen = ({
               {/* Sommet : bouton AI */}
               <div className="flex justify-center">
                 <CircleButton
-                  onClick={onCreateLocal}
+                  onClick={onCreateAi}
                   disabled={isLoading}
                   title={t('game.start.vs_ai', "Jouer contre l'IA")}
                 >

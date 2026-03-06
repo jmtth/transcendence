@@ -91,9 +91,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // ── Machine à états : écran courant ───────────────────────────────
-  const [screen, setScreen] = useState<GameScreen>(
-    gameMode === 'tournament' && sessionId ? 'playing' : 'start',
-  );
+  const [screen, setScreen] = useState<GameScreen>(gameMode === 'tournament' ? 'playing' : 'start');
 
   // ── Refs (stables, accessibles dans les closures WS) ──────────────────
   const wsRef = useRef<WebSocket | null>(null);
@@ -125,7 +123,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
     gameMode,
     initialSessionId: sessionId,
     onBeforeCreate,
-    autoCreate: false,
+    autoCreate: gameMode === 'tournament',
   });
 
   // ── Clavier ────────────────────────────────────────────────────────────────
@@ -234,6 +232,12 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   /** Créer une partie locale → écran de jeu */
   const handleCreateLocal = useCallback(async () => {
     await createSession('local');
+    setScreen('playing');
+  }, [createSession]);
+
+  /** Créer une partie IA → écran de jeu */
+  const handleCreateAi = useCallback(async () => {
+    await createSession('ai');
     setScreen('playing');
   }, [createSession]);
 
@@ -354,6 +358,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
           <StartGameScreen
             isLoading={isLoading}
             sessionsData={activeMode === 'remote' ? sessions : null}
+            onCreateAi={handleCreateAi}
             onCreateLocal={handleCreateLocal}
             onCreateRemote={handleCreateRemote}
             onJoinSession={handleJoinSession}
