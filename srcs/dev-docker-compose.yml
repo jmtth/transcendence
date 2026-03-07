@@ -181,6 +181,7 @@ services:
       - path: ./.env
       - path: ./.env.game
     volumes:
+      - data:/data
       - ../srcs/game:/app/srcs/game
       - ../srcs/shared/core:/app/srcs/shared/core
       - /app/node_modules
@@ -268,6 +269,7 @@ services:
     ports:
       - '8080:80'
       - '4430:443'
+      - '5173:5173'
     env_file:
       - path: ./.env.nginx
     environment:
