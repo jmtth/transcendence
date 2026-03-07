@@ -39,12 +39,12 @@ export const HomePage = () => {
                 {t('game.playWithAI')}
               </CircleButton>
             </Link>
-            <Link to="/game/simple-game">
+            <Link to="/friends">
               <CircleButton size={280} isMoving={true}>
                 {t('game.playWithFriends')}
               </CircleButton>
             </Link>
-            <Link className="md:col-span-2" to="/game/tournament">
+            <Link className="md:col-span-2" to="/tournaments">
               <CircleButton className="md:col-span-2" size={250} isMoving={true}>
                 {t('game.tournament')}
               </CircleButton>
