@@ -82,6 +82,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { tournamentId } = useParams<{ tournamentId?: string }>();
+  const { username: targetFriend } = useParams<{ username?: string }>();
 
   // ── Hooks ──────────────────────────────────────────────────────────────────
   const {
@@ -528,6 +529,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
             onCreateRemote={handleCreateRemote}
             onJoinSession={handleJoinSession}
             connectionError={connectionError}
+            friendNameFilter={targetFriend}
           />
         )}
 

@@ -68,7 +68,6 @@ COPY srcs/nginx/conf.d/proxy_nginx_certs.conf /etc/nginx/conf.d/proxy_nginx_cert
 COPY srcs/nginx/conf.d/frontend.prod.conf /etc/nginx/snippets/frontend.conf
 
 COPY --from=builder /app/srcs/nginx/dist /usr/share/nginx/src/html
-COPY --from=builder /app/srcs/nginx/dist/src/html/dashboard.html /usr/share/nginx/src/html/dashboard.html
 COPY --from=builder /app/srcs/nginx/dist/src/html/admin.html /usr/share/nginx/src/html/admin.html
 
 RUN mkdir -p /usr/share/nginx/html/uploads \

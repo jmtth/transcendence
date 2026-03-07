@@ -19,9 +19,15 @@ export default defineConfig(({ mode }) => {
       hmr: {
         protocol: 'wss',
         host: 'localhost',
-        port: 4430,
+        port: 5173,
       },
       proxy: {
+        '/api/game': {
+          target: 'https://127.0.0.1:443',
+          changeOrigin: true,
+          secure: false,
+          ws: true,
+        },
         '/api': {
           target: 'https://127.0.0.1:443',
           secure: false,
@@ -43,14 +49,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           main: path.resolve(__dirname, 'index.html'),
-          dashboard: path.resolve(__dirname, 'src/html/dashboard.html'),
           admin: path.resolve(__dirname, 'src/html/admin.html'),
-        },
-        output: {
-          // Force un nom prédictible pour le script du dashboard
-          entryFileNames: (chunkInfo: { name: string }) => {
-            return chunkInfo.name === 'dashboard' ? 'assets/app.js' : 'assets/[name]-[hash].js';
-          },
         },
       },
     },

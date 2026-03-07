@@ -53,13 +53,13 @@ export const NavBar = () => {
 
       <div className="flex flex-col items-center justify-around">
         {user && isLoggedIn && (
-          <Link
-            to="/me"
+          <Avatar
             className="hover:opacity-80 transition-opacity"
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            <Avatar key={user.avatarUrl} src={user.avatarUrl} size="sm"></Avatar>
-          </Link>
+            key={user.avatarUrl}
+            src={user.avatarUrl}
+            to={'/me'}
+            size="sm"
+          ></Avatar>
         )}
 
         <div className="flex flex-row items-center justify-center">
