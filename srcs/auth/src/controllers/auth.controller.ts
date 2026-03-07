@@ -407,6 +407,15 @@ export async function patchUsernameHandler(
   const username = (request.headers as any)['x-user-name'];
   const id = Number(request.headers['x-user-id'] as string);
   const { newUsername } = request.body;
+
+  // Empêcher l'admin de modifier son propre username
+  const userRole = authService.getUserRole(id);
+  if (userRole === 'admin') {
+    return reply.code(403).send({
+      error: { message: 'Admin cannot change their own username', code: 'SELF_UPDATE_FORBIDDEN' },
+    });
+  }
+
   request.log.info({ event: 'patch_username', id, username, newUsername });
   const updatedUser = await authService.updateUserUsernameAndFetch(id, username, newUsername);
   request.log.info({ event: 'patch_username_success', id, username, newUsername });
