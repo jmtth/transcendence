@@ -6,10 +6,17 @@ export interface PlayerStat {
   username: string;
   tournaments_played: number;
   tournaments_won: number;
+  tournaments_lost?: number;
   matches_played: number;
   matches_won: number;
+  matches_lost?: number;
   tournamentsWinRate: number;
   matchesWinRate: number;
+  points_scored?: number;
+  points_conceded?: number;
+  avg_points_scored?: number;
+  avg_points_conceded?: number;
+  last_match_at?: number | null;
 }
 
 export const StatsTableDesktop = ({ stats }: { stats: PlayerStat[] }) => {
@@ -58,6 +65,10 @@ export const StatsTableDesktop = ({ stats }: { stats: PlayerStat[] }) => {
           ),
         },
         {
+          header: t('stats.matches_lost', 'Matches Lost'),
+          cell: (row) => <span className="text-rose-500">{row.matches_lost ?? 0}</span>,
+        },
+        {
           header: t('stats.matches_win_rate', 'Matches Win Rate'),
           className: 'text-right',
           cell: (row) => <span className="text-cyan-600">{row.matchesWinRate} %</span>,
@@ -92,6 +103,8 @@ export const StatsListMobile = ({ stats }: { stats: PlayerStat[] }) => {
                 ],
                 [t('stats.matches_played', 'Matches Played'), row.matches_played, false],
                 [t('stats.matches_won', 'Matches Won'), row.matches_won, row.matches_won > 0],
+                [t('stats.matches_lost', 'Matches Lost'), row.matches_lost ?? 0, false],
+                [t('stats.points_scored', 'Points Scored'), row.points_scored ?? 0, false],
               ] as [string, number, boolean][]
             ).map(([label, value, highlight]) => (
               <div key={label} className="bg-gray-50 rounded-xl p-2 text-center">
