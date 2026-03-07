@@ -8,7 +8,11 @@ export const StatsPage = () => {
   const [searchParams] = useSearchParams();
   const username = searchParams.get('username')?.trim() || null;
 
-  const { data: stats = [], isLoading, isError } = useQuery({
+  const {
+    data: stats = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['game-stats', username],
     queryFn: async () => {
       const { data } = await api.get<PlayerStat[]>('/game/stats', {
@@ -49,9 +53,9 @@ export const StatsPage = () => {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-8">
+    <div className="w-full px-4 py-8">
       {mainStat && (
-        <div className="mb-8">
+        <div className="w-full mb-8">
           <div className="bg-white/70 rounded-3xl shadow-2xl p-6 border border-cyan-300">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
               <h2 className="text-xl md:text-2xl font-semibold text-gray-700 font-quantico text-center md:text-left">
@@ -71,7 +75,8 @@ export const StatsPage = () => {
               <div className="bg-gray-50 rounded-xl p-3 text-center">
                 <div className="text-xs text-gray-500">Wins / Losses</div>
                 <div className="font-semibold text-emerald-600">
-                  {mainStat.matches_won} / <span className="text-rose-500">{mainStat.matches_lost ?? 0}</span>
+                  {mainStat.matches_won} /{' '}
+                  <span className="text-rose-500">{mainStat.matches_lost ?? 0}</span>
                 </div>
               </div>
               <div className="bg-gray-50 rounded-xl p-3 text-center">
@@ -108,10 +113,10 @@ export const StatsPage = () => {
         </div>
       )}
 
-      <div className="hidden md:block">
+      <div className="hidden md:block w-full">
         <StatsTableDesktop stats={stats} />
       </div>
-      <div className="md:hidden">
+      <div className="md:hidden w-full">
         <StatsListMobile stats={stats} />
       </div>
     </div>

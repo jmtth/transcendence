@@ -12,7 +12,11 @@ export const HistoryPage = () => {
   const [searchParams] = useSearchParams();
   const username = searchParams.get('username')?.trim() || null;
 
-  const { data: history = [], isLoading, isError } = useQuery({
+  const {
+    data: history = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['game-history', username],
     queryFn: async () => {
       const { data } = await api.get<MatchHistory[]>('/game/history', {
@@ -40,14 +44,16 @@ export const HistoryPage = () => {
   }
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-8">
-      <div className="mb-8">
+    <div className="w-full px-4 py-8">
+      <div className="w-full mb-8">
         <div className="bg-white/70 rounded-3xl shadow-2xl p-6 border border-cyan-300">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-5">
             <h2 className="text-xl md:text-2xl font-semibold text-gray-700 font-quantico text-center md:text-left">
               {username ? `History for ${username}` : 'My match history'}
             </h2>
-            <span className="text-sm text-gray-500 text-center md:text-right">{history.length} matches</span>
+            <span className="text-sm text-gray-500 text-center md:text-right">
+              {history.length} matches
+            </span>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -71,10 +77,10 @@ export const HistoryPage = () => {
         </div>
       </div>
 
-      <div className="hidden md:block">
+      <div className="hidden md:block w-full">
         <HistoryTableDesktop history={history} />
       </div>
-      <div className="md:hidden">
+      <div className="md:hidden w-full">
         <HistoryListMobile history={history} />
       </div>
     </div>
