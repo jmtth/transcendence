@@ -107,8 +107,8 @@ export const AUTH_CONFIG = {
 
     // Rate limiting OAuth
     CALLBACK_RATE_LIMIT: {
-      max: isTestOrDev ? 100000 : 1000,
-      timeWindow: '50 minutes',
+      max: isTestOrDev ? 1000 : 10,
+      timeWindow: '5 minutes',
     },
 
     // Providers configuration
@@ -184,9 +184,8 @@ export const ERROR_MESSAGES = {
   // 2FA errors
   TWO_FA_NOT_ENABLED: '2FA is not enabled for this user',
 
-  // Self-action errors
+  // Deletion errors
   SELF_DELETION_FORBIDDEN: 'Cannot delete your own account',
-  SELF_UPDATE_FORBIDDEN: 'Cannot modify your own account from admin panel',
 
   // Generic
   INTERNAL_SERVER_ERROR: 'Internal server error',
@@ -211,7 +210,6 @@ export const ERROR_RESPONSE_CODES = {
   USERNAME_EXISTS: 'USERNAME_EXISTS',
   TWO_FA_NOT_ENABLED: '2FA_NOT_ENABLED',
   SELF_DELETION_FORBIDDEN: 'SELF_DELETION_FORBIDDEN',
-  SELF_UPDATE_FORBIDDEN: 'SELF_UPDATE_FORBIDDEN',
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
   HEARTBEAT_ERROR: 'HEARTBEAT_ERROR',
   FETCH_USER_ERROR: 'FETCH_USER_ERROR',
