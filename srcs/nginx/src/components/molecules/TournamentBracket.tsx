@@ -159,12 +159,12 @@ export function TournamentBracket({
       {/* Status indicators */}
       {!isAllConnected && matches.length === 0 && (
         <p className="text-center text-white/60 font-quantico mt-8 animate-pulse">
-          {t('game.waiting_players', 'En attente des joueurs…')}
+          {t('game.waiting_players')}
         </p>
       )}
       {isAllConnected && matches.length === 0 && (
         <p className="text-center text-white/60 font-quantico mt-8 animate-pulse">
-          {t('game.starting_tournament', 'Démarrage du tournoi…')}
+          {t('game.starting_tournament')}
         </p>
       )}
     </div>

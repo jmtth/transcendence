@@ -69,15 +69,13 @@ export function MatchNode({
             bg-emerald-500 text-white hover:bg-emerald-600
             hover:scale-105 active:scale-100 transition-all animate-pulse"
         >
-          {t('game.play', 'Jouer')}
+          {t('game.play')}
         </button>
       )}
 
       {/* In-progress indicator for matches the user is not in */}
       {status === 'running' && !canPlay && (
-        <span className="text-amber-300 text-xs animate-pulse">
-          {t('game.in_progress', 'En cours…')}
-        </span>
+        <span className="text-amber-300 text-xs animate-pulse">{t('game.in_progress')}</span>
       )}
     </div>
   );

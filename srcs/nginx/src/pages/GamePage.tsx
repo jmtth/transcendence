@@ -289,7 +289,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
       // Vérifier que la session est encore valide
       const sessionExists = sessions.sessionsList?.some((s) => s.sessionId === id);
       if (!sessionExists) {
-        setConnectionError(t('game.error.session_not_found', 'Session not found or expired'));
+        setConnectionError(t('game.error.session_not_found'));
         setScreen('start');
         return;
       }
@@ -304,10 +304,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
           setConnectionError(null);
         })
         .catch((err) => {
-          const message =
-            err instanceof Error
-              ? err.message
-              : t('game.error.connection_failed', 'Failed to connect to session');
+          const message = err instanceof Error ? err.message : t('game.error.connection_failed');
           setConnectionError(message);
           setScreen('start');
           console.error('[JoinSession] Connection failed:', err);
@@ -389,9 +386,7 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
   async function loadTournamentResults() {
     if (!tournamentId) {
       setTournamentResults([]);
-      setTournamentResultsError(
-        t('game.tournament_results.unavailable', 'Résultats indisponibles'),
-      );
+      setTournamentResultsError(t('game.tournament_results.unavailable'));
       return;
     }
 
@@ -431,16 +426,13 @@ export const GamePage = ({ sessionId, gameMode }: GamePageProps) => {
           username_winner:
             match.username_winner ??
             (typeof match.winner_id === 'number' ? playersById.get(match.winner_id) : null) ??
-            t('game.tournament_results.unknown_winner', 'Inconnu'),
+            t('game.tournament_results.unknown_winner'),
         }));
 
       setTournamentResults(results);
       setTournamentResultsError(null);
     } catch (err) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : t('game.tournament_results.fetch_error', 'Impossible de charger les résultats.');
+      const message = err instanceof Error ? err.message : t('game.tournament_results.fetch_error');
       setTournamentResultsError(message);
       setTournamentResults([]);
     }

@@ -86,9 +86,9 @@ export default function TournamentBracketPage() {
   const players = state
     ? fillSlots(
         state.players.map((p) => mapToPlayer(p)),
-        t('game.waiting', 'En attente…'),
+        t('game.waiting'),
       )
-    : fillSlots([], t('game.waiting', 'En attente…'));
+    : fillSlots([], t('game.waiting'));
 
   return (
     <TournamentBracket

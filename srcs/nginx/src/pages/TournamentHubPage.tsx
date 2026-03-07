@@ -59,7 +59,7 @@ export default function TournamentHubPage() {
       const id = await createTournament();
       navigate(`/tournaments/${id}`);
     } catch {
-      toast.error(t('game.error.failed_create_tournament', 'Impossible de créer le tournoi'));
+      toast.error(t('game.error.failed_create_tournament'));
     } finally {
       setCreating(false);
     }
@@ -70,9 +70,9 @@ export default function TournamentHubPage() {
       await joinTournament(id);
       navigate(`/tournaments/${id}`);
     } catch (err: any) {
-      const code = err.response?.data?.code;
-      if (code === 'TOURNAMENT_FULL') {
-        toast.warn(t('game.tournament_full', 'Tournoi complet'));
+      const status = err.response?.status;
+      if (status === 409) {
+        toast.warn(t('game.tournament_full'));
       } else {
         // Already in tournament — navigate anyway
         navigate(`/tournaments/${id}`);
@@ -97,7 +97,7 @@ export default function TournamentHubPage() {
           }
         `}
       >
-        {creating ? t('game.creating', 'Création en cours…') : t('game.create', 'Créer un tournoi')}
+        {creating ? t('game.creating') : t('game.create')}
       </CircleButton>
 
       {/* Tournament list */}

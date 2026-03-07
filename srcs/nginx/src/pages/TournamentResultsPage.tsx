@@ -56,9 +56,7 @@ export default function TournamentResultsPage() {
       })
       .catch((err) => {
         setError(
-          err.response?.data?.message ??
-            err.message ??
-            t('game.tournament_results.fetch_error', 'Impossible de charger les résultats.'),
+          err.response?.data?.message ?? err.message ?? t('game.tournament_results.fetch_error'),
         );
       });
   }, [id, t]);
