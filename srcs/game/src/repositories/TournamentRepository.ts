@@ -55,6 +55,9 @@ export class TournamentRepository {
   private getMatchByRoundStmt;
   private getTournamentStatsStmt;
   private getBlockchainPlayersStmt;
+  private getTournamentStateStmt;
+  private getMatchByIdFullStmt;
+  private getStatusStmt;
 
   constructor(db: Database.Database) {
     this.db = db;
@@ -114,6 +117,34 @@ export class TournamentRepository {
     `);
     this.getMatchByRoundStmt = db.prepare(`
       SELECT player1, player2, winner_id FROM match WHERE tournament_id = ? AND round = ?
+    `);
+    this.getTournamentStateStmt = db.prepare(`
+      SELECT
+        m.id, m.round, m.player1, m.player2,
+        m.score_player1, m.score_player2, m.winner_id, m.sessionId,
+        p1.username AS username_player1,
+        p2.username AS username_player2,
+        pw.username AS username_winner
+      FROM match m
+      LEFT JOIN player p1 ON p1.id = m.player1
+      LEFT JOIN player p2 ON p2.id = m.player2
+      LEFT JOIN player pw ON pw.id = m.winner_id
+      WHERE m.tournament_id = ?
+      ORDER BY m.created_at ASC
+    `);
+    this.getMatchByIdFullStmt = db.prepare(`
+      SELECT
+        m.id, m.tournament_id, m.round, m.player1, m.player2,
+        m.sessionId, m.score_player1, m.score_player2, m.winner_id,
+        p1.username AS username_player1,
+        p2.username AS username_player2
+      FROM match m
+      LEFT JOIN player p1 ON p1.id = m.player1
+      LEFT JOIN player p2 ON p2.id = m.player2
+      WHERE m.id = ?
+    `);
+    this.getStatusStmt = db.prepare(`
+      SELECT status FROM tournament WHERE id = ?
     `);
     this.getTournamentStatsStmt = db.prepare(`
       WITH base AS (
@@ -361,6 +392,88 @@ export class TournamentRepository {
       throw new AppError(
         ERR_DEFS.DB_SELECT_ERROR,
         { details: [{ field: `getMatchToPlay tournamentId:${tournamentId} userId:${userId}` }] },
+        err,
+      );
+    }
+  }
+
+  /**
+   * Returns the full state of a tournament: status, players, and all matches with scores/usernames.
+   * This is used by the frontend to reconstruct the entire bracket in one call.
+   */
+  getTournamentFullState(tournamentId: number): {
+    status: 'PENDING' | 'STARTED' | 'FINISHED' | null;
+    players: TournamentPlayerView[];
+    matches: Array<{
+      id: number;
+      round: string;
+      player1: number;
+      player2: number;
+      score_player1: number;
+      score_player2: number;
+      winner_id: number | null;
+      sessionId: string | null;
+      username_player1: string | null;
+      username_player2: string | null;
+      username_winner: string | null;
+    }>;
+  } {
+    try {
+      const statusRow = this.getStatusStmt.get(tournamentId) as { status: string } | undefined;
+      if (!statusRow) {
+        return { status: null, players: [], matches: [] };
+      }
+      const players = this.listPlayersStmt.all(tournamentId) as TournamentPlayerView[];
+      const matches = this.getTournamentStateStmt.all(tournamentId) as Array<{
+        id: number;
+        round: string;
+        player1: number;
+        player2: number;
+        score_player1: number;
+        score_player2: number;
+        winner_id: number | null;
+        sessionId: string | null;
+        username_player1: string | null;
+        username_player2: string | null;
+        username_winner: string | null;
+      }>;
+      return {
+        status: statusRow.status as 'PENDING' | 'STARTED' | 'FINISHED',
+        players,
+        matches,
+      };
+    } catch (err: unknown) {
+      throw new AppError(
+        ERR_DEFS.DB_SELECT_ERROR,
+        { details: [{ field: `getTournamentFullState ${tournamentId}` }] },
+        err,
+      );
+    }
+  }
+
+  /**
+   * Returns match info by match ID (used to resolve matchId -> sessionId for /game/:matchId).
+   */
+  getMatchById(matchId: number): {
+    id: number;
+    tournament_id: number | null;
+    round: string | null;
+    player1: number;
+    player2: number;
+    sessionId: string | null;
+    score_player1: number;
+    score_player2: number;
+    winner_id: number | null;
+    username_player1: string | null;
+    username_player2: string | null;
+  } | null {
+    try {
+      const row = this.getMatchByIdFullStmt.get(matchId) as any;
+      return row || null;
+    } catch (err: unknown) {
+      throw new AppError(
+        ERR_DEFS.DB_SELECT_ERROR,
+        { details: [{ field: `getMatchById ${matchId}` }] },
         err,
       );
     }

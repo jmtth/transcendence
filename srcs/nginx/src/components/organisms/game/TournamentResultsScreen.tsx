@@ -23,6 +23,8 @@ interface TournamentResultsScreenProps {
   matches: TournamentHistoryMatch[];
   error: string | null;
   onExit: () => void;
+  /** Hide the built-in NavBar (set true when rendered inside a layout that already has one). */
+  hideNavBar?: boolean;
 }
 
 const ROUND_LABELS: Record<string, string> = {
@@ -44,6 +46,7 @@ const TournamentResultsScreen = ({
   matches,
   error,
   onExit,
+  hideNavBar = false,
 }: TournamentResultsScreenProps) => {
   const { t } = useTranslation('common');
 
@@ -61,9 +64,11 @@ const TournamentResultsScreen = ({
 
   return (
     <div className="w-full h-full flex flex-col">
-      <div className="sticky top-0 z-50 w-full">
-        <NavBar />
-      </div>
+      {!hideNavBar && (
+        <div className="sticky top-0 z-50 w-full">
+          <NavBar />
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto px-6 py-8 md:px-10">
         <div className="mx-auto w-full max-w-5xl flex flex-col gap-6">
