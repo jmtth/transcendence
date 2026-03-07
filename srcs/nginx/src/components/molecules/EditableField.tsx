@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import Button from '../atoms/Button';
 import { Input } from '../atoms/Input';
+import { useTranslation } from 'react-i18next';
 
 interface EditableFieldProps {
   label: string;
@@ -22,6 +23,7 @@ export const EditableField = ({
   isPending = false,
   disabled = false,
 }: EditableFieldProps) => {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [localValue, setLocalValue] = useState(value);
   useEffect(() => {
@@ -58,11 +60,11 @@ export const EditableField = ({
         />
 
         <Button onClick={handleSave} variant="primary" className="px-2 py-2" disabled={isPending}>
-          Save
+          {t('global.save')}
         </Button>
 
         <Button onClick={handleCancel} variant="secondary" className="px-2 py-2">
-          Cancel
+          {t('global.cancel')}
         </Button>
       </div>
     </div>
