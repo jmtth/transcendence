@@ -62,6 +62,47 @@ export const HomePage = () => {
           </main>
 
           <Footer />
+    <div className="w-full h-full relative">
+      <Background
+        grainIntensity={4}
+        baseFrequency={0.28}
+        colorStart={colors.start}
+        colorEnd={colors.end}
+      >
+        <NavBar />
+        <div className="flex flex-col justify-around">
+          <Scrollable
+            className="h-[90vh] md:grid md:grid-cols-2 md:place-items-center"
+            divClassName="mt-0"
+            isAnimated={true}
+          >
+            <Link to="/game/pong-ai">
+              <CircleButton size={220} isMoving={true}>
+                {t('game.playWithAI')}
+              </CircleButton>
+            </Link>
+            <Link to="/friends">
+              <CircleButton size={280} isMoving={true}>
+                {t('game.playWithFriends')}
+              </CircleButton>
+            </Link>
+            <Link className="md:col-span-2" to="/tournaments">
+              <CircleButton className="md:col-span-2" size={250} isMoving={true}>
+                {t('game.tournament')}
+              </CircleButton>
+            </Link>
+            <Link to="/game/remote">
+              <CircleButton size={220} isMoving={true}>
+                {t('game.playRemote')}
+              </CircleButton>
+            </Link>
+            <Link to="/game/local">
+              <CircleButton size={280} isMoving={true}>
+                {t('game.playLocal')}
+              </CircleButton>
+            </Link>
+            <Footer className="z-15"></Footer>
+          </Scrollable>
         </div>
       </Background>
     </div>
