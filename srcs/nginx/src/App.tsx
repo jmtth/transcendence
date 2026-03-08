@@ -46,12 +46,12 @@ export const App = () => {
         <Route element={<PrivateRoute />}>
           <Route path="/home" element={<HomePage />} />
 
-          <Route path="/game/remote" element={<GamePage sessionId={null} />} />
-          <Route path="/game/remote/:username" element={<GamePage sessionId={null} />} />
-          <Route path="/game/local" element={<GamePage sessionId={null} />} />
-          <Route path="/game/pong-ai" element={<GamePage sessionId={null} />} />
-          <Route path="/game/tournament/:tournamentId" element={<GamePage sessionId={null} />} />
-          <Route path="/game" element={<GamePage sessionId={null} />} />
+          <Route path="/game/remote" element={<GamePage />} />
+          <Route path="/game/remote/:username" element={<GamePage />} />
+          <Route path="/game/local" element={<GamePage />} />
+          <Route path="/game/pong-ai" element={<GamePage />} />
+          <Route path="/game/tournament/:tournamentId" element={<GamePage />} />
+          <Route path="/game" element={<GamePage />} />
 
           <Route path="/me" element={<MyProfilePage />} />
           <Route path="/friends" element={<FriendsPage />} />
