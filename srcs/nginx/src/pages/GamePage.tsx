@@ -146,8 +146,8 @@ export const GamePage = ({ sessionId }: GamePageProps) => {
     createSession,
     exitSession,
   } = useGameSession({
-    gameMode,
-    initialSessionId: sessionId,
+    gameMode: gameMode === 'tournament' ? 'tournament' : 'remote',
+    initialSessionId: null,
     onBeforeCreate,
     autoCreate: gameMode === 'tournament',
   });
