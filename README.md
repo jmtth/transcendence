@@ -293,7 +293,7 @@ erDiagram
     }
 
     login_token_attempts {
-        TEXT token PK,FK
+        TEXT token PK,FK "REFERENCES login_tokens(token)"
         INTEGER attempts "DEFAULT 0"
     }
 
@@ -305,9 +305,8 @@ erDiagram
     }
 
     users ||--o{ login_tokens : "has"
-    login_tokens ||--o| login_token_attempts : "tracks"
     users ||--o{ totp_setup_secrets : "has"
-
+    login_tokens ||--o| login_token_attempts : "tracks"
 ```
 
 ### Users Service Schema
@@ -316,71 +315,89 @@ erDiagram
 erDiagram
     UserProfile {
         Int id PK "autoincrement"
-        Int authId "UNIQUE - FK to auth.users.id"
-        DateTime createdAt
-        String email "UNIQUE, optional"
+        Int authId "UNIQUE (Soft FK to auth.users.id)"
+        DateTime createdAt "default(now())"
         String username "UNIQUE"
-        String avatarUrl "optional"
+        String avatarUrl "nullable"
     }
 
     Friendship {
         Int id PK "autoincrement"
-        DateTime createdAt
-        String nicknameRequester "optional"
-        String nicknameReceiver "optional"
+        DateTime createdAt "default(now())"
+        String nicknameRequester "nullable"
+        String nicknameReceiver "nullable"
         String status
-        Int requesterId FK
-        Int receiverId FK
+        Int requesterId FK "REFERENCES UserProfile.authId"
+        Int receiverId FK "REFERENCES UserProfile.authId"
     }
 
-    UserProfile ||--o{ Friendship : "requested (requester)"
-    UserProfile ||--o{ Friendship : "received (receiver)"
+    UserProfile ||--o{ Friendship : "requested (requesterId)"
+    UserProfile ||--o{ Friendship : "received (receiverId)"
 ```
 
 ### Game/Tournament Schema
 
 ```mermaid
 erDiagram
-
-    TOURNAMENT {
-        INTEGER id PK
-        INTEGER creator_id
-        TEXT status
-        INTEGER created_at
-    }
-
-    MATCH {
-        INTEGER id PK
-        INTEGER tournament_id
-        TEXT  sessionId
-        INTEGER player1
-        INTEGER player2
-        INTEGER score_player1
-        INTEGER score_player2
-        INTEGER winner_id
-        TEXT round
-        INTEGER created_at
-    }
-
-    TOURNAMENT_PLAYER {
-        INTEGER tournament_id PK
-        INTEGER player_id PK
-        INTEGER final_position
-    }
-
-    PLAYER {
+    player {
         INTEGER id PK
         TEXT username
         TEXT avatar
         INTEGER updated_at
     }
 
+    tournament {
+        INTEGER id PK "AUTOINCREMENT"
+        INTEGER creator_id FK
+        TEXT status "DEFAULT 'PENDING'"
+        INTEGER created_at
+    }
 
-    TOURNAMENT ||--o{ MATCH : contains
-    TOURNAMENT ||--o{ TOURNAMENT_PLAYER : has_players
-    TOURNAMENT }o--|| PLAYER : is
-    MATCH }o--|| PLAYER : is
-    TOURNAMENT_PLAYER }o--|| PLAYER : is
+    tournament_player {
+        INTEGER tournament_id PK,FK
+        INTEGER player_id PK,FK
+        INTEGER final_position
+        INTEGER slot
+    }
+
+    match {
+        INTEGER id PK "AUTOINCREMENT"
+        INTEGER tournament_id FK "nullable"
+        INTEGER player1 FK
+        INTEGER player2 FK
+        TEXT sessionId "nullable"
+        INTEGER score_player1 "DEFAULT 0"
+        INTEGER score_player2 "DEFAULT 0"
+        INTEGER winner_id FK "nullable"
+        TEXT round "nullable"
+        INTEGER created_at
+    }
+
+    player ||--o{ tournament : "creates"
+    tournament ||--o{ tournament_player : "includes"
+    player ||--o{ tournament_player : "participates in"
+    tournament ||--o{ match : "contains"
+    player ||--o{ match : "plays as p1 / p2 / winner"
+```
+
+### Blockchain Schema
+
+```mermaid
+erDiagram
+    snapshot {
+        INTEGER id PK "AUTOINCREMENT"
+        TEXT tx_hash "UNIQUE"
+        TEXT snapshot_hash "UNIQUE"
+        INTEGER block_timestamp
+        INTEGER tour_id "UNIQUE (Soft FK to game.tournament.id)"
+        INTEGER player1
+        INTEGER player2
+        INTEGER player3
+        INTEGER player4
+        INTEGER block_number
+        TEXT verify_status "DEFAULT 'PENDING'"
+        INTEGER verified_at
+    }
 ```
 
 ### Redis Keys
