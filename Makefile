@@ -276,7 +276,7 @@ show:
 # xargs -r won't launch next command list is empty
 clean:
 	@echo "Stopping and removing containers…"
-	@@$(D_COMPOSE_AI) stop
+	@$(D_COMPOSE_AI) stop
 	@$(CONTAINER_CMD) ps -aq | xargs -r $(CONTAINER_CMD) rm -f
 	@echo "Pruning unused resources (SAFE)…"
 	$(CONTAINER_CMD) system prune -f
